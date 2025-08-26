@@ -1,0 +1,48 @@
+{% extends 'main/layout.html' %}
+
+{% block title %}Кафе-бар{% endblock %}
+
+{% block content %}
+    <!-- Баннер -->
+    <div class="text-center">
+        <img src="https://picsum.photos/860/380?random=1" alt="">
+    </div>
+    <!-- Основной контейнер -->
+    <div class="container w-80">
+
+        <div class="row">
+            <!-- Левая колонка с контентом -->
+            <div class="col-lg-9 w-80 text-black">
+                <!-- Заголовок -->
+                <div class="text-center my-4">
+                    <h2>Кафе-бар</h2>
+                </div>
+
+                <div class="col text-black">
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla quam velit, vulputate eu pharetra nec, mattis ac neque. Duis vulputate commodo lectus, ac blandit elit tincidunt id. Sed rhoncus, tortor sed eleifend tristique, tortor mauris molestie elit, et lacinia ipsum quam nec dui. Quisque nec mauris sit amet elit iaculis pretium sit amet quis magna. Aenean velit odio, elementum in tempus ut, vehicula eu diam. Pellentesque rhoncus aliquam mattis. Ut vulputate eros sed felis sodales nec vulputate justo hendrerit. Vivamus varius pretium ligula, a aliquam odio euismod sit amet. Quisque laoreet sem sit amet orci ullamcorper at ultricies metus viverra. Pellentesque arcu mauris, malesuada quis ornare accumsan, blandit sed diam.</p>
+                </div>
+
+                <div class="row text-black">
+                    <img src="https://picsum.photos/400/300?random=1" alt="" style="width: 220px; height: 400px">
+                    <img src="https://picsum.photos/400/300?random=2" alt="" style="width: 220px; height: 400px">
+                    <img src="https://picsum.photos/400/300?random=3" alt="" style="width: 220px; height: 400px">
+                    <img src="https://picsum.photos/400/300?random=4" alt="" style="width: 220px; height: 400px">
+                </div>
+
+                <div class="app-buttons">
+                    <a href="#"><img src="https://w7.pngwing.com/pngs/49/106/png-transparent-android-google-play-app-store-google-play-text-computer-logo.png" alt="Google Play"></a>
+                    <a href="#"><img src="https://w7.pngwing.com/pngs/422/842/png-transparent-apple-store-logo-app-store-android-google-play-get-started-now-button-text-logo-black.png" alt="App Store"></a>
+                </div>
+            </div>
+
+            <!-- Правая колонка с рекламой -->
+            <div class="col-lg-3 w-20">
+                <div class="ad-block">
+                    <img src="https://picsum.photos/1200/500?random=1" alt="">
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

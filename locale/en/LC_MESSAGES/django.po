@@ -1,0 +1,129 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-08-25 18:21+0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: .\main\templates\main\layout.html:32
+msgid "Log Out"
+msgstr "Выйти"
+
+#: .\main\templates\main\layout.html:37
+msgid "Логин"
+msgstr "Login"
+
+#: .\main\templates\main\layout.html:39
+msgid "Регистрация"
+msgstr "Registration"
+
+#: .\main\templates\main\layout.html:45
+msgid "Покупайте электронные билеты"
+msgstr "Buy e-tickets"
+
+#: .\main\templates\main\layout.html:46
+msgid "и обходите очереди на кассах! ОТПРАВЛЯЙТЕСЬ СРАЗУ В ЗАЛ!"
+msgstr "and skip the lines at the box office! GO STRAIGHT TO THE AUDITORIUM!"
+
+#: .\main\templates\main\layout.html:52
+msgid "Главная"
+msgstr "Home"
+
+#: .\main\templates\main\layout.html:52
+msgid "Логотип кинотеатра"
+msgstr "Cinema logo"
+
+#: .\main\templates\main\layout.html:56
+msgid "Поиск фильмов..."
+msgstr "Search for movies..."
+
+#: .\main\templates\main\layout.html:74 .\main\templates\main\layout.html:135
+msgid "Афиша"
+msgstr "Showtimes"
+
+#: .\main\templates\main\layout.html:75 .\main\templates\main\layout.html:137
+msgid "Расписание"
+msgstr "Schedule"
+
+#: .\main\templates\main\layout.html:76
+msgid "Скоро"
+msgstr "Coming soon"
+
+#: .\main\templates\main\layout.html:77 .\main\templates\main\layout.html:139
+msgid "Кинотеатры"
+msgstr "Cinemas"
+
+#: .\main\templates\main\layout.html:78 .\main\templates\main\layout.html:140
+msgid "Акции"
+msgstr "Promotions"
+
+#: .\main\templates\main\layout.html:80 .\main\templates\main\layout.html:146
+msgid "О кинотеатре"
+msgstr "About the cinema"
+
+#: .\main\templates\main\layout.html:82 .\main\templates\main\layout.html:148
+msgid "Новости"
+msgstr "News"
+
+#: .\main\templates\main\layout.html:83 .\main\templates\main\layout.html:149
+msgid "Реклама"
+msgstr "Advertising"
+
+#: .\main\templates\main\layout.html:84
+msgid "Кафе"
+msgstr "Café"
+
+#: .\main\templates\main\layout.html:85
+msgid "Мобильное приложение"
+msgstr "Mobile app"
+
+#: .\main\templates\main\layout.html:86 .\main\templates\main\layout.html:151
+msgid "Контакты"
+msgstr "Contacts"
+
+#: .\main\templates\main\layout.html:87
+msgid "Vip-зал"
+msgstr "Vip-hall"
+
+#: .\main\templates\main\layout.html:93
+msgid "Язык"
+msgstr "Language"
+
+#: .\main\templates\main\layout.html:98
+msgid "Русский"
+msgstr "Russian"
+
+#: .\main\templates\main\layout.html:104
+msgid "Английский"
+msgstr "English"
+
+#: .\main\templates\main\layout.html:125
+#, fuzzy
+#| msgid "Мобильное приложение"
+msgid "Мобильные приложения"
+msgstr "Mobile app"
+
+#: .\main\templates\main\layout.html:130
+msgid "Разработка сайтов: AVADA-MEDIA"
+msgstr "Website development: AVADA-MEDIA"
+
+#: .\main\templates\main\layout.html:138
+msgid "Скоро в прокате"
+msgstr "Coming soon"
+
+#: .\main\templates\main\layout.html:150
+msgid "Кафе-Бар"
+msgstr "Café-Bar"
