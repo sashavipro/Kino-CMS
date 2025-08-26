@@ -35,13 +35,4 @@ urlpatterns = [
     path('mob_app', views.mob_app, name='mob_app'),
     path('contacts', views.contacts, name='contacts'),
     path('vip_hall', views.vip_hall, name='vip_hall'),
-
-
-
-
-    #---USER---
-    path('login/', views.login_view, name='login'),
-    path('registrarion/', views.registrarion_view, name='registration'),
-    path('profile/', views.profile_view, name='profile'),
-    path('logout/', views.logout_view, name='logout'),
 ]

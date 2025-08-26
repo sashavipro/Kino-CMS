@@ -29,6 +29,11 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    # Базовые шаблоны и теги (ставим раньше всего)
+    "adminlte4",
+    # Тема для стандартной админки (обязательно ДО 'django.contrib.admin')
+    "adminlte4_theme",
+    'users',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -48,6 +53,19 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+ADMINLTE4_MENU = [
+    {"name": "Статистика", "url": "/admin/", "icon": "fas fa-chart-line"},
+    {"name": "Баннеры/Слайдеры", "url": "/admin/banners/banner/", "icon": "fas fa-images"},
+    {"name": "Фильмы", "url": "/admin/movies/movie/", "icon": "fas fa-film"},
+    {"name": "Кинотеатры", "url": "/admin/cinemas/cinema/", "icon": "fas fa-video"},
+    {"name": "Новости", "url": "/admin/news/news/", "icon": "fas fa-newspaper"},
+    {"name": "Акции", "url": "/admin/promotions/promotion/", "icon": "fas fa-tags"},
+    {"name": "Страницы", "url": "/admin/pages/page/", "icon": "fas fa-file-alt"},
+    {"name": "Пользователи", "url": "/admin/auth/user/", "icon": "fas fa-users"},
+    {"name": "Рассылка", "url": "/admin/mailing/mailing/", "icon": "fas fa-envelope"},
+]
+
 
 ROOT_URLCONF = 'Kino_CMS.urls'
 
@@ -148,7 +166,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
 
-AUTH_USER_MODEL = 'main.CustomUser'
+AUTH_USER_MODEL = 'users.CustomUser'
 
 
 # (Опционально) Настройки для хранения языка

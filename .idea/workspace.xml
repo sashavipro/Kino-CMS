@@ -5,47 +5,26 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9b21c351-83b9-4d5d-8ff4-be87719ca970" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/Kino_CMS.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Kino_CMS/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Kino_CMS/asgi.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Kino_CMS/settings.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Kino_CMS/urls.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Kino_CMS/wsgi.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main/forms.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main/migrations/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main/static/main/css/main.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main/templates/main/about_cinema.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main/templates/main/advertising.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main/templates/main/auth/login.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main/templates/main/auth/profile.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main/templates/main/auth/registration.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main/templates/main/cafe.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main/templates/main/card_hall.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main/templates/main/cinema_card.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main/templates/main/cinemas.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main/templates/main/contacts.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main/templates/main/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main/templates/main/layout.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main/templates/main/mob_app.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main/templates/main/news.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main/templates/main/poster.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main/templates/main/schedule.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main/templates/main/soon.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main/templates/main/stocks.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main/templates/main/stocks_card.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main/templates/main/ticket_reservation.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main/templates/main/vip_hall.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main/templatetags/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main/templatetags/hall_filters.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main/urls.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/manage.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/users/templates/users/adminlte4/sidebar.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/24282a54-82ba-41f0-8fbb-915a7a849aca.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/24282a54-82ba-41f0-8fbb-915a7a849aca.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/24282a54-82ba-41f0-8fbb-915a7a849aca/storage_v2/_src_/database/kinocms.Sq2p1Q.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/24282a54-82ba-41f0-8fbb-915a7a849aca/storage_v2/_src_/database/kinocms.Sq2p1Q/schema/public.abK9xQ.meta" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Kino_CMS/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/Kino_CMS/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Kino_CMS/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/Kino_CMS/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/identifier.sqlite" beforeDir="false" afterPath="$PROJECT_DIR$/users/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main/forms.py" beforeDir="false" afterPath="$PROJECT_DIR$/users/forms.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main/migrations/0001_initial.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/main/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main/templates/main/auth/login.html" beforeDir="false" afterPath="$PROJECT_DIR$/users/templates/users/auth/login.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main/templates/main/auth/profile.html" beforeDir="false" afterPath="$PROJECT_DIR$/users/templates/users/auth/profile.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main/templates/main/auth/registration.html" beforeDir="false" afterPath="$PROJECT_DIR$/users/templates/users/auth/registration.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main/templates/main/layout.html" beforeDir="false" afterPath="$PROJECT_DIR$/main/templates/main/layout.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main/templates/main/mob_app.html" beforeDir="false" afterPath="$PROJECT_DIR$/main/templates/main/mob_app.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/main/views.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -58,8 +37,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Python Script" />
         <option value="HTML File" />
+        <option value="Python Script" />
       </list>
     </option>
   </component>
@@ -94,13 +73,15 @@
   },
   &quot;keyToStringList&quot;: {
     &quot;DatabaseDriversLRU&quot;: [
-      &quot;postgresql&quot;,
-      &quot;sqlite&quot;
+      &quot;sqlite&quot;,
+      &quot;postgresql&quot;
     ]
   }
 }</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Sasha\PycharmProjects\Kino_CMS\users\templates\users" />
+      <recent name="C:\Users\Sasha\PycharmProjects\Kino_CMS\users" />
       <recent name="C:\Users\Sasha\PycharmProjects\Kino_CMS\main\templates\main\registration" />
       <recent name="C:\Users\Sasha\PycharmProjects\Kino_CMS\main\templates\main" />
     </key>
@@ -171,5 +152,16 @@
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.History.Properties">
+    <option name="COLUMN_ID_ORDER">
+      <list>
+        <option value="Default.Root" />
+        <option value="Default.Author" />
+        <option value="Default.Date" />
+        <option value="Default.Subject" />
+        <option value="GitHub.CommitStatus" />
+      </list>
+    </option>
   </component>
 </project>
