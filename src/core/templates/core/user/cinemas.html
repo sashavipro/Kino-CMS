@@ -1,0 +1,63 @@
+{% extends 'core/user/layout.html' %}
+
+{% block title %}Главная страница{% endblock %}
+
+{% block content %}
+    <!-- Баннер -->
+    <div class="text-center">
+        <img src="https://picsum.photos/1200/400?random=1" alt=""class="">
+    </div>
+    <!-- Основной контейнер -->
+    <div class="container w-80">
+
+        <div class="row">
+            <!-- Левая колонка с контентом -->
+            <div class="col-lg-9 w-80">
+                <!-- Заголовок -->
+                <div class="text-center my-4">
+                    <h2>Наши кинотеатры</h2>
+                </div>
+                <div class="content-block">
+                    <div class="row g-4">
+                        <!-- Карточка постера -->
+                        <div class="col-md-4">
+                            <div class="poster-card">
+                                <img src="https://picsum.photos/1200/500?random=1" alt="Постер">
+                                <h5 class="mt-2"><a href="#">Кинотеатр 1</a></h5>
+                            </div>
+                        </div>
+                    <!-- Карточка постера -->
+                        <div class="col-md-4">
+                            <div class="poster-card">
+                                <img src="https://picsum.photos/1200/500?random=1" alt="Постер">
+                                <h5 class="mt-2"><a href="#">Кинотеатр 2</a></h5>
+                            </div>
+                        </div>
+                        <!-- Карточка постера -->
+                        <div class="col-md-4">
+                            <div class="poster-card">
+                                <img src="https://picsum.photos/1200/500?random=1" alt="Постер">
+                                <h5 class="mt-2"><a href="#">Кинотеатр 3</a></h5>
+                            </div>
+                        </div>
+                        <!-- Карточка постера -->
+                        <div class="col-md-4">
+                            <div class="poster-card">
+                                <img src="https://picsum.photos/1200/500?random=1" alt="Постер">
+                                <h5 class="mt-2"><a href="#">Кинотеатр 4</a></h5>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Правая колонка с рекламой -->
+            <div class="col-lg-3 w-20">
+                <div class="ad-block">
+                    <img src="https://picsum.photos/1200/500?random=1" alt="">
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

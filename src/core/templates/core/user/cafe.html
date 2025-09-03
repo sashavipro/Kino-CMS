@@ -1,0 +1,89 @@
+{% extends 'core/user/layout.html' %}
+
+{% block title %}Кафе-бар{% endblock %}
+
+{% block content %}
+    <!-- Баннер -->
+    <div class="text-center">
+        <img src="https://picsum.photos/860/380?random=1" alt="">
+    </div>
+    <!-- Основной контейнер -->
+    <div class="container w-80">
+
+        <div class="row">
+            <!-- Левая колонка с контентом -->
+            <div class="col-lg-9 w-80 text-black">
+                <!-- Заголовок -->
+                <div class="text-center my-4">
+                    <h2>Кафе-бар</h2>
+                </div>
+
+                <div class="col text-black">
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla quam velit, vulputate eu pharetra nec, mattis ac neque. Duis vulputate commodo lectus, ac blandit elit tincidunt id. Sed rhoncus, tortor sed eleifend tristique, tortor mauris molestie elit, et lacinia ipsum quam nec dui. Quisque nec mauris sit amet elit iaculis pretium sit amet quis magna. Aenean velit odio, elementum in tempus ut, vehicula eu diam. Pellentesque rhoncus aliquam mattis. Ut vulputate eros sed felis sodales nec vulputate justo hendrerit. Vivamus varius pretium ligula, a aliquam odio euismod sit amet. Quisque laoreet sem sit amet orci ullamcorper at ultricies metus viverra. Pellentesque arcu mauris, malesuada quis ornare accumsan, blandit sed diam.</p>
+                </div>
+
+                <div class="row text-black">
+                    <img src="https://picsum.photos/400/300?random=1" alt="" style="width: 280px; height: 210px">
+                    <img src="https://picsum.photos/400/300?random=2" alt="" style="width: 280px; height: 210px">
+                    <img src="https://picsum.photos/400/300?random=3" alt="" style="width: 280px; height: 210px">
+                </div>
+
+                <h2 class="text-center my-4">Меню</h2>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                {% for header in table_data.headers %}
+                                    <th scope="col">
+                                        {% if header.sortable %}
+                                            {# Если подключены Bootstrap Icons, используйте <i class="bi bi-chevron-down"></i> #}
+                                            <span class="d-flex align-items-center">
+                                                <span class="me-1">▼</span> {{ header.name }}
+                                            </span>
+                                        {% else %}
+                                            {{ header.name }}
+                                        {% endif %}
+                                    </th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in table_data.rows %}
+                                <tr>
+                                    {% for cell in row.cells %}
+                                        <td>{{ cell }}</td>
+                                    {% endfor %}
+                                    <td class="text-center"> {# Центрируем инпут #}
+                                        {% if row.selection.type == 'checkbox' %}
+                                            <input class="form-check-input" type="checkbox"
+                                                   {% if row.selection.checked %}checked{% endif %}>
+                                        {% elif row.selection.type == 'radio' %}
+                                            <input class="form-check-input" type="radio" name="{{ row.selection.name }}"
+                                                   {% if row.selection.checked %}checked{% endif %}>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="{{ table_data.headers|length }}" class="text-center">Нет данных</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+
+            </div>
+
+            <!-- Правая колонка с рекламой -->
+            <div class="col-lg-3 w-20">
+                <div class="ad-block">
+                    <img src="https://picsum.photos/1200/500?random=1" alt="">
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

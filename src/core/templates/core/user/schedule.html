@@ -1,0 +1,189 @@
+{% extends 'core/user/layout.html' %}
+
+{% block title %}Расписание{% endblock %}
+{% block cssstyle %}
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .main-container {
+            padding: 2rem 0;
+        }
+        .filters-bar {
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .filter-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+        }
+        .schedule-table {
+            background-color: #fff;
+            border: 1px solid #dee2e6;
+        }
+        .schedule-table th {
+            font-weight: 600;
+            color: #495057;
+        }
+        .schedule-table td {
+            vertical-align: middle;
+        }
+        .schedule-date {
+            color: #6c757d;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+        .ad-placeholder {
+            border: 2px dashed #ccc;
+            background-color: #fefef1;
+            height: 100%;
+            min-height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+        .ad-placeholder h6{
+            color: #222222;
+        }
+
+        .film-link {
+            text-decoration: none;
+        }
+        .btn-group .btn {
+            background-color: #495057;
+            color: white;
+            border-color: #495057;
+        }
+        .btn-group .btn.active {
+            background-color: #dc3545; /* VIP цвет */
+            border-color: #dc3545;
+        }
+
+        .custom-checkbox .form-check-input {
+            border-color: #ff5733;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+<div class="container main-container">
+
+    <!-- Панель фильтров -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="collapse navbar-collapse">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <span class="nav-link disabled" style="cursor: default;">Показывать только</span>
+        </li>
+        <li class="nav-item">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="checkbox3D">
+            <label class="nav-link text-light" for="checkbox3D">3D</label>
+          </div>
+        </li>
+        <li class="nav-item">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="checkboxDBOX">
+            <label class="nav-link text-light" for="checkboxDBOX">DBOX</label>
+          </div>
+        </li>
+        <li class="nav-item">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="checkboxVIP">
+            <label class="nav-link text-light" for="checkboxVIP">VIP</label>
+          </div>
+        </li>
+        <li class="nav-item">
+          <select class="form-select mx-2" aria-label="Data">
+            <option selected>Кинотеатр</option>
+            <option value="1">Кинотеатр 1</option>
+            <option value="2">Кинотеатр 2</option>
+          </select>
+        </li>
+        <li class="nav-item">
+          <select class="form-select mx-2" aria-label="Data">
+            <option selected>Дата</option>
+            <option value="1">2023-01-01</option>
+            <option value="2">2023-02-01</option>
+          </select>
+        </li>
+        <li class="nav-item">
+          <select class="form-select mx-2" aria-label="Фильм. все">
+            <option selected>Фильм. все</option>
+            <option value="1">Action</option>
+            <option value="2">Comedy</option>
+          </select>
+        </li>
+        <li class="nav-item">
+          <select class="form-select mx-2" aria-label="Зал. все">
+            <option selected>Зал. все</option>
+            <option value="1">Hall 1</option>
+            <option value="2">Hall 2</option>
+          </select>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+
+    <div class="row">
+        <!-- Основной контент (таблица расписания) -->
+        <div class="col-lg-8">
+            <h5 class="schedule-date">24 ИЮЛЯ, ВОСКРЕСЕНЬЕ</h5>
+            <div class="table-responsive">
+                <table class="table schedule-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col">ВРЕМЯ</th>
+                            <th scope="col">ФИЛЬМ</th>
+                            <th scope="col">ЗАЛ</th>
+                            <th scope="col">ЦЕНА В ГРН.</th>
+                            <th scope="col">БРОНИРОВАТЬ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Здесь вы будете генерировать строки с помощью цикла Django -->
+                        <!-- Пример статических данных из макета -->
+                        <tr>
+                            <td>10:00</td>
+                            <td><a href="#" class="film-link">Світське життя</a></td>
+                            <td>6</td>
+                            <td>65</td>
+                            <td class="custom-checkbox"><input class="form-check-input" type="checkbox"></td>
+                        </tr>
+                        <tr>
+                            <td>10:00</td>
+                            <td><a href="#" class="film-link">Геній</a></td>
+                            <td>4</td>
+                            <td>55</td>
+                            <td class="custom-checkbox"><input class="form-check-input" type="checkbox"></td>
+                        </tr>
+                        <tr>
+                            <td>10:00</td>
+                            <td><a href="#" class="film-link">Льодовиковий період: Курс на зіткнення 3D</a></td>
+                            <td>1</td>
+                            <td>70</td>
+                            <td class="custom-checkbox"><input class="form-check-input" type="checkbox"></td>
+                        </tr>
+                        <!-- Добавьте остальные строки по аналогии -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Сайдбар (реклама) -->
+        <div class="col-lg-4 d-none d-lg-block">
+            <div class="ad-placeholder">
+                <h6>Контекстная реклама</h6>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

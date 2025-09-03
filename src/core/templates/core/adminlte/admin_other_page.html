@@ -1,0 +1,43 @@
+{% extends 'core/adminlte/admin_layout.html' %}
+
+{% block content %}
+<!-- Список страниц -->
+    <div class="card mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title">Список Страниц</h3>
+        <button class="btn btn-success btn-sm"><i class="fas fa-plus"></i> Создать Страницу</button>
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-striped mb-0">
+          <thead>
+            <tr>
+              <th>Название</th>
+              <th>Дата создания</th>
+              <th>Статус</th>
+              <th>Действия</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Три билета в подарок</td>
+              <td>12.07.2016</td>
+              <td><span class="badge bg-success">ВКЛ</span></td>
+              <td>
+                <button class="btn btn-sm btn-primary"><i class="fas fa-pencil-alt"></i></button>
+                <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+              </td>
+            </tr>
+            <tr>
+              <td>Три билета в подарок</td>
+              <td>12.07.2016</td>
+              <td><span class="badge bg-secondary">ВЫКЛ</span></td>
+              <td>
+                <button class="btn btn-sm btn-primary"><i class="fas fa-pencil-alt"></i></button>
+                <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+{% endblock %}
