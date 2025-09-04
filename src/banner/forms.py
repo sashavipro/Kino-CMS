@@ -1,36 +1,86 @@
 from django import forms
-from .models import HomeBanner, BackgroundBanner, STATUS_CHOICES
+from .models import HomeBanner, BackgroundBanner, HomeNewsSharesBanner
+from src.core.models import Gallery, Image
 
-class HomeBannerTopForm(forms.ModelForm):
-    status_banner = forms.BooleanField(required=False, label='Status home banner', initial=True,
-                                       widget=forms.RadioSelect(choices=STATUS_CHOICES,
-                                                                attrs={'class': 'form-check-inline'}))
-    url_banner = forms.URLField(required=False, label='URL banner',
-                                widget=forms.URLInput(attrs={'placeholder': 'Write url address to home banner here',
-                                                             'class': 'form-control'}),
-                                help_text='Input URL for home banner')
-    text_banner = forms.CharField(required=False, max_length=50, label='Banner text',
-                                  help_text='Input text to home banner here',
-                                  widget=forms.TextInput(attrs={'class': 'form-control',
-                                                                'placeholder': 'Write text for home banner here'}))
-    speed_banner = forms.IntegerField(required=False, label='Input speed to home banner',
-                                      widget=forms.NumberInput(attrs={'class': 'form-control',
-                                                                      'placeholder': 'Write secconds for home banner'}))
-
+class HomeBannerSlideForm(forms.ModelForm):
     class Meta:
         model = HomeBanner
-        fields = ['status_banner', 'url_banner', 'text_banner', 'speed_banner']
+        fields = ["url_banner", "text_banner", "gallery_banner"]
 
+    image = forms.ImageField(required=False)
 
-class BackgroundBannerForm(forms.ModelForm):
-    status_banner = forms.BooleanField(required=False, label='Status home banner', initial=True,
-                                       widget=forms.RadioSelect(choices=STATUS_CHOICES,
-                                                                attrs={'class': 'form-check-inline'}))
-    image_banner = forms.ImageField(required=False, label="Image",
-                                    widget=forms.ClearableFileInput(attrs={'class': 'form-control-file',
-                                                                           'id': 'file_id',
-                                                                           'placeholder': 'Choice image to banner'}))
+    def save(self, commit=True):
+        banner = super().save(commit=False)
+
+        if commit:
+            banner.save()
+
+        # если загружена новая картинка
+        if self.cleaned_data.get("image"):
+            img = Image.objects.create(image=self.cleaned_data["image"])
+            if not banner.gallery_banner:
+                gallery = Gallery.objects.create(name_gallery=f"banner_{banner.pk}_gallery")
+                banner.gallery_banner = gallery
+                banner.save(update_fields=["gallery_banner"])
+            banner.gallery_banner.image_set.add(img)
+
+        return banner
+
+class BackgroundForm(forms.ModelForm):
+    mode = forms.ChoiceField(
+        choices=[("image", "Картинка на фоне"), ("color", "Цвет фона")],
+        widget=forms.RadioSelect
+    )
+    image = forms.ImageField(required=False)
+    color = forms.CharField(required=False)
 
     class Meta:
         model = BackgroundBanner
-        fields = ['status_banner', 'image_banner']
+        fields = []  # управляем вручную
+
+    def save(self, commit=True):
+        banner = super().save(commit=False)
+
+        mode = self.cleaned_data.get("mode")
+        color = self.cleaned_data.get("color")
+        image = self.cleaned_data.get("image")
+
+        if mode == "image" and image:
+            banner.image_banner = image
+            banner.color = ""   # очищаем цвет
+        elif mode == "color" and color:
+            banner.image_banner = None
+            banner.color = color.strip()
+        else:
+            # ничего не выбрали
+            banner.image_banner = None
+            banner.color = ""
+
+        if commit:
+            banner.save()
+        return banner
+
+
+class NewsSharesBannerForm(forms.ModelForm):
+    class Meta:
+        model = HomeNewsSharesBanner
+        fields = ["url_banner", "gallery_banner"]
+
+    image = forms.ImageField(required=False)
+
+    def save(self, commit=True):
+        banner = super().save(commit=False)
+
+        if commit:
+            banner.save()
+
+        # если загружена новая картинка
+        if self.cleaned_data.get("image"):
+            img = Image.objects.create(image=self.cleaned_data["image"])
+            if not banner.gallery_banner:
+                gallery = Gallery.objects.create(name_gallery=f"banner_{banner.pk}")
+                banner.gallery_banner = gallery
+                banner.save(update_fields=["gallery_banner"])
+            banner.gallery_banner.image_set.add(img)
+
+        return banner

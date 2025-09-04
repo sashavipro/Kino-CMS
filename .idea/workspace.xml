@@ -4,91 +4,18 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9b21c351-83b9-4d5d-8ff4-be87719ca970" name="Changes" comment="code changes #2">
-      <change afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_banner_slider.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_cinema.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_films.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_layout.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_mailing.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_news.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_other_page.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_promotion.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_stats.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_users.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/core/untils/my_validator.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/core/urls.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/users/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/users/admin.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/users/migrations/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/users/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/Kino_CMS.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Kino_CMS.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/24282a54-82ba-41f0-8fbb-915a7a849aca.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/355b36fb-e18a-4583-9862-829664ea9ff4.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/355b36fb-e18a-4583-9862-829664ea9ff4/storage_v2/_src_/database/kinocms.Sq2p1Q.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/355b36fb-e18a-4583-9862-829664ea9ff4/storage_v2/_src_/database/kinocms.Sq2p1Q/schema/public.abK9xQ.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/768cf346-e366-4317-a123-a1393bc39966.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/768cf346-e366-4317-a123-a1393bc39966/storage_v2/_src_/schema/main.uQUzAA.meta" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+    <list default="true" id="9b21c351-83b9-4d5d-8ff4-be87719ca970" name="Changes" comment="code changes #3">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Kino_CMS/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/Config/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Kino_CMS/asgi.py" beforeDir="false" afterPath="$PROJECT_DIR$/Config/asgi.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Kino_CMS/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/Config/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Kino_CMS/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/Config/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Kino_CMS/wsgi.py" beforeDir="false" afterPath="$PROJECT_DIR$/Config/wsgi.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/db.sqlite3" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/kinocms.drawio" beforeDir="false" afterPath="$PROJECT_DIR$/kinocms.drawio" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/locale/en/LC_MESSAGES/django.po" beforeDir="false" afterPath="$PROJECT_DIR$/locale/en/LC_MESSAGES/django.po" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/admin.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/apps.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/migrations/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/models.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/static/main/css/main.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/static/core/user/css/main.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/static/main/img/card-hall.png" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/static/core/user/img/card-hall.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/templates/main/about_cinema.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/about_cinema.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/templates/main/advertising.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/advertising.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/templates/main/cafe.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/cafe.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/templates/main/card_hall.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/card_hall.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/templates/main/cinema_card.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/cinema_card.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/templates/main/cinemas.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/cinemas.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/templates/main/contacts.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/contacts.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/templates/main/film_page.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/film_page.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/templates/main/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/templates/main/layout.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/layout.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/templates/main/mob_app.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/mob_app.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/templates/main/news.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/news.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/templates/main/poster.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/poster.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/templates/main/schedule.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/schedule.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/templates/main/soon.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/soon.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/templates/main/stocks.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/stocks.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/templates/main/stocks_card.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/stocks_card.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/templates/main/ticket_reservation.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/ticket_reservation.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/templates/main/vip_hall.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/vip_hall.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/templatetags/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/banner/forms.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/templatetags/hall_filters.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templatetags/hall_filters.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/tests.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/users/tests.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/urls.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/main/views.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/manage.py" beforeDir="false" afterPath="$PROJECT_DIR$/manage.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/users/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templatetags/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/users/admin.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/users/apps.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/users/apps.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/users/forms.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/users/forms.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/users/migrations/0001_initial.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/users/migrations/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/untils/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/users/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/users/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/users/templates/users/adminlte4/sidebar.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/users/templates/users/auth/login.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/users/templates/users/auth/login.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/users/templates/users/auth/profile.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/users/templates/users/auth/profile.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/users/templates/users/auth/registration.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/users/templates/users/auth/registration.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/users/tests.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/users/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/users/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Config/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/Config/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Config/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/Config/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/banner/forms.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/banner/forms.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/banner/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/banner/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_banner_slider.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_banner_slider.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_layout.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_layout.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/layout.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/layout.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/untils/my_validator.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/untils/my_validator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/views.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -274,7 +201,11 @@
       <workItem from="1756709459181" duration="21792000" />
       <workItem from="1756792836764" duration="24331000" />
       <workItem from="1756819384183" duration="2612000" />
-      <workItem from="1756887254554" duration="1011000" />
+      <workItem from="1756887254554" duration="10536000" />
+      <workItem from="1756902462923" duration="22314000" />
+      <workItem from="1756924817904" duration="1084000" />
+      <workItem from="1756925937818" duration="1155000" />
+      <workItem from="1756974015775" duration="817000" />
     </task>
     <task id="LOCAL-00001" summary="code changes #2">
       <option name="closed" value="true" />
@@ -284,7 +215,15 @@
       <option name="project" value="LOCAL" />
       <updated>1756215566098</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="code changes #3">
+      <option name="closed" value="true" />
+      <created>1756888482750</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1756888482750</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TerminalProjectNonSharedOptionsProvider">
@@ -307,6 +246,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="code changes #2" />
-    <option name="LAST_COMMIT_MESSAGE" value="code changes #2" />
+    <MESSAGE value="code changes #3" />
+    <option name="LAST_COMMIT_MESSAGE" value="code changes #3" />
   </component>
 </project>

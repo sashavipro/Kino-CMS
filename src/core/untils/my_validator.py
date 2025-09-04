@@ -12,7 +12,7 @@ class SeoValidator:  # Validator for Seo model
 class ImageValidatorMixin:  # Universal Photo Validator
     @staticmethod
     def validate_file_extension(value):  # Valid extension Image
-        allowed_extensions = ('.jpg', '.jpeg', '.png')
+        allowed_extensions = (".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg")
         if value:
             file_extension = value.name.rstrip('.')
             if not file_extension.endswith(allowed_extensions):

@@ -1,3 +1,16 @@
+<script>
+// Проверяем, является ли пользователь суперюзером
+{% if user.is_authenticated %}
+    {% if not user.is_superuser %}
+        // Если пользователь авторизован, но не суперюзер - редирект на главную
+        window.location.href = "/";
+    {% endif %}
+{% else %}
+    // Если пользователь не авторизован - редирект на главную
+    window.location.href = "/";
+{% endif %}
+</script>
+
 {% load static %}
 
 <!doctype html>

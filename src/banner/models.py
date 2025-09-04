@@ -37,12 +37,12 @@ class HomeBanner(Banners):  # Model HomeBanner
 class HomeNewsSharesBanner(Banners):  # Model HomeNewsSharesBanner
     gallery_banner = models.OneToOneField(Gallery, on_delete=models.CASCADE, blank=True, null=True,
                                           help_text='Select Gallery to Banner')
-    url_banner = models.URLField(max_length=300, null=True, blank=True, help_text='Input url to Banner')
+    url_banner = models.URLField(max_length=300, null=True, blank=True, help_text='Input url Banner')
     speed_banner = models.IntegerField(default=5, null=True, blank=True, help_text='Input speed to Banner')
 
     class Meta:
-        verbose_name = 'home news and shares banner'
-        verbose_name_plural = 'home news and shares banners'
+        verbose_name = 'home banner'
+        verbose_name_plural = 'home banners'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -55,9 +55,11 @@ class HomeNewsSharesBanner(Banners):  # Model HomeNewsSharesBanner
 
 
 class BackgroundBanner(Banners):  # Model BackgroundBanner
-    image_banner = models.ImageField(upload_to='static/photos/', null=True, blank=True,
+    image_banner = models.ImageField(upload_to='static/image/', null=True, blank=True,
                                    help_text='Upload an image. Supported formats: JPEG, PNG')
-
+    color = models.CharField(max_length=20, blank=True, null=True,
+                             help_text='Color name or HEX, e.g. red or #ff0000'
+    )
     class Meta:
         verbose_name = 'background banner'
         verbose_name_plural = 'background banners'

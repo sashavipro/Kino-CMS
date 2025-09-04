@@ -1,59 +1,76 @@
 {% extends 'core/user/layout.html' %}
+{% load static %}
 
 {% block title %}Главная страница{% endblock %}
 
 {% block style-body %}
- style="background: url('https://kino.cm/templates/Kinogo/images/IronMan3.webp') no-repeat center center fixed";
+{% if background and background.image_banner %}
+  style="background: url('{{ background.image_banner.url }}') no-repeat center center fixed"
+{% elif background and background.color %}
+  style="background-color: {{ background.color }}"
+{% endif %}
 {% endblock %}
+
 
 {% block content %}
 <!-- Карусель -->
-    <div id="myCarousel" class="carousel slide mx-auto" data-bs-ride="carousel" style="width: 50%;">
-        <!-- Индикаторы (точки) -->
-        <div class="carousel-indicators">
-            <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="0" class="active" aria-current="true"></button>
-            <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="1"></button>
-            <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="2"></button>
-        </div>
+    {% if home_slides %}
+  {% with speed=home_slides.0.speed_banner|default:5 %}
+  <div id="myCarousel" class="carousel slide mx-auto"
+       data-bs-ride="carousel"
+       data-bs-interval="{{ speed }}000"
+       style="width: 50%;">
 
-        <!-- Слайды -->
-        <div class="carousel-inner">
-            <div class="carousel-item active">
-                <img src="https://picsum.photos/1200/500?random=1" class="d-block w-100" alt="Первый слайд">
-                <div class="carousel-caption d-none d-md-block">
-                    <p>Описание первого слайда.</p>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <img src="https://picsum.photos/1200/500?random=2" class="d-block w-100" alt="Второй слайд">
-                <div class="carousel-caption d-none d-md-block">
-                    <p>Описание второго слайда.</p>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <img src="https://picsum.photos/1200/500?random=3" class="d-block w-100" alt="Третий слайд">
-                <div class="carousel-caption d-none d-md-block">
-                    <p>Описание третьего слайда.</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Кнопки переключения -->
-        <button class="carousel-control-prev" type="button" data-bs-target="#myCarousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon"></span>
-            <span class="visually-hidden">Предыдущий</span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#myCarousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon"></span>
-            <span class="visually-hidden">Следующий</span>
-        </button>
+    <div class="carousel-indicators">
+      {% for s in home_slides %}
+        <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="{{ forloop.counter0 }}"
+                class="{% if forloop.first %}active{% endif %}" aria-current="{% if forloop.first %}true{% else %}false{% endif %}"></button>
+      {% endfor %}
     </div>
+
+    <div class="carousel-inner">
+      {% for s in home_slides %}
+        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+          {% if s.gallery_banner and s.gallery_banner.image_set.first %}
+            <img src="{{ s.gallery_banner.image_set.first.image.url }}" class="d-block w-100" alt="Слайд">
+          {% else %}
+            <img src="https://via.placeholder.com/1000x190?text=No+Image" class="d-block w-100" alt="Нет изображения">
+          {% endif %}
+
+          {% if s.text_banner %}
+            <div class="carousel-caption d-none d-md-block">
+              <h5>{{ s.text_banner }}</h5>
+            </div>
+          {% endif %}
+
+          {% if s.url_banner %}
+            <a class="stretched-link" href="{{ s.url_banner }}" target="_blank"></a>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+
+    <button class="carousel-control-prev" type="button" data-bs-target="#myCarousel" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#myCarousel" data-bs-slide="next">
+      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Next</span>
+    </button>
+  </div>
+  {% endwith %}
+{% else %}
+  <p class="text-center text-muted">Нет слайдов для отображения.</p>
+{% endif %}
+
+
 
 <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- постеры -->
-    <div class="container py-4">
+    <div class="container py-4 text-black bg-white">
         <h2 class="text-center mb-4">Смотрите сегодня, 24 июля</h2>
         <div class="row g-4">
             <div class="col-6 col-md-3">
@@ -127,13 +144,21 @@
         </div>
     </div>
 
-    <div class="container text-center py-4">
+    <div class="container text-center py-4 text-black bg-white">
         <h2>Новости и Акции</h2>
 
       <!-- Баннер -->
-        <div class="index-banner-low mb-4">
-            <img src="https://picsum.photos/1200/500?random=1" alt="Баннер">
-        </div>
+        {# Новости и Акции — один баннер #}
+        {% if news_banner and news_banner.gallery_banner and news_banner.gallery_banner.image_set.first %}
+          <div class="container text-center py-4">
+            <h2>Новости и Акции</h2>
+            <div class="index-banner-low mb-4">
+              <a href="{{ news_banner.url_banner|default:'#' }}">
+                <img src="{% static news_banner.gallery_banner.image_set.first.image.name %}" alt="Баннер">
+              </a>
+            </div>
+          </div>
+        {% endif %}
 
       <!-- Контекстная реклама -->
         <div class="index-banner-low">

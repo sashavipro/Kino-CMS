@@ -158,6 +158,10 @@ LOGOUT_REDIRECT_URL = 'home'
 
 AUTH_USER_MODEL = 'users.CustomUser'
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+
 # (Опционально) Настройки для хранения языка
 # SESSION_COOKIE_AGE = 1209600 # 2 недели
 # LANGUAGE_COOKIE_NAME = 'django_language' # Имя cookie
