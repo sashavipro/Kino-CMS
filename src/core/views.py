@@ -37,8 +37,6 @@ def admin_banner_slider(request):
                     prefix=prefix
                 )
                 if form.is_valid():
-                    obj = form.save(commit=False)
-                    obj.save()
                     form.save()
             # скорость обновляем всем слайдам
             HomeBanner.objects.update(speed_banner=speed)

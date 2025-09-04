@@ -4,17 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9b21c351-83b9-4d5d-8ff4-be87719ca970" name="Changes" comment="code changes #3">
+    <list default="true" id="9b21c351-83b9-4d5d-8ff4-be87719ca970" name="Changes" comment="code changes #4 - background">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Config/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/Config/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Config/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/Config/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/banner/forms.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/banner/forms.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/banner/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/banner/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_banner_slider.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_banner_slider.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_layout.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_layout.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/layout.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/layout.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/untils/my_validator.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/untils/my_validator.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/core/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/views.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -205,7 +198,7 @@
       <workItem from="1756902462923" duration="22314000" />
       <workItem from="1756924817904" duration="1084000" />
       <workItem from="1756925937818" duration="1155000" />
-      <workItem from="1756974015775" duration="817000" />
+      <workItem from="1756974015775" duration="2429000" />
     </task>
     <task id="LOCAL-00001" summary="code changes #2">
       <option name="closed" value="true" />
@@ -223,7 +216,15 @@
       <option name="project" value="LOCAL" />
       <updated>1756888482750</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="code changes #4 - background">
+      <option name="closed" value="true" />
+      <created>1756975163012</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1756975163013</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TerminalProjectNonSharedOptionsProvider">
@@ -247,6 +248,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="code changes #2" />
     <MESSAGE value="code changes #3" />
-    <option name="LAST_COMMIT_MESSAGE" value="code changes #3" />
+    <MESSAGE value="code changes #4 - background" />
+    <option name="LAST_COMMIT_MESSAGE" value="code changes #4 - background" />
   </component>
 </project>

@@ -28,27 +28,28 @@
       {% endfor %}
     </div>
 
-    <div class="carousel-inner">
-      {% for s in home_slides %}
-        <div class="carousel-item {% if forloop.first %}active{% endif %}">
-          {% if s.gallery_banner and s.gallery_banner.image_set.first %}
-            <img src="{{ s.gallery_banner.image_set.first.image.url }}" class="d-block w-100" alt="Слайд">
-          {% else %}
-            <img src="https://via.placeholder.com/1000x190?text=No+Image" class="d-block w-100" alt="Нет изображения">
-          {% endif %}
+<div class="carousel-inner">
+  {% for s in home_slides %}
+    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+      {% if s.gallery_banner and s.gallery_banner.image_set.first %}
+        <img src="{{ s.gallery_banner.image_set.first.image.url }}" alt="картинка" style="width:1000px; height:190px; object-fit:cover;">
+      {% else %}
+        <img src="{% static 'img/no-image.png' %}" alt="нет картинки">
+      {% endif %}
 
-          {% if s.text_banner %}
-            <div class="carousel-caption d-none d-md-block">
-              <h5>{{ s.text_banner }}</h5>
-            </div>
-          {% endif %}
-
-          {% if s.url_banner %}
-            <a class="stretched-link" href="{{ s.url_banner }}" target="_blank"></a>
-          {% endif %}
+      {% if s.text_banner %}
+        <div class="carousel-caption d-none d-md-block">
+          <h5>{{ s.text_banner }}</h5>
         </div>
-      {% endfor %}
+      {% endif %}
+
+      {% if s.url_banner %}
+        <a class="stretched-link" href="{{ s.url_banner }}" target="_blank"></a>
+      {% endif %}
     </div>
+  {% endfor %}
+</div>
+
 
     <button class="carousel-control-prev" type="button" data-bs-target="#myCarousel" data-bs-slide="prev">
       <span class="carousel-control-prev-icon" aria-hidden="true"></span>
