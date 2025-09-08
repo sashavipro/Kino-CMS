@@ -1,11 +1,16 @@
 {% extends 'core/user/layout.html' %}
 
-{% block title %}О кинотеатре{% endblock %}
+{% block title %}{% if seo_block %}{{ seo_block.title_seo }}{% else %}{{ page.name }}{% endif %}{% endblock %}
+{% block keywords %}{% if seo_block %}{{ seo_block.keywords_seo }}{% endif %}{% endblock %}
+{% block description %}{% if seo_block %}{{ seo_block.description_seo }}{% endif %}{% endblock %}
+{% block og_url %}{% if seo_block %}{{ request.build_absolute_uri }}{% endif %}{% endblock %}
 
 {% block content %}
     <!-- Баннер -->
     <div class="text-center">
-        <img src="https://picsum.photos/860/380?random=1" alt=""class="">
+        {% if page.main_image %}
+            <img src="{{ page.main_image.url }}" alt="{{ page.name }}" style="width:1000px; height:500px; object-fit:cover;">
+        {% endif %}
     </div>
     <!-- Основной контейнер -->
     <div class="container w-80">
@@ -15,33 +20,38 @@
             <div class="col-lg-9 w-80 text-black">
                 <!-- Заголовок -->
                 <div class="text-center my-4">
-                    <h2>О кинотеатре</h2>
+                    <h2>{{ page.title }}</h2>
                 </div>
 
                 <div class="col text-black">
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla quam velit, vulputate eu pharetra nec, mattis ac neque. Duis vulputate commodo lectus, ac blandit elit tincidunt id. Sed rhoncus, tortor sed eleifend tristique, tortor mauris molestie elit, et lacinia ipsum quam nec dui. Quisque nec mauris sit amet elit iaculis pretium sit amet quis magna. Aenean velit odio, elementum in tempus ut, vehicula eu diam. Pellentesque rhoncus aliquam mattis. Ut vulputate eros sed felis sodales nec vulputate justo hendrerit. Vivamus varius pretium ligula, a aliquam odio euismod sit amet. Quisque laoreet sem sit amet orci ullamcorper at ultricies metus viverra. Pellentesque arcu mauris, malesuada quis ornare accumsan, blandit sed diam.</p>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla quam velit, vulputate eu pharetra nec, mattis ac neque. Duis vulputate commodo lectus, ac blandit elit tincidunt id. Sed rhoncus, tortor sed eleifend tristique, tortor mauris molestie elit, et lacinia ipsum quam nec dui. Quisque nec mauris sit amet elit iaculis pretium sit amet quis magna. Aenean velit odio, elementum in tempus ut, vehicula eu diam. Pellentesque rhoncus aliquam mattis. Ut vulputate eros sed felis sodales nec vulputate justo hendrerit. Vivamus varius pretium ligula, a aliquam odio euismod sit amet. Quisque laoreet sem sit amet orci ullamcorper at ultricies metus viverra. Pellentesque arcu mauris, malesuada quis ornare accumsan, blandit sed diam.</p>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla quam velit, vulputate eu pharetra nec, mattis ac neque. Duis vulputate commodo lectus, ac blandit elit tincidunt id. Sed rhoncus, tortor sed eleifend tristique, tortor mauris molestie elit, et lacinia ipsum quam nec dui. Quisque nec mauris sit amet elit iaculis pretium sit amet quis magna. Aenean velit odio, elementum in tempus ut, vehicula eu diam. Pellentesque rhoncus aliquam mattis. Ut vulputate eros sed felis sodales nec vulputate justo hendrerit. Vivamus varius pretium ligula, a aliquam odio euismod sit amet. Quisque laoreet sem sit amet orci ullamcorper at ultricies metus viverra. Pellentesque arcu mauris, malesuada quis ornare accumsan, blandit sed diam.</p>
+                    <p>{{ page.description|linebreaks }}</p>
                 </div>
 
-                <div class="row text-black"style="width: 860px; height: 380px">
-                    <img src="https://picsum.photos/860/380?random=1" alt="">
+                <!-- галерея слайдов -->
+              {% if page.slides.exists %}
+                <h4 class="text-black text-center">Фотогалерея</h4>
+                <div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
+                  <div class="carousel-inner">
+                    {% for slide in page.slides.all %}
+                      {% if slide.image %}
+                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                          <img src="{{ slide.image.url }}" alt="{{ page.name }} - {{ forloop.counter }}" style="width:1000px; height:500px; object-fit:cover;">
+                        </div>
+                      {% endif %}
+                    {% endfor %}
+                  </div>
+                  <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                  </button>
+                  <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                  </button>
                 </div>
+              {% endif %}
+            </div>
+        <!-- Bootstrap JS (5.x) -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-                <h3 class="text-left text-black mb-4">Оборудование</h3>
-
-                <div class="col text-black">
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla quam velit, vulputate eu pharetra nec, mattis ac neque. Duis vulputate commodo lectus, ac blandit elit tincidunt id. Sed rhoncus, tortor sed eleifend tristique, tortor mauris molestie elit, et lacinia ipsum quam nec dui. Quisque nec mauris sit amet elit iaculis pretium sit amet quis magna. Aenean velit odio, elementum in tempus ut, vehicula eu diam. Pellentesque rhoncus aliquam mattis. Ut vulputate eros sed felis sodales nec vulputate justo hendrerit. Vivamus varius pretium ligula, a aliquam odio euismod sit amet. Quisque laoreet sem sit amet orci ullamcorper at ultricies metus viverra. Pellentesque arcu mauris, malesuada quis ornare accumsan, blandit sed diam.</p>
-                </div>
-
-                <div class="row text-black">
-                    <img src="https://picsum.photos/400/300?random=1" alt="" style="width: 400px; height: 300px">
-                    <img src="https://picsum.photos/400/300?random=2" alt="" style="width: 400px; height: 300px">
-                </div>
-
-                <div class="col text-black">
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla quam velit, vulputate eu pharetra nec, mattis ac neque. Duis vulputate commodo lectus, ac blandit elit tincidunt id. Sed rhoncus, tortor sed eleifend tristique, tortor mauris molestie elit, et lacinia ipsum quam nec dui. Quisque nec mauris sit amet elit iaculis pretium sit amet quis magna. Aenean velit odio, elementum in tempus ut, vehicula eu diam. Pellentesque rhoncus aliquam mattis. Ut vulputate eros sed felis sodales nec vulputate justo hendrerit. Vivamus varius pretium ligula, a aliquam odio euismod sit amet. Quisque laoreet sem sit amet orci ullamcorper at ultricies metus viverra. Pellentesque arcu mauris, malesuada quis ornare accumsan, blandit sed diam.</p>
-                </div>
 
             </div>
 

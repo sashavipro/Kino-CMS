@@ -1,23 +1,42 @@
 from django.core.validators import MinLengthValidator
 from django.db import models
 from src.core.untils.my_validator import ImageValidatorMixin, UrlValidatorMixin, SeoValidator
+from django.urls import reverse
+from django.utils.text import slugify
 
 
+class SeoBlock(models.Model):
+    slug = models.SlugField(
+        max_length=255,
+        unique=True,
+        verbose_name="URL (slug)",
+        help_text="Уникальный slug для SEO блока (например: 'about-us', 'contacts')"
+    )
+    title_seo = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name="SEO Title"
+    )
+    keywords_seo = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="SEO Keywords"
+    )
+    description_seo = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="SEO Description"
+    )
 
-
-class SeoBlock(models.Model, UrlValidatorMixin):  # Model SEO
-    url_seo = models.URLField(null=True, blank=True, help_text='Input url address SEO')
-    title_seo = models.CharField(validators=[MinLengthValidator(1)], max_length=300, help_text='Input title SEO')
-    keywords_seo = models.CharField(null=True, blank=True, max_length=400, validators=[SeoValidator.validate_keywords],
-                                    help_text='Input keywords SEO')
-    description_seo = models.TextField(null=True, blank=True, help_text='Input description SEO')
+    def save(self, *args, **kwargs):
+        # Если slug введён вручную — приводим его к правильному виду
+        if self.slug:
+            self.slug = slugify(self.slug)
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f'{self.title_seo}'
-
-    def clean(self):
-        super().clean()
-        self.validate_url(self.url_seo)
+        return self.slug
 
 
 class Gallery(models.Model):  # Model Gallery

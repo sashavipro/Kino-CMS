@@ -195,15 +195,60 @@
                   </p>
                 </a>
               </li>
-                <li class="nav-item">
+                <li class="nav-item menu-open">
                 <a href="{% url 'core:admin_other_page' %}" class="nav-link active">
                   <p>
                     Страницы
+                  <i class="nav-arrow bi bi-chevron-right"></i>
                   </p>
                 </a>
+				<ul class="nav nav-treeview">
+                  <li class="nav-item">
+                    <a href="{% url 'core:admin_home_page' %}" class="nav-link active">
+                      <i class="nav-icon bi bi-circle"></i>
+                      <p>Главная страница</p>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="{% url 'core:admin_about_cinema_page' %}" class="nav-link">
+                      <i class="nav-icon bi bi-circle"></i>
+                      <p>О кинотеатре</p>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="{% url 'core:admin_cafe_page' %}" class="nav-link">
+                      <i class="nav-icon bi bi-circle"></i>
+                      <p>Кафе - Бар</p>
+                    </a>
+                  </li>
+				  <li class="nav-item">
+                    <a href="{% url 'core:admin_vip_hall_page' %}" class="nav-link">
+                      <i class="nav-icon bi bi-circle"></i>
+                      <p>Vip-зал</p>
+                    </a>
+                  </li>
+				  <li class="nav-item">
+                    <a href="{% url 'core:admin_advertising_page' %}" class="nav-link">
+                      <i class="nav-icon bi bi-circle"></i>
+                      <p>Реклама</p>
+                    </a>
+                  </li>
+				  <li class="nav-item">
+                    <a href="{% url 'core:admin_child_room_page' %}" class="nav-link">
+                      <i class="nav-icon bi bi-circle"></i>
+                      <p>Детская комната</p>
+                    </a>
+                  </li>
+				  <li class="nav-item">
+                    <a href="{% url 'core:admin_contacts_page' %}" class="nav-link">
+                      <i class="nav-icon bi bi-circle"></i>
+                      <p>Контакты</p>
+                    </a>
+                  </li>
+                </ul>
               </li>
                 <li class="nav-item">
-                <a href="{% url 'core:admin_users' %}" class="nav-link active">
+                <a href="{% url 'core:admin_users_page' %}" class="nav-link active">
                   <p>
                     Пользователи
                   </p>

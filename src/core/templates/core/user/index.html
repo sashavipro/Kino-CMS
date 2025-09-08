@@ -1,7 +1,10 @@
 {% extends 'core/user/layout.html' %}
 {% load static %}
 
-{% block title %}Главная страница{% endblock %}
+{% block title %} {% if seo_block %}{{ seo_block.title_seo }}{% endif %} {% endblock %}
+{% block keywords %} {% if seo_block %}{{ seo_block.keywords_seo }}{% endif %} {% endblock %}
+{% block description %} {% if seo_block %}{{ seo_block.description_seo }}{% endif %} {% endblock %}
+{% block og_url %} {% if seo_block %}{{ seo_block.slug }}{% endif %} {% endblock %}
 
 {% block style-body %}
 {% if background and background.image_banner %}
@@ -32,7 +35,7 @@
   {% for s in home_slides %}
     <div class="carousel-item {% if forloop.first %}active{% endif %}">
       {% if s.gallery_banner and s.gallery_banner.image_set.first %}
-        <img src="{{ s.gallery_banner.image_set.first.image.url }}" alt="картинка" style="width:1000px; height:190px; object-fit:cover;">
+        <img src="{{ s.gallery_banner.image_set.first.image.url }}" alt="картинка" style="width:1000px; height:400px; object-fit:cover;">
       {% else %}
         <img src="{% static 'img/no-image.png' %}" alt="нет картинки">
       {% endif %}
@@ -148,18 +151,29 @@
     <div class="container text-center py-4 text-black bg-white">
         <h2>Новости и Акции</h2>
 
-      <!-- Баннер -->
-        {# Новости и Акции — один баннер #}
-        {% if news_banner and news_banner.gallery_banner and news_banner.gallery_banner.image_set.first %}
-          <div class="container text-center py-4">
-            <h2>Новости и Акции</h2>
-            <div class="index-banner-low mb-4">
-              <a href="{{ news_banner.url_banner|default:'#' }}">
-                <img src="{% static news_banner.gallery_banner.image_set.first.image.name %}" alt="Баннер">
-              </a>
+      {% if news_slides %}
+  <div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-inner">
+      {% for banner in news_slides %}
+        {% with img=banner.gallery_banner.image_set.first %}
+          {% if img %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+              <img src="{{ img.image.url }}"
+                   alt="Новость {{ forloop.counter }}"
+                   style="width:1000px; height:500px; object-fit:cover;">
             </div>
-          </div>
-        {% endif %}
+          {% endif %}
+        {% endwith %}
+      {% endfor %}
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    </button>
+  </div>
+{% endif %}
 
       <!-- Контекстная реклама -->
         <div class="index-banner-low">
@@ -170,9 +184,7 @@
 
       <!-- SEO текст -->
         <div class="seo-text">
-            SEO текст SEO текст SEO текст SEO текст SEO текст SEO текст SEO текст SEO текст SEO текст SEO текст
-            SEO текст SEO текст SEO текст SEO текст SEO текст SEO текст SEO текст SEO текст SEO текст SEO текст
-            SEO текст SEO текст SEO текст SEO текст SEO текст SEO текст SEO текст SEO текст SEO текст SEO текст
+            <p>{{ main_page.seo_text }}</p>
         </div>
     </div>
 

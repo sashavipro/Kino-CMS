@@ -138,44 +138,61 @@
 
 <!-- begin. На главной Новости Акции (1 картинка) -->
 <div class="card shadow-sm mt-4">
-  <div class="card-header d-flex justify-content-between align-items-center">
-    <h3 class="card-title mb-0">На главной Новости Акции</h3>
+  <div class="card-header">
+    <h3 class="card-title mb-0">На главной Новости и Акции</h3>
   </div>
   <div class="card-body">
-    <p class="text-muted mb-3">Размер: 1000x190</p>
-
-    <form method="post" class="d-flex flex-wrap gap-3">
+    <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
-      <input type="hidden" name="action" value="news_save">
+      <input type="hidden" name="action" value="save_news_slides">
 
-      <div class="border rounded p-2 text-center position-relative" style="width:180px;">
-        <div class="border bg-light d-flex align-items-center justify-content-center" style="height:100px;">
-          {% if news_banner and news_banner.gallery_banner and news_banner.gallery_banner.image_set.first %}
-            <img src="{% static news_banner.gallery_banner.image_set.first.image.name %}" class="img-fluid" style="max-height:96px;">
-          {% else %}
-            <i class="fa-solid fa-image fa-2x text-muted"></i>
-          {% endif %}
+      <div class="d-flex flex-wrap gap-3">
+        {% for banner in news_slides %}
+          <div class="border rounded p-2 text-center position-relative" style="width: 180px;">
+            <!-- Кнопка удаления -->
+            <button type="submit" name="delete_id" value="{{ banner.id }}"
+                    class="btn-close position-absolute top-0 end-0"></button>
+
+            <!-- Превью -->
+            <div class="border bg-light d-flex align-items-center justify-content-center"
+                 style="height: 100px;">
+              {% if banner.gallery_banner and banner.gallery_banner.image_set.first %}
+                <img src="{{ banner.gallery_banner.image_set.first.image.url }}"
+                     class="img-fluid" style="max-height: 96px;" id="preview-{{ banner.id }}">
+              {% else %}
+                <i class="fa-solid fa-image fa-2x text-muted" id="preview-{{ banner.id }}"></i>
+              {% endif %}
+            </div>
+
+            <!-- Поле загрузки -->
+            <input type="file" name="{{ banner.id }}-image"
+                   class="form-control form-control-sm mt-2"
+                   onchange="previewImage(this, 'preview-{{ banner.id }}')">
+            <!-- Поля ввода -->
+            <div class="mt-2">
+              <input type="text" name="{{ banner.id }}-url_banner"
+                     class="form-control form-control-sm mb-1"
+                     placeholder="URL при клике" value="{{ banner.url_banner }}">
+            </div>
+          </div>
+        {% endfor %}
+
+        <!-- Кнопка добавить слайд -->
+        <div class="d-flex align-items-center justify-content-center border rounded p-2" style="width: 180px;">
+          <button type="submit" name="action" value="add_news_slide"
+                  class="btn btn-outline-success btn-sm w-100">
+            <i class="fa-solid fa-plus"></i> Добавить слайд
+          </button>
         </div>
+      </div>
 
-        <select name="image_path" class="form-select form-select-sm mt-2">
-          <option value="">— выберите файл —</option>
-          {% for val,label in news_form.fields.image_path.choices %}
-            {% if val %}<option value="{{ val }}">{{ label }}</option>{% endif %}
-          {% endfor %}
-        </select>
-
-        <div class="mt-2">
-          <input type="text" name="url_banner" class="form-control form-control-sm"
-                 placeholder="URL при клике" value="{{ news_banner.url_banner|default:'' }}">
-        </div>
-
-        <button class="btn btn-primary btn-sm w-100 mt-2" type="submit">Сохранить</button>
+      <div class="mt-3 text-end">
+        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
       </div>
     </form>
   </div>
 </div>
 <!-- end. На главной Новости Акции -->
-
 <script>
 document.addEventListener('change', function(e){
   if(e.target.classList.contains('js-image-select')){

@@ -4,11 +4,35 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9b21c351-83b9-4d5d-8ff4-be87719ca970" name="Changes" comment="code changes #4 - background">
+    <list default="true" id="9b21c351-83b9-4d5d-8ff4-be87719ca970" name="Changes" comment="code changes #5 - home carousel">
+      <change afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_about_cinema_page.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_advertising_page.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_cafe_page.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_home_page.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_vip_hall_page.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/edit_other_page.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/banner/migrations/0001_initial.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/banner/migrations/0002_alter_homenewssharesbanner_options_and_more.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/admin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/migrations/0001_initial.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_banner_slider.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_banner_slider.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_layout.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_layout.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_other_page.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_other_page.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/about_cinema.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/about_cinema.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/advertising.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/advertising.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/cafe.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/cafe.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/layout.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/layout.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/vip_hall.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/vip_hall.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/core/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/page/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/page/admin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/page/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/page/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/page/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/page/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/users/migrations/0001_initial.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/users/migrations/0001_initial.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -21,8 +45,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="HTML File" />
         <option value="Python Script" />
+        <option value="HTML File" />
       </list>
     </option>
   </component>
@@ -70,13 +94,13 @@
     &quot;RunOnceActivity.pycharm.django.structure.promotion.once.per.project&quot;: &quot;true&quot;,
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/Sasha/PycharmProjects/Kino_CMS&quot;,
+    &quot;last_opened_file_path&quot;: &quot;//wsl$/Ubuntu/home/user/projects/Kino_CMS/.venv/bin/flake8&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.externalTools&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
   &quot;keyToStringList&quot;: {
@@ -198,7 +222,12 @@
       <workItem from="1756902462923" duration="22314000" />
       <workItem from="1756924817904" duration="1084000" />
       <workItem from="1756925937818" duration="1155000" />
-      <workItem from="1756974015775" duration="2429000" />
+      <workItem from="1756974015775" duration="8296000" />
+      <workItem from="1756983701242" duration="8061000" />
+      <workItem from="1757055749430" duration="5224000" />
+      <workItem from="1757061698121" duration="18350000" />
+      <workItem from="1757244881671" duration="7290000" />
+      <workItem from="1757310155573" duration="20966000" />
     </task>
     <task id="LOCAL-00001" summary="code changes #2">
       <option name="closed" value="true" />
@@ -224,7 +253,15 @@
       <option name="project" value="LOCAL" />
       <updated>1756975163013</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="code changes #5 - home carousel">
+      <option name="closed" value="true" />
+      <created>1756977283355</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1756977283355</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TerminalProjectNonSharedOptionsProvider">
@@ -249,6 +286,7 @@
     <MESSAGE value="code changes #2" />
     <MESSAGE value="code changes #3" />
     <MESSAGE value="code changes #4 - background" />
-    <option name="LAST_COMMIT_MESSAGE" value="code changes #4 - background" />
+    <MESSAGE value="code changes #5 - home carousel" />
+    <option name="LAST_COMMIT_MESSAGE" value="code changes #5 - home carousel" />
   </component>
 </project>

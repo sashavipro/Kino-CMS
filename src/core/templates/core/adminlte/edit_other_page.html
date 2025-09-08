@@ -1,0 +1,145 @@
+<!-- templates/core/adminlte/edit_other_page.html -->
+<div class="container mt-4">
+  <h3>Редактирование страницы: {{ page.name }}</h3>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- Заголовок -->
+    <div class="mb-3">
+      <label for="id_title" class="form-label">Заголовок на странице</label>
+      <input type="text" id="id_title" name="title" class="form-control"
+             value="{{ page.title|default:'' }}">
+    </div>
+
+    <!-- Описание -->
+    <div class="mb-3">
+      <label for="id_description" class="form-label">Текст под заголовком</label>
+      <textarea id="id_description" name="description" class="form-control" rows="5">{{ page.description|default:'' }}</textarea>
+    </div>
+
+    <!-- Главная картинка -->
+    <div class="mb-3">
+      <label for="id_main_image" class="form-label">Главная картинка</label>
+      <input type="file" id="id_main_image" name="main_image" class="form-control">
+
+      <div class="position-relative d-inline-block mt-2">
+        {% if page.main_image %}
+          <img src="{{ page.main_image.url }}" id="main-preview" alt="preview"
+               class="img-thumbnail" style="max-width:200px;">
+        {% else %}
+          <img id="main-preview" alt="preview" class="img-thumbnail d-none" style="max-width:200px;">
+        {% endif %}
+
+        {% if page.main_image %}
+          <!-- Кнопка удалить главную картинку -->
+          <button type="submit" name="action" value="delete_main_image"
+                  class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1">
+            Удалить главную
+          </button>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Галерея -->
+    <h4 class="mt-4">Галерея</h4>
+
+    <div class="d-flex flex-wrap gap-3">
+      {% for slide in slides %}
+        <div class="border rounded p-2 text-center position-relative" style="width: 180px;">
+          <!-- Кнопка удаления слайда -->
+          <button type="submit" name="delete_id" value="{{ slide.id }}"
+                  class="btn-close position-absolute top-0 end-0" aria-label="Удалить"></button>
+
+          <!-- Превью (всегда есть <img>, даже если пусто) -->
+          <div class="border bg-light d-flex align-items-center justify-content-center" style="height: 100px;">
+            <img
+              id="preview-{{ slide.id }}"
+              {% if slide.image %}src="{{ slide.image.url }}"{% endif %}
+              class="img-fluid {% if not slide.image %}d-none{% endif %}"
+              style="max-height: 96px;"
+              alt="slide preview">
+            <i class="fa-solid fa-image fa-2x text-muted {% if slide.image %}d-none{% endif %}"
+               id="placeholder-{{ slide.id }}"></i>
+          </div>
+
+          <!-- Поле загрузки -->
+          <input type="file" name="{{ slide.id }}-image"
+                 class="form-control form-control-sm mt-2 slide-input" data-id="{{ slide.id }}">
+        </div>
+      {% endfor %}
+
+      <!-- Кнопка добавить слайд -->
+      <div class="d-flex align-items-center justify-content-center border rounded p-2" style="width: 180px;">
+        <button type="submit" name="action" value="add_slide"
+                class="btn btn-outline-success btn-sm w-100">
+          <i class="fa-solid fa-plus"></i> Добавить слайд
+        </button>
+      </div>
+    </div>
+
+    <!-- SEO блок -->
+    <h5 class="mt-4">SEO блок</h5>
+    <div class="mb-3">
+      <label for="slug">URL</label>
+      <input type="text" id="slug" name="slug" class="form-control"
+             value="{% if seo_block %}{{ seo_block.slug|default:'' }}{% endif %}">
+    </div>
+    <div class="mb-3">
+      <label for="title_seo">Title</label>
+      <input type="text" id="title_seo" name="title_seo" class="form-control"
+             value="{% if seo_block %}{{ seo_block.title_seo }}{% endif %}">
+    </div>
+    <div class="mb-3">
+      <label for="keywords">Keywords</label>
+      <input type="text" id="keywords" name="keywords" class="form-control"
+             value="{% if seo_block %}{{ seo_block.keywords_seo }}{% endif %}">
+    </div>
+    <div class="mb-3">
+      <label for="description_seo">Description</label>
+      <textarea id="description_seo" name="description_seo" class="form-control">{% if seo_block %}{{ seo_block.description_seo }}{% endif %}</textarea>
+    </div>
+
+    <!-- Сохранение (ЕДИНСТВЕННАЯ кнопка сохранения) -->
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+  </form>
+</div>
+
+<!-- Превью (без перезагрузки) -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  // Превью главной
+  const mainInput = document.getElementById("id_main_image");
+  const mainPreview = document.getElementById("main-preview");
+  if (mainInput && mainPreview) {
+    mainInput.addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        mainPreview.src = ev.target.result;
+        mainPreview.classList.remove("d-none");
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Превью слайдов
+  document.querySelectorAll(".slide-input").forEach(input => {
+    input.addEventListener("change", e => {
+      const file = e.target.files[0];
+      const id = e.target.getAttribute("data-id");
+      const img = document.getElementById("preview-" + id);
+      const ph = document.getElementById("placeholder-" + id);
+      if (!file || !img) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        img.src = ev.target.result;
+        img.classList.remove("d-none");
+        if (ph) ph.classList.add("d-none");
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+});
+</script>

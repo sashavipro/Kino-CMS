@@ -3,12 +3,9 @@ from .models import SeoBlock, Image, Gallery
 
 @admin.register(SeoBlock)
 class SeoBlockAdmin(admin.ModelAdmin):
-    list_display = ['url_seo', 'title_seo', 'keywords_seo', 'description_seo']
-    search_fields = ['title_seo']
-    list_filter = ['keywords_seo']
-    # list_editable = []
-    fields = ['url_seo', 'title_seo', 'keywords_seo', 'description_seo']
-    # readonly_fields = ['create_time', 'update_time']
+    list_display = ("slug", "title_seo", "keywords_seo", "description_seo")
+    prepopulated_fields = {"slug": ("title_seo",)}
+    search_fields = ("title_seo", "keywords_seo", "description_seo")
 
 class ImageInline(admin.TabularInline):
     model = Image.gallery.through
