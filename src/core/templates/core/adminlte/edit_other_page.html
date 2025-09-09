@@ -4,7 +4,23 @@
 
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
+    <div class="row d-flex">
+        <!-- Status -->
+        <div class="col-md-6 mb-3">
+          <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="switch" name="status" {% if page.status %}checked{% endif %}>
+            <label class="form-check-label" for="switch">ВКЛ</label>
+          </div>
+        </div>
 
+        <!-- Языковые кнопки -->
+        <div class="col-md-6 mb-3">
+          <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-secondary active">Русский</button>
+            <button type="button" class="btn btn-outline-secondary">English</button>
+          </div>
+        </div>
+      </div>
 
 
     <!-- Заголовок -->

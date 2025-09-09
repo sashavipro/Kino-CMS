@@ -14,7 +14,6 @@ from pathlib import Path
 import environ
 import os
 
-
 env = environ.Env(
     DEBUG=(bool, False)
 )
@@ -43,11 +42,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'src.core',  # CORE
-    'src.users',  # USERS
-    'src.page',  # PAGE
-    'src.cinema',  # CINEMA
-    'src.banner',  # banner
+    'src.core.apps.CoreConfig',  # CORE
+    'src.users.apps.UsersConfig',  # USERS
+    'src.page.apps.PageConfig',  # PAGE
+    'src.cinema.apps.CinemaConfig',  # CINEMA
+    'src.banner.apps.BannerConfig',  # banner
 
 ]
 

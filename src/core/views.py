@@ -6,7 +6,7 @@ from src.banner.models import HomeBanner, HomeNewsSharesBanner, BackgroundBanner
 from src.banner.forms import HomeBannerSlideForm, NewsSharesBannerForm
 from src.core.models import SeoBlock, Gallery, Image
 from src.page.models import MainPage, OtherPage, OtherPageSlide, NewsPromotionPage
-from django.utils.text import slugify
+
 
 def admin_stats(request):
     return render(request, 'core/adminlte/admin_stats.html')
@@ -316,6 +316,9 @@ def admin_other_page(request):
 
     return render(request, "core/adminlte/admin_other_page.html", {"pages": pages})
 
+
+
+
 #---------
 def admin_home_page(request):
     """
@@ -463,6 +466,9 @@ def edit_other_page(request, page_name, template="core/adminlte/edit_other_page.
                 slide.image = request.FILES[field_name]
                 slide.save()
 
+        # Статус
+        page.status = 'status' in request.POST
+
         # SEO блок
         slug = request.POST.get("slug", "").strip()
         title_seo = request.POST.get("title_seo", "").strip()
@@ -521,6 +527,7 @@ def index(request):
         main_page = None
 
     seo_block = main_page.seo_block if main_page and main_page.seo_block else None
+
     context = {
         'main_page': main_page,
         'seo_block': seo_block,
