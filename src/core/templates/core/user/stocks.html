@@ -1,69 +1,45 @@
 {% extends 'core/user/layout.html' %}
 
-{% block title %}Главная страница{% endblock %}
+{% block title %}Акции и Скидки{% endblock %}
 
 {% block content %}
-    <!-- Баннер -->
-    <div class="text-center">
-        <img src="https://picsum.photos/1200/400?random=1" alt=""class="">
-    </div>
-    <!-- Основной контейнер -->
+    <!-- ... баннер ... -->
     <div class="container w-80">
-
         <div class="row">
-            <!-- Левая колонка с контентом -->
             <div class="col-lg-9 w-80">
-                <!-- Заголовок -->
                 <div class="text-center my-4">
                     <h2>Акции и Скидки</h2>
                 </div>
                 <div class="content-block">
                     <div class="row g-4">
-                        <!-- Карточка постера -->
+                        <!-- НАЧАЛО ЦИКЛА -->
+                        {% for promo in promotion_list %}
                         <div class="col-md-4">
                             <div class="poster-card">
-                                <img src="https://picsum.photos/1200/500?random=1" alt="Постер">
-                                <h5 class="mt-2"><a href="#">Название постера</a></h5>
-                                <div class="tags">
-                                    <div class="tag">01.09.2025</div>
-                                    <div class="tag">Тег1</div>
-                                    <div class="tag">Тег2</div>
-                                </div>
-                                <p>Описание постера. Краткое содержание или информация об акции.</p>
-                            </div>
-                        </div>
+                                {% if promo.main_image %}
+                                <img src="{{ promo.main_image.url }}" alt="{{ promo.name }}">
+                                {% else %}
+                                <img src="https://via.placeholder.com/400x250" alt="Нет изображения">
+                                {% endif %}
 
-                        <!-- Ещё карточки -->
-                        <div class="col-md-4">
-                            <div class="poster-card">
-                                <img src="https://picsum.photos/1200/500?random=1" alt="Постер">
-                                <h5 class="mt-2"><a href="#">Название постера</a></h5>
-                                <div class="tags">
-                                    <div class="tag">05.09.2025</div>
-                                    <div class="tag">Тег1</div>
-                                    <div class="tag">Тег2</div>
-                                </div>
-                                <p>Описание постера. Краткое содержание или информация об акции.</p>
-                            </div>
-                        </div>
+                                <!-- ССЫЛКА НА ДЕТАЛЬНУЮ СТРАНИЦУ -->
+                                <h5 class="mt-2"><a href="{% url 'core:stock_card' promo.pk %}">{{ promo.name }}</a></h5>
 
-                        <div class="col-md-4">
-                            <div class="poster-card">
-                                <img src="https://picsum.photos/1200/500?random=1" alt="Постер">
-                                <h5 class="mt-2"><a href="#">Название постера</a></h5>
                                 <div class="tags">
-                                    <div class="tag">10.09.2025</div>
-                                    <div class="tag">Тег1</div>
-                                    <div class="tag">Тег2</div>
+                                    <div class="tag">{{ promo.time_created|date:"d.m.Y" }}</div>
                                 </div>
-                                <p>Описание постера. Краткое содержание или информация об акции.</p>
+                                <p>{{ promo.description|truncatewords:20 }}</p>
                             </div>
                         </div>
+                        {% empty %}
+                        <p class="text-center">На данный момент активных акций нет.</p>
+                        {% endfor %}
+                        <!-- КОНЕЦ ЦИКЛА -->
                     </div>
                 </div>
             </div>
 
-            <!-- Правая колонка с рекламой -->
+            <!-- ... правая колонка ... -->
             <div class="col-lg-3 w-20">
                 <div class="ad-block">
                     <img src="https://picsum.photos/1200/500?random=1" alt="">

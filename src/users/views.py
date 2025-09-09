@@ -30,6 +30,11 @@ def login_view(request):
     return render(request, 'users/auth/login.html', {'form': form})
 
 
+def logout_view(request):
+    logout(request)
+    return redirect('core:home')
+
+
 @login_required
 def profile_view(request):
     if request.method == 'POST':
@@ -45,11 +50,6 @@ def profile_view(request):
         form = CustomUserUpdateForm(instance=request.user)
 
     return render(request, 'users/auth/profile.html', {'user': request.user, 'form': form})
-
-
-def logout_view(request):
-    logout(request)
-    return redirect('main:home')
 
 
 @login_required

@@ -4,35 +4,22 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9b21c351-83b9-4d5d-8ff4-be87719ca970" name="Changes" comment="code changes #5 - home carousel">
-      <change afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_about_cinema_page.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_advertising_page.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_cafe_page.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_home_page.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_vip_hall_page.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/edit_other_page.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
+    <list default="true" id="9b21c351-83b9-4d5d-8ff4-be87719ca970" name="Changes" comment="code changes #6 - banner(news), page(cage, about cinema, advertising, home)">
+      <change afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/edit_news.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/banner/migrations/0001_initial.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/banner/migrations/0002_alter_homenewssharesbanner_options_and_more.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/admin.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/migrations/0001_initial.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_banner_slider.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_banner_slider.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_layout.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_layout.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_news.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_news.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_other_page.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_other_page.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/about_cinema.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/about_cinema.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/advertising.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/advertising.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/cafe.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/cafe.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/layout.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/layout.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/vip_hall.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/vip_hall.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_promotion.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_promotion.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/edit_other_page.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/edit_other_page.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/news.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/news.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/stocks.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/stocks.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/stocks_card.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/stocks_card.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/core/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/core/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/page/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/page/admin.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/page/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/page/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/page/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/page/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/users/forms.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/users/forms.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/users/migrations/0001_initial.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/users/migrations/0001_initial.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/users/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/users/views.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,8 +32,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Python Script" />
         <option value="HTML File" />
+        <option value="Python Script" />
       </list>
     </option>
   </component>
@@ -227,7 +214,9 @@
       <workItem from="1757055749430" duration="5224000" />
       <workItem from="1757061698121" duration="18350000" />
       <workItem from="1757244881671" duration="7290000" />
-      <workItem from="1757310155573" duration="20966000" />
+      <workItem from="1757310155573" duration="29060000" />
+      <workItem from="1757396513896" duration="50000" />
+      <workItem from="1757396585325" duration="25461000" />
     </task>
     <task id="LOCAL-00001" summary="code changes #2">
       <option name="closed" value="true" />
@@ -261,7 +250,15 @@
       <option name="project" value="LOCAL" />
       <updated>1756977283355</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="code changes #6 - banner(news), page(cage, about cinema, advertising, home)">
+      <option name="closed" value="true" />
+      <created>1757335927020</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1757335927020</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TerminalProjectNonSharedOptionsProvider">
@@ -287,6 +284,7 @@
     <MESSAGE value="code changes #3" />
     <MESSAGE value="code changes #4 - background" />
     <MESSAGE value="code changes #5 - home carousel" />
-    <option name="LAST_COMMIT_MESSAGE" value="code changes #5 - home carousel" />
+    <MESSAGE value="code changes #6 - banner(news), page(cage, about cinema, advertising, home)" />
+    <option name="LAST_COMMIT_MESSAGE" value="code changes #6 - banner(news), page(cage, about cinema, advertising, home)" />
   </component>
 </project>

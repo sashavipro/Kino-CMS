@@ -1,43 +1,66 @@
 {% extends 'core/adminlte/admin_layout.html' %}
+{% load static %}
 
 {% block content %}
-<!-- Список акций -->
-    <div class="card mb-4">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h3 class="card-title">Список Акций</h3>
-        <button class="btn btn-success btn-sm"><i class="fas fa-plus"></i> Создать Акцию</button>
-      </div>
-      <div class="card-body p-0">
-        <table class="table table-striped mb-0">
-          <thead>
-            <tr>
-              <th>Название</th>
-              <th>Дата создания</th>
-              <th>Статус</th>
-              <th>Действия</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Три билета в подарок</td>
-              <td>12.07.2016</td>
-              <td><span class="badge bg-success">ВКЛ</span></td>
-              <td>
-                <button class="btn btn-sm btn-primary"><i class="fas fa-pencil-alt"></i></button>
-                <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
-              </td>
-            </tr>
-            <tr>
-              <td>Три билета в подарок</td>
-              <td>12.07.2016</td>
-              <td><span class="badge bg-secondary">ВЫКЛ</span></td>
-              <td>
-                <button class="btn btn-sm btn-primary"><i class="fas fa-pencil-alt"></i></button>
-                <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+<div class="card mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <!-- 1. Меняем заголовок -->
+    <h3 class="card-title">Список Акций</h3>
+
+    <!-- 2. Меняем URL в форме создания -->
+    <form method="post" action="{% url 'core:admin_promotion' %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="create">
+      <button type="submit" class="btn btn-success btn-sm">
+        <i class="fas fa-plus"></i> Создать Акцию
+      </button>
+    </form>
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-striped mb-0">
+      <thead>
+        <tr>
+          <th>Название</th>
+          <th>Дата создания</th>
+          <th>Статус</th>
+          <th>Действия</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- 3. Меняем имя переменной в цикле (из view приходит promotion_list) -->
+        {% for promo in promotion_list %}
+        <tr>
+          <td>{{ promo.name }}</td>
+          <td>{{ promo.time_created|date:"d.m.Y" }}</td>
+          <td>
+            {% if promo.status %}
+              <span class="badge bg-success">ВКЛ</span>
+            {% else %}
+              <span class="badge bg-secondary">ВЫКЛ</span>
+            {% endif %}
+          </td>
+          <td>
+            <!-- Ссылка на редактирование остается той же, view edit_news - универсальна -->
+            <a href="{% url 'core:edit_news' promo.pk %}" class="btn btn-sm btn-primary">
+              <i class="fas fa-pencil-alt"></i>
+            </a>
+            <!-- 4. Меняем URL в форме удаления -->
+            <form method="post" action="{% url 'core:admin_promotion' %}" style="display:inline;">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="delete">
+              <!-- 5. Меняем имя переменной для ID -->
+              <input type="hidden" name="item_id" value="{{ promo.pk }}">
+              <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Удалить акцию?');">
+                <i class="fas fa-trash"></i>
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-center">Акций нет</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}

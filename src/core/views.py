@@ -1,10 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.utils import timezone
+from django.views.decorators.http import require_http_methods
 from src.banner.models import HomeBanner, HomeNewsSharesBanner, BackgroundBanner
 from src.banner.forms import HomeBannerSlideForm, NewsSharesBannerForm
-from src.core.models import SeoBlock
-from src.page.models import MainPage, OtherPage, OtherPageSlide
-
+from src.core.models import SeoBlock, Gallery, Image
+from src.page.models import MainPage, OtherPage, OtherPageSlide, NewsPromotionPage
+from django.utils.text import slugify
 
 def admin_stats(request):
     return render(request, 'core/adminlte/admin_stats.html')
@@ -104,16 +106,215 @@ def admin_cinema(request):
     return render(request, 'core/adminlte/admin_cinema.html')
 
 
-def admin_news(request):
-    return render(request, 'core/adminlte/admin_news.html')
 
+def admin_news(request):
+    if request.method == "POST" and request.POST.get("action") == "create":
+        NewsPromotionPage.objects.create(
+            name="НОВАЯ НОВОСТЬ",
+            status=True,
+            description="",
+            time_created=timezone.now(),
+            is_promotion=False  # Указываем, что создаем именно новость
+        )
+        return redirect("core:admin_news")
+
+    # удалить новость
+    if request.method == "POST" and request.POST.get("action") == "delete":
+        pk = request.POST.get("news_id")
+        # При удалении тоже проверяем, что это новость
+        news = get_object_or_404(NewsPromotionPage, pk=pk, is_promotion=False)
+        news.delete()
+        return redirect("core:admin_news")
+
+    # Получаем из базы ТОЛЬКО НОВОСТИ
+    news_list = NewsPromotionPage.objects.filter(is_promotion=False).order_by("-time_created")
+    return render(request, "core/adminlte/admin_news.html", {
+        "news_list": news_list
+    })
+
+
+def edit_news(request, pk):
+    # Используем имя 'item', т.к. это может быть и новость, и акция
+    item = get_object_or_404(NewsPromotionPage, pk=pk)
+
+    # Обработка POST-запроса
+    if request.method == "POST":
+        action = request.POST.get("action")
+
+        # Удалить главную картинку
+        if action == "delete_main_image":
+            if item.main_image:
+                item.main_image.delete(save=True)
+            messages.success(request, "Главная картинка удалена.")
+            return redirect(request.path)
+
+        # Добавить картинку в галерею
+        if action == "add_slide":
+            # Если у записи еще нет галереи, создаем ее
+            if not item.gallery_banner:
+                gallery_name = f"Gallery for Item {item.pk}"
+                gallery, _ = Gallery.objects.get_or_create(name_gallery=gallery_name)
+                item.gallery_banner = gallery
+                item.save()
+
+            # Создаем изображение и СВЯЗЫВАЕМ его с галереей
+            new_image = Image.objects.create()
+            item.gallery_banner.images.add(new_image)
+
+            messages.success(request, "Слот для изображения добавлен в галерею.")
+            return redirect(request.path)
+
+        # Удалить картинку из галереи
+        delete_id = request.POST.get("delete_id")
+        if delete_id:
+            image_to_delete = get_object_or_404(Image, pk=delete_id)
+            # Удаление самого объекта Image каскадно удалит и связь ManyToMany
+            image_to_delete.delete()
+            messages.success(request, "Изображение удалено из галереи.")
+            return redirect(request.path)
+
+        # Статус
+        item.status = 'status' in request.POST
+
+        # Текстовые поля
+        item.name = request.POST.get('title', '').strip()
+        item.description = request.POST.get('description', '').strip()
+        item.url_movie = request.POST.get('url_movie', '').strip()
+
+        # Дата
+        publication_date = request.POST.get('publicationDate')
+        if publication_date:
+            item.time_created = publication_date
+
+        # Главная картинка (если загружена новая)
+        if 'main_image' in request.FILES:
+            item.main_image = request.FILES['main_image']
+
+        # Обновление файлов галереи
+        if item.gallery_banner:
+            # Обращаемся к 'images' через related_name
+            for image in item.gallery_banner.images.all():
+                field_name = f"{image.pk}-image" # Надежнее использовать pk
+                if field_name in request.FILES:
+                    image.image = request.FILES[field_name]
+                    image.save()
+
+        # SEO блок
+        slug = request.POST.get("slug", "").strip()
+        title_seo = request.POST.get("title_seo", "").strip()
+        keywords = request.POST.get("keywords", "").strip()
+        description_seo = request.POST.get("description_seo", "").strip()
+
+        # ГЛАВНОЕ УСЛОВИЕ: Мы работаем с SEO-блоком, ТОЛЬКО ЕСЛИ slug НЕ ПУСТОЙ.
+        if slug:
+            # Проверяем, не занят ли этот slug другим SEO-блоком,
+            # который не принадлежит текущей записи.
+            conflicting_seo = SeoBlock.objects.filter(slug=slug).exclude(pk=getattr(item.seo_block, 'pk', None)).first()
+            if conflicting_seo:
+                messages.error(request,
+                               f"URL (slug) '{slug}' уже используется другой записью. Пожалуйста, выберите уникальный URL.")
+            else:
+                # Если у записи уже есть SEO-блок, обновляем его
+                if item.seo_block:
+                    seo_obj = item.seo_block
+                    seo_obj.slug = slug
+                    seo_obj.title_seo = title_seo
+                    seo_obj.keywords_seo = keywords
+                    seo_obj.description_seo = description_seo
+                    seo_obj.save()
+                # Если SEO-блока нет, создаем новый
+                else:
+                    seo_obj = SeoBlock.objects.create(
+                        slug=slug,
+                        title_seo=title_seo,
+                        keywords_seo=keywords,
+                        description_seo=description_seo,
+                    )
+                    item.seo_block = seo_obj
+        # ЕСЛИ SLUG ПУСТОЙ: значит, SEO-блок нам не нужен.
+        else:
+            # Если у записи был SEO-блок, удаляем его, чтобы не хранить мусор
+            if item.seo_block:
+                item.seo_block.delete()
+            item.seo_block = None
+
+        item.save()
+        messages.success(request, f"Запись «{item.name}» успешно сохранена.")
+
+        # <<< ИСПРАВЛЕНО: "Умный" редирект в зависимости от типа записи
+        if item.is_promotion:
+            return redirect('core:admin_promotion')
+        else:
+            return redirect('core:admin_news')
+
+    # --- Обработка GET-запроса (просто отображение формы) ---
+    gallery_images = []
+    if item.gallery_banner:
+        # <<< УЛУЧШЕНО: Обращаемся к 'images' через related_name
+        gallery_images = item.gallery_banner.images.all()
+
+    context = {
+        'item': item, # Оставляем 'news', т.к. шаблон использует это имя
+        'seo_block': item.seo_block,
+        'slides': gallery_images,
+    }
+    return render(request, 'core/adminlte/edit_news.html', context)
 
 def admin_promotion(request):
-    return render(request, 'core/adminlte/admin_promotion.html')
+    if request.method == "POST" and request.POST.get("action") == "create":
+        NewsPromotionPage.objects.create(
+            name="НОВАЯ АКЦИЯ",
+            status=True,
+            description="",
+            time_created=timezone.now(),
+            is_promotion=True  # Указываем, что создаем именно АКЦИЮ
+        )
+        return redirect("core:admin_promotion")
+
+    if request.method == "POST" and request.POST.get("action") == "delete":
+        pk = request.POST.get("promotion_id")
+        # При удалении проверяем, что это акция
+        promotion = get_object_or_404(NewsPromotionPage, pk=pk, is_promotion=True)
+        promotion.delete()
+        return redirect("core:admin_promotion")
+
+    # Получаем из базы ТОЛЬКО АКЦИИ
+    promotion_list = NewsPromotionPage.objects.filter(is_promotion=True).order_by("-time_created")
+    return render(request, "core/adminlte/admin_promotion.html", {
+        "promotion_list": promotion_list
+    })
 
 
+
+@require_http_methods(["GET", "POST"])
 def admin_other_page(request):
-    return render(request, "core/adminlte/admin_other_page.html")
+    if request.method == "POST":
+        # Создание страницы
+        if "create_page" in request.POST:
+            OtherPage.objects.create(name="Новая страница", created=timezone.now(), status=False)
+            return redirect("core:admin_other_page")
+
+        # Удаление страницы
+        if "delete_page" in request.POST:
+            page_id = request.POST.get("delete_page")
+            page = get_object_or_404(OtherPage, id=page_id)
+            page.delete()
+            return redirect("core:admin_other_page")
+
+    # Объединяем MainPage и OtherPage
+    main_pages = MainPage.objects.all()
+    other_pages = OtherPage.objects.all()
+
+    # Добавляем поле type для различия
+    pages = []
+    for p in main_pages:
+        p.type = "main"
+        pages.append(p)
+    for p in other_pages:
+        p.type = "other"
+        pages.append(p)
+
+    return render(request, "core/adminlte/admin_other_page.html", {"pages": pages})
 
 #---------
 def admin_home_page(request):
@@ -219,7 +420,7 @@ def edit_other_page(request, page_name, template="core/adminlte/edit_other_page.
         name=page_name,
         defaults={"title": "", "description": ""}
     )
-    seo_block = page.seo_block
+    #seo_block = page.seo_block
     slides = page.slides.all()
 
     if request.method == "POST":
@@ -314,10 +515,6 @@ def admin_mailing(request):
 #------------------------------
 # Главная
 def index(request):
-    """
-    Отображение главной страницы (index.html).
-    Подаём в шаблон main_page (или None) и связанный seo_block (или None).
-    """
     try:
         main_page = MainPage.objects.get()
     except MainPage.DoesNotExist:
@@ -382,11 +579,36 @@ def card_hall(request):
 
 # Акции и скидки
 def stocks(request):
-    return render(request, 'core/user/stocks.html')
+    promotions = NewsPromotionPage.objects.filter(
+        is_promotion=True,  # Условие 1: Это должна быть акция
+        status=True  # Условие 2: У нее должен быть статус "ВКЛ"
+    ).order_by("-time_created")
+
+    context = {
+        'promotion_list': promotions
+    }
+    return render(request, 'core/user/stocks.html', context)
 
 # Картачка акций и скидок
-def stocks_card(request):
-    return render(request, 'core/user/stocks_card.html')
+def stocks_card(request, pk):
+    """
+    Отображает одну конкретную акцию по её ID,
+    проверяя, что это действительно АКТИВНАЯ АКЦИЯ.
+    """
+    promotion = get_object_or_404(
+        NewsPromotionPage,
+        pk=pk,               # 1. Ищем по конкретному ID из URL
+        is_promotion=True,   # 2. Убеждаемся, что это АКЦИЯ, а не новость
+        status=True          # 3. Убеждаемся, что статус "ВКЛ"
+    )
+
+    # Если объект найден, передаем его в шаблон под именем 'promotion'
+    context = {
+        'promotion': promotion
+    }
+
+    # Отображаем ваш готовый шаблон
+    return render(request, 'core/user/stocks_card.html', context)
 
 
 # О кинотеатре
@@ -404,8 +626,13 @@ def about_cinema(request):
 
 
 # Новости
-def news(request):
-    return render(request, 'core/user/news.html')
+def news(request):  # Имя функции может быть 'news_list' или другое
+    news_items = NewsPromotionPage.objects.filter(is_promotion=False, status=True).order_by("-time_created")
+
+    context = {
+        'news_list': news_items
+    }
+    return render(request, 'core/user/news.html', context)
 
 
 # Реклама
@@ -429,8 +656,8 @@ def vip_hall(request):
 
     context = {
         'page': page,
-        'seo_block': seo_block,  # <--- ВОТ КЛЮЧЕВОЕ ИЗМЕНЕНИЕ
-        'slides': page.slides.all(),  # Также не забудьте передать слайды, если они нужны на странице
+        'seo_block': seo_block,
+        'slides': page.slides.all(),
     }
 
     return render(request, 'core/user/vip_hall.html',context)

@@ -1,39 +1,42 @@
 {% extends 'core/user/layout.html' %}
 
-{% block title %}Карточка акции{% endblock %}
+<!-- Используем название акции в заголовке страницы для SEO -->
+{% block title %}{{ promotion.name }}{% endblock %}
 
 {% block content %}
-    <!-- Баннер -->
+    <!-- Баннер (может быть динамическим, если нужно) -->
     <div class="text-center">
-        <img src="https://picsum.photos/1200/400?random=1" alt=""class="">
+        <img src="https://picsum.photos/1200/400?random=1" alt="" class="">
     </div>
-    <!-- Основной контейнер -->
+
     <div class="container w-80">
-
         <div class="row">
-            <!-- Левая колонка с контентом -->
             <div class="col-lg-9 w-80">
-
                 <div class="content-block">
-                    <!-- Заголовок -->
+                    <!-- Заголовок акции -->
                     <div class="text-left my-4">
-                        <h2>Акции и Скидки</h2>
+                        <h2>{{ promotion.name }}</h2>
                     </div>
+                    <!-- Дата публикации -->
                     <div class="tags">
-                        <div class="tag">01.09.2025</div>
-                        <div class="tag">Тег1</div>
-                        <div class="tag">Тег2</div>
+                        <div class="tag">{{ promotion.time_created|date:"d.m.Y" }}</div>
                     </div>
-                    <div class="row align-items-center g-3">
+                    <div class="row align-items-center g-3 mt-2">
                         <div class="col-md-4">
-                            <!-- Карточка постера -->
                             <div class="poster-card">
-                                <img src="https://picsum.photos/1200/500?random=1" alt="Постер">
+                                <!-- Главное изображение акции -->
+                                {% if promotion.main_image %}
+                                    <img src="{{ promotion.main_image.url }}" alt="{{ promotion.name }}">
+                                {% else %}
+                                    <!-- Заглушка, если изображения нет -->
+                                    <img src="https://via.placeholder.com/400x300" alt="Нет изображения">
+                                {% endif %}
                             </div>
                         </div>
-                            <div class="col-md-8">
-                                <p>Описание постера. Краткое содержание или информация об акции.</p>
-                            </div>
+                        <div class="col-md-8">
+                            <!-- Полное описание акции -->
+                            <p>{{ promotion.description|linebreaks }}</p>
+                        </div>
                     </div>
                 </div>
             </div>

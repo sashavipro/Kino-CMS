@@ -11,7 +11,12 @@ urlpatterns = [
     path("adminlte/admin_banner_slider", views.admin_banner_slider, name="admin_banner_slider"),
     path('adminlte/admin_films', views.admin_films, name='admin_films'),
     path('adminlte/admin_cinema', views.admin_cinema, name='admin_cinema'),
+
     path('adminlte/admin_news', views.admin_news, name='admin_news'),
+    path('adminlte/edit_news', views.edit_news, name='edit_news'),
+    path("adminlte/admin_news/", views.admin_news, name="admin_news"),
+    path("adminlte/admin_news/<int:pk>/edit/", views.edit_news, name="edit_news"),
+
     path('adminlte/admin_promotion', views.admin_promotion, name='admin_promotion'),
 
     path("adminlte/edit/<str:page_name>/", views.edit_other_page, name="edit_other_page"),
@@ -51,7 +56,7 @@ urlpatterns = [
 
 
     path('stocks', views.stocks, name='stocks'),
-    path('stocks_card', views.stocks_card, name='stocks_card'),
+    path('stock/<int:pk>/', views.stocks_card, name='stock_card'),
 
 
     path('about_cinema', views.about_cinema, name='about_cinema'),

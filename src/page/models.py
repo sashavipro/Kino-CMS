@@ -2,7 +2,7 @@ import os
 
 from django.db import models
 
-from src.core.models import SeoBlock
+from src.core.models import SeoBlock, Gallery
 
 
 # # PAGE ----------------------------------------------------------------------------------------
@@ -70,3 +70,22 @@ class OtherPageSlide(models.Model):
     class Meta:
         verbose_name = "Слайд для другой страницы"
         verbose_name_plural = "Слайды для других страниц"
+
+
+class NewsPromotionPage(models.Model):
+    is_promotion = models.BooleanField(
+        default=False,  # По умолчанию все новые записи будут новостями
+        verbose_name="Это акция?",
+        help_text="Отметьте, если это акция. Иначе запись будет считаться новостью."
+    )
+    status = models.BooleanField(default=True)
+    name = models.CharField(max_length=50, unique=True)
+    time_created = models.DateTimeField(auto_now_add=True)
+    description = models.TextField()
+    main_image = models.ImageField(upload_to="static/image/", blank=True, null=True)
+    gallery_banner = models.OneToOneField(Gallery, on_delete=models.CASCADE, blank=True, null=True, help_text='Select Gallery to Banner')
+    url_movie = models.URLField(max_length=300, null=True, blank=True, help_text='Input url movie')
+    seo_block = models.ForeignKey(SeoBlock, on_delete=models.CASCADE, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
