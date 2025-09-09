@@ -9,16 +9,20 @@
             <form method="POST">
                 {% csrf_token %}
                 <div class="mb-3">
-                    <label for="{{ form.username.id_for_label }}" class="form-label">Login</label>
-                    {{ form.username }}
+                    <label for="username" class="form-label">Login</label>
+                    <input type="text" name="username" id="username" class="input-register form-control" placeholder="Your username" autofocus required>
                 </div>
 
                 <div class="mb-3">
-                    <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
-                    {{ form.password }}
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" name="password" id="password" class="input-register form-control" placeholder="Your password" required>
                 </div>
 
                 <button type="submit" class="btn btn-primary w-100">Log In</button>
+
+                {% if error %}
+                    <div class="alert alert-danger mt-3">{{ error }}</div>
+                {% endif %}
             </form>
         </div>
     </div>

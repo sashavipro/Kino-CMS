@@ -4,21 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9b21c351-83b9-4d5d-8ff4-be87719ca970" name="Changes" comment="code changes #6 - banner(news), page(cage, about cinema, advertising, home)">
-      <change afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/edit_news.html" afterDir="false" />
+    <list default="true" id="9b21c351-83b9-4d5d-8ff4-be87719ca970" name="Changes" comment="code changes #7 - news and promotion">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_news.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_news.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_other_page.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_other_page.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_promotion.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_promotion.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/edit_other_page.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/edit_other_page.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/news.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/news.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/stocks.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/stocks.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/stocks_card.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/stocks_card.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/page/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/page/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/users/forms.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/users/forms.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/users/forms.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/users/migrations/0001_initial.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/users/migrations/0001_initial.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/users/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/users/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/users/templates/users/auth/login.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/users/templates/users/auth/login.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/users/templates/users/auth/profile.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/users/templates/users/auth/profile.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/users/templates/users/auth/registration.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/users/templates/users/auth/registration.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/users/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/users/views.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -216,7 +209,8 @@
       <workItem from="1757244881671" duration="7290000" />
       <workItem from="1757310155573" duration="29060000" />
       <workItem from="1757396513896" duration="50000" />
-      <workItem from="1757396585325" duration="25461000" />
+      <workItem from="1757396585325" duration="25880000" />
+      <workItem from="1757426951905" duration="1633000" />
     </task>
     <task id="LOCAL-00001" summary="code changes #2">
       <option name="closed" value="true" />
@@ -258,7 +252,15 @@
       <option name="project" value="LOCAL" />
       <updated>1757335927020</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="code changes #7 - news and promotion">
+      <option name="closed" value="true" />
+      <created>1757426860580</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1757426860580</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TerminalProjectNonSharedOptionsProvider">
@@ -285,6 +287,7 @@
     <MESSAGE value="code changes #4 - background" />
     <MESSAGE value="code changes #5 - home carousel" />
     <MESSAGE value="code changes #6 - banner(news), page(cage, about cinema, advertising, home)" />
-    <option name="LAST_COMMIT_MESSAGE" value="code changes #6 - banner(news), page(cage, about cinema, advertising, home)" />
+    <MESSAGE value="code changes #7 - news and promotion" />
+    <option name="LAST_COMMIT_MESSAGE" value="code changes #7 - news and promotion" />
   </component>
 </project>

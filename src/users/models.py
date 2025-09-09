@@ -2,8 +2,6 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.utils.html import strip_tags
 
-# from django.utils.translation import gettext_lazy as _
-
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, username, password=None, **extra_fields):
@@ -53,9 +51,9 @@ class CustomUser(AbstractUser):
         ('kharkov', 'Харьков'),
         ('odessa', 'Одесса'),
     ]
-    city = models.CharField(max_length=60, blank=True, null=True)
-    gender = models.CharField(blank=True, choices=GENDER_CHOICES, null=True)
-    language = models.CharField(blank=True, choices=LANGUAGE_CHOICES, null=True)
+    city = models.CharField(max_length=60, blank=True, null=True, choices=CITY_CHOICES)
+    gender = models.CharField(blank=True, choices=GENDER_CHOICES, null=True, max_length=10)
+    language = models.CharField(blank=True, choices=LANGUAGE_CHOICES, null=True, max_length=2)
 
     objects = CustomUserManager()
 
@@ -69,15 +67,5 @@ class CustomUser(AbstractUser):
         for field in ['first_name', 'last_name', 'address', 'card_number',
                       'language', 'gender', 'phone', 'birthday', 'city']:
             value = getattr(self, field)
-            if value:
+            if value and isinstance(value, str):
                 setattr(self, field, strip_tags(value))
-
-
-# class Ticket(models.Model):
-#     session = models.ForeignKey(MovieSession, on_delete=models.CASCADE)
-#     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-#     seat = models.CharField(max_length=5)
-#     reservation = models.BooleanField(default=False)
-#
-#     def __str__(self):
-#         return f"Ticket {self.seat} for {self.session}"

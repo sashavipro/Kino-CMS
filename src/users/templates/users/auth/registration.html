@@ -11,27 +11,34 @@
                 <form method="POST">
                     {% csrf_token %}
                     <div class="mb-3">
-                        <label for="{{ form.username.id_for_label }}" class="form-label">Login</label>
-                        {{ form.username }}
+                        <label for="username" class="form-label">Login</label>
+                        <input type="text" name="username" id="username" class="input-register form-control" placeholder="Your username" required>
                     </div>
 
                     <div class="mb-3">
-                        <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
-                        {{ form.email }}
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" name="email" id="email" class="input-register form-control" placeholder="Your email" required>
                     </div>
 
                     <div class="mb-3">
-                        <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
-                        {{ form.password1 }}
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" name="password1" id="password" class="input-register form-control" placeholder="Your password" required>
                     </div>
 
                     <div class="mb-3">
-                        <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm password</label>
-                        {{ form.password2 }}
+                        <label for="confirm_password" class="form-label">Confirm password</label>
+                        <input type="password" name="password2" id="confirm_password" class="input-register form-control" placeholder="Confirm your password" required>
                     </div>
 
                     <button type="submit" class="btn btn-success w-100">Registration</button>
-                    {{ form.errors }}
+
+                    {% if errors %}
+                        <div class="alert alert-danger mt-3">
+                            {% for error in errors %}
+                                <p class="mb-0">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </form>
             </div>
         </div>
