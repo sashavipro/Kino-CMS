@@ -1,0 +1,151 @@
+{% extends 'core/adminlte/admin_layout.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <h3>Редактирование зала: {{ hall.number_hall }}</h3>
+    <p>Принадлежит кинотеатру: <a href="{% url 'core:edit_cinema' hall.cinema.pk %}">{{ hall.cinema.name }}</a></p>
+
+    <div class="row d-flex">
+        <!-- Языковые кнопки -->
+        <div class="col-md-6 mb-3">
+          <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-secondary active">Русский</button>
+            <button type="button" class="btn btn-outline-secondary">English</button>
+          </div>
+        </div>
+      </div>
+
+
+    <!-- Название зала -->
+    <div class="mb-3">
+      <label class="form-label">Название зала</label>
+      <input type="text" name="title" class="form-control" value="{{ hall.number_hall|default:'' }}">
+    </div>
+
+    <!-- Описание -->
+    <div class="mb-3">
+      <label class="form-label">Описание</label>
+      <textarea name="description" class="form-control" rows="5">{{ hall.description|default:'' }}</textarea>
+    </div>
+
+
+    <!-- Схема зала  -->
+    <div class="mb-3">
+        <label class="form-label">Схема зала</label>
+        <input type="file" name="scheme_image" class="form-control">
+        {% if hall.scheme_image %}
+            <div class="position-relative d-inline-block mt-2">
+                <img src="{{ hall.scheme_image.url }}" class="img-thumbnail" style="max-width:200px;">
+                <button type="submit" name="action" value="delete_scheme_image" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1">Удалить</button>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Баннер -->
+    <div class="mb-3">
+        <label class="form-label">Баннер</label>
+        <input type="file" name="banner_image" class="form-control">
+        {% if hall.banner_image %}
+            <div class="position-relative d-inline-block mt-2">
+                <img src="{{ hall.banner_image.url }}" class="img-thumbnail mt-2" style="max-width:200px;">
+                <button type="submit" name="action" value="delete_banner_image" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1">Удалить</button>
+            </div>
+        {% endif %}
+    </div>
+
+
+
+    <!-- Галерея -->
+        <h4 class="mt-4">Галерея</h4>
+
+        <div class="d-flex flex-wrap gap-3">
+
+          {% for slide in slides %}
+            <div class="border rounded p-2 text-center position-relative" style="width: 180px;">
+                <button type="submit" name="delete_slide_id" value="{{ slide.id }}" class="btn-close position-absolute top-0 end-0 m-1" aria-label="Удалить"></button>
+              <div class="border bg-light d-flex align-items-center justify-content-center" style="height: 100px;">
+                <img id="preview-{{ slide.id }}" {% if slide.image %}src="{{ slide.image.url }}"{% endif %} class="img-fluid {% if not slide.image %}d-none{% endif %}"
+                  style="max-height: 96px;" alt="slide preview">
+                <i class="fa-solid fa-image fa-2x text-muted {% if slide.image %}d-none{% endif %}"
+                   id="placeholder-{{ slide.id }}"></i>
+              </div>
+              <!-- Поле загрузки файла! -->
+              <input type="file" name="{{ slide.id }}-image" class="form-control form-control-sm mt-2 slide-input" data-id="{{ slide.id }}">
+            </div>
+          {% endfor %}
+
+          <!-- добавления НОВОГО слайда -->
+          <div class="d-flex align-items-center justify-content-center border rounded p-2" style="width: 180px;">
+              <button type="submit" name="action" value="add_slide" class="btn btn-outline-success btn-sm w-100">
+                  <i class="fa-solid fa-plus"></i> Добавить слайд
+              </button>
+          </div>
+        </div>
+
+    <!-- SEO блок -->
+    <h5 class="mt-4">SEO блок</h5>
+    <div class="mb-3">
+      <label for="slug">URL</label>
+      <input type="text" id="slug" name="slug" class="form-control"
+             value="{% if seo_block %}{{ seo_block.slug|default:'' }}{% endif %}">
+    </div>
+    <div class="mb-3">
+      <label for="title_seo">Title</label>
+      <input type="text" id="title_seo" name="title_seo" class="form-control"
+             value="{% if seo_block %}{{ seo_block.title_seo }}{% endif %}">
+    </div>
+    <div class="mb-3">
+      <label for="keywords">Keywords</label>
+      <input type="text" id="keywords" name="keywords" class="form-control"
+             value="{% if seo_block %}{{ seo_block.keywords_seo }}{% endif %}">
+    </div>
+    <div class="mb-3">
+      <label for="description_seo">Description</label>
+      <textarea id="description_seo" name="description_seo" class="form-control">{% if seo_block %}{{ seo_block.description_seo }}{% endif %}</textarea>
+    </div>
+
+    <button type="submit" name="action" value="save_hall" class="btn btn-primary">Сохранить</button>
+  </form>
+</div>
+
+<!-- Превью (без перезагрузки) -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  // Превью главной
+  const mainInput = document.getElementById("id_main_image");
+  const mainPreview = document.getElementById("main-preview");
+  if (mainInput && mainPreview) {
+    mainInput.addEventListener("change", function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        mainPreview.src = ev.target.result;
+        mainPreview.classList.remove("d-none");
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Превью слайдов
+  document.querySelectorAll(".slide-input").forEach(input => {
+    input.addEventListener("change", e => {
+      const file = e.target.files[0];
+      const id = e.target.getAttribute("data-id");
+      const img = document.getElementById("preview-" + id);
+      const ph = document.getElementById("placeholder-" + id);
+      if (!file || !img) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        img.src = ev.target.result;
+        img.classList.remove("d-none");
+        if (ph) ph.classList.add("d-none");
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+});
+</script>
+{% endblock %}

@@ -10,14 +10,15 @@ urlpatterns = [
     path('adminlte/', views.admin_stats, name='admin_stats'),
     path("adminlte/admin_banner_slider", views.admin_banner_slider, name="admin_banner_slider"),
     path('adminlte/admin_films', views.admin_films, name='admin_films'),
-    path('adminlte/admin_cinema', views.admin_cinema, name='admin_cinema'),
+
+
 
     path('adminlte/admin_news', views.admin_news, name='admin_news'),
     path('adminlte/edit_news', views.edit_news, name='edit_news'),
     path("adminlte/admin_news/", views.admin_news, name="admin_news"),
     path("adminlte/admin_news/<int:pk>/edit/", views.edit_news, name="edit_news"),
-
     path('adminlte/admin_promotion', views.admin_promotion, name='admin_promotion'),
+
 
     path("adminlte/edit/<str:page_name>/", views.edit_other_page, name="edit_other_page"),
     path('adminlte/admin_other_page', views.admin_other_page, name='admin_other_page'),
@@ -50,9 +51,7 @@ urlpatterns = [
     path('soon', views.soon, name='soon'),
 
 
-    path('cinemas', views.cinemas, name='cinemas'),
-    path('cinema_card', views.cinema_card, name='cinema_card'),
-    path('card_hall', views.card_hall, name='card_hall'),
+
 
 
     path('stocks', views.stocks, name='stocks'),
@@ -66,5 +65,16 @@ urlpatterns = [
     path('cafe', views.cafe, name='cafe'),
     path('mob_app', views.mob_app, name='mob_app'),
     path('contacts', views.contacts, name='contacts'),
+
+
+
+    # --- Админ-панель ---
+    path('adminlte/admin_cinema', views.admin_cinema, name='admin_cinema'),
+    path('adminlte/edit_cinema/<int:cinema_pk>/', views.edit_cinema, name='edit_cinema'),
+    path('adminlte/edit_halls/<int:hall_pk>/', views.edit_halls, name='edit_hall'),
+    # --- Пользовательская часть (эти URL у вас уже правильные) ---
+    path('cinemas/', views.cinemas, name='cinemas'),
+    path('cinemas/<int:pk>/', views.cinema_card, name='cinema_card'),
+    path('halls/<int:pk>/', views.card_hall, name='card_hall'),
 
 ]

@@ -1,6 +1,7 @@
 {% extends 'core/user/layout.html' %}
+{% load static %}
 
-{% block title %}Главная страница{% endblock %}
+{% block title %}Наши кинотеатры{% endblock %}
 
 {% block content %}
     <!-- Баннер -->
@@ -17,39 +18,40 @@
                 <div class="text-center my-4">
                     <h2>Наши кинотеатры</h2>
                 </div>
+
+                <!-- ===================== НАЧАЛО ИЗМЕНЕНИЙ ===================== -->
                 <div class="content-block">
                     <div class="row g-4">
-                        <!-- Карточка постера -->
+
+                        {% for cinema in cinemas %}
+                        <!-- Карточка кинотеатра (генерируется в цикле) -->
                         <div class="col-md-4">
                             <div class="poster-card">
-                                <img src="https://picsum.photos/1200/500?random=1" alt="Постер">
-                                <h5 class="mt-2"><a href="#">Кинотеатр 1</a></h5>
+                                <!-- Динамическое изображение -->
+                                {% if cinema.logo %}
+                                    <img src="{{ cinema.logo.url }}" alt="Логотип {{ cinema.name }}">
+                                {% else %}
+                                    <!-- Картинка-заглушка, если логотипа нет -->
+                                    <img src="{% static 'path/to/your/placeholder.png' %}" alt="Нет логотипа">
+                                {% endif %}
+
+                                <!-- Динамическое название и ссылка -->
+                                <h5 class="mt-2">
+                                    <a href="{% url 'core:cinema_card' cinema.pk %}">{{ cinema.name }}</a>
+                                </h5>
                             </div>
                         </div>
-                    <!-- Карточка постера -->
-                        <div class="col-md-4">
-                            <div class="poster-card">
-                                <img src="https://picsum.photos/1200/500?random=1" alt="Постер">
-                                <h5 class="mt-2"><a href="#">Кинотеатр 2</a></h5>
-                            </div>
+                        {% empty %}
+                        <!-- Этот блок отобразится, если в базе нет ни одного кинотеатра -->
+                        <div class="col-12">
+                            <p class="text-center text-muted">На данный момент нет доступных кинотеатров.</p>
                         </div>
-                        <!-- Карточка постера -->
-                        <div class="col-md-4">
-                            <div class="poster-card">
-                                <img src="https://picsum.photos/1200/500?random=1" alt="Постер">
-                                <h5 class="mt-2"><a href="#">Кинотеатр 3</a></h5>
-                            </div>
-                        </div>
-                        <!-- Карточка постера -->
-                        <div class="col-md-4">
-                            <div class="poster-card">
-                                <img src="https://picsum.photos/1200/500?random=1" alt="Постер">
-                                <h5 class="mt-2"><a href="#">Кинотеатр 4</a></h5>
-                            </div>
-                        </div>
+                        {% endfor %}
 
                     </div>
                 </div>
+                <!-- ===================== КОНЕЦ ИЗМЕНЕНИЙ ===================== -->
+
             </div>
 
             <!-- Правая колонка с рекламой -->

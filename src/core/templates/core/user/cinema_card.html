@@ -1,6 +1,9 @@
 {% extends 'core/user/layout.html' %}
 
-{% block title %}Карточка кинотеатра{% endblock %}
+{% block title %}{% if seo_block %}{{ seo_block.title_seo }}{% else %}{{ cinema.name }}{% endif %}{% endblock %}
+{% block keywords %}{% if seo_block %}{{ seo_block.keywords_seo }}{% endif %}{% endblock %}
+{% block description %}{% if seo_block %}{{ seo_block.description_seo }}{% endif %}{% endblock %}
+{% block og_url %}{% if seo_block %}{{ request.build_absolute_uri }}{% endif %}{% endblock %}
 
 {% block cssstyle %}
 <style>
@@ -13,24 +16,31 @@
 
 {% block content %}
 <!-- Баннер -->
-    <div class="text-center">
-        <img src="https://picsum.photos/1200/400?random=1" alt=""class="">
-    </div>
-<div class="container-fluid">
+<div class="text-center">
+    {% if cinema.main_image %}
+        <img src="{{ cinema.main_image.url }}" alt="Баннер {{ cinema.name }}" class="main-banner" style="width:1000px; height:500px; object-fit:cover;">
+    {% else %}
+        <img src="https://picsum.photos/1200/400?random=1" alt="Баннер по умолчанию" class="main-banner" style="width:1000px; height:500px; object-fit:cover;">
+    {% endif %}
+</div>
+<div class="container">
     <div class="row">
         <!-- Левая колонка -->
         <aside class="col-3 p-3">
             <div class="mb-4">
                 <div class="ad-block">
-                    <img src="https://picsum.photos/1200/500?random=1" alt="">
+                    <img src="https://picsum.photos/1200/500?random=1" alt="Реклама">
                 </div>
             </div>
             <div>
-                <h4 class="text-black">Количество залов: 3</h4>
+                <h4 class="text-black">Количество залов: {{ halls|length }}</h4>
                 <ul class="list-unstyled">
-                    <li><a href="#">Зал 1</a></li>
-                    <li><a href="#">Зал 2</a></li>
-                    <li><a href="#">Зал 3</a></li>
+                    <!-- Динамический список залов -->
+                    {% for hall in halls %}
+                        <li><a href="{% url 'core:card_hall' hall.pk %}">{{ hall.number_hall }}</a></li>
+                    {% empty %}
+                        <li>Нет информации о залах.</li>
+                    {% endfor %}
                 </ul>
             </div>
             <div>
@@ -48,15 +58,16 @@
 
         <!-- Правая колонка (каталог фильмов) -->
         <main class="col-9 p-4">
-            <div class="container mt-4">
                 <div class="row">
                     <!-- блок 1 -->
                     <div class="d-flex col-md-6 align-items-center mb-3 flex-row">
                         <div class="col-auto">
-                            <h1 class="text-black">Оскар</h1>
+                            <h1 class="text-black">{{ cinema.name }}</h1>
                         </div>
                         <div class="col-auto">
-                            <img  src="chrome://branding/content/about-logo.png" alt="Логотип" class="img-fluid">
+                            {% if cinema.logo %}
+                                <img src="{{ cinema.logo.url }}" alt="Логотип {{ cinema.name }}" class="img-fluid">
+                            {% endif %}
                         </div>
                     </div>
                     <!-- блок 2 -->
@@ -74,76 +85,42 @@
                         </div>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col text-black">
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla quam velit, vulputate eu pharetra nec, mattis ac neque. Duis vulputate commodo lectus, ac blandit elit tincidunt id. Sed rhoncus, tortor sed eleifend tristique, tortor mauris molestie elit, et lacinia ipsum quam nec dui. Quisque nec mauris sit amet elit iaculis pretium sit amet quis magna. Aenean velit odio, elementum in tempus ut, vehicula eu diam. Pellentesque rhoncus aliquam mattis. Ut vulputate eros sed felis sodales nec vulputate justo hendrerit. Vivamus varius pretium ligula, a aliquam odio euismod sit amet. Quisque laoreet sem sit amet orci ullamcorper at ultricies metus viverra. Pellentesque arcu mauris, malesuada quis ornare accumsan, blandit sed diam.</p>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla quam velit, vulputate eu pharetra nec, mattis ac neque. Duis vulputate commodo lectus, ac blandit elit tincidunt id. Sed rhoncus, tortor sed eleifend tristique, tortor mauris molestie elit, et lacinia ipsum quam nec dui. Quisque nec mauris sit amet elit iaculis pretium sit amet quis magna. Aenean velit odio, elementum in tempus ut, vehicula eu diam. Pellentesque rhoncus aliquam mattis. Ut vulputate eros sed felis sodales nec vulputate justo hendrerit. Vivamus varius pretium ligula, a aliquam odio euismod sit amet. Quisque laoreet sem sit amet orci ullamcorper at ultricies metus viverra. Pellentesque arcu mauris, malesuada quis ornare accumsan, blandit sed diam.</p>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla quam velit, vulputate eu pharetra nec, mattis ac neque. Duis vulputate commodo lectus, ac blandit elit tincidunt id. Sed rhoncus, tortor sed eleifend tristique, tortor mauris molestie elit, et lacinia ipsum quam nec dui. Quisque nec mauris sit amet elit iaculis pretium sit amet quis magna. Aenean velit odio, elementum in tempus ut, vehicula eu diam. Pellentesque rhoncus aliquam mattis. Ut vulputate eros sed felis sodales nec vulputate justo hendrerit. Vivamus varius pretium ligula, a aliquam odio euismod sit amet. Quisque laoreet sem sit amet orci ullamcorper at ultricies metus viverra. Pellentesque arcu mauris, malesuada quis ornare accumsan, blandit sed diam.</p>
-                    </div>
+
+                <div class="col text-black">
+                    <!-- Динамическое описание -->
+                   <p>{{ cinema.description|linebreaks }}</p>
                 </div>
+
                 <h1 class="text-center text-black mb-4">Условия</h1>
-                <div class="row text-black">
-                    <!-- Левая колонка -->
-                    <div class="col-md-6 mb-4">
-                        <a href="#"><h2>Детская комната</h2></a>
-                        <p>Мы создали замечательное пространство для самых маленьких зрителей и предложили им лабиринт, X-Box, творческие игры и мастер-классы по выходным! Потому что развлечённые дети – счастливые дети. А дети, которые проводят дни рождения в детской зоне "Оскара" – особо счастливы.</p>
-                    </div>
-
-                    <!-- Правая колонка -->
-                    <div class="col-md-6 mb-4">
-                        <a href="#"><h2>VIP-зал</h2></a>
-                        <p>"Оскар" в ТРЦ Gulliver – сердце столицы, VIP-зал – сердце кинотеатра. Мы предлагаем роскошные 46 мест, обслуживание во время просмотра, а также возможность выбрать фильм из актуального репертуара и удобное время начала сеансов.</p>
-                    </div>
-
-                    <!-- Левая колонка -->
-                    <div class="col-md-6 mb-4">
-                        <a href="#"><h2>Bar Hitchcook</h2></a>
-                        <p>Отличное место для всех любителей кино и ценителей оригинальных коктейлей. Оказавшись в этом камерном заведении, расположенном в самом сердце столицы, словно перенесешься в Золотой век Голливуда и станешь его частью.</p>
-                    </div>
-
-                    <!-- Правая колонка -->
-                    <div class="col-md-6 mb-4">
-                        <a href="#"><h2>Попкорн-бар Гулливер</h2></a>
-                        <p>Попкорн-бар угощает гостей классическими закусками и напитками, сезонными и акционными меню. Зимой мы с удовольствием угостим вас гротом или глинтвейном, а летом – прохладительными коктейлями и смузи.</p>
-                    </div>
-
-                    <!-- Левая колонка -->
-                    <div class="col-md-6 mb-4">
-                        <a href="#"><h2>Магазин D-Store</h2></a>
-                        <p>Кинотеатр «Оскар» в ТРЦ GULLIVER приглашает посетить самый сказочный магазин D-Store, в котором герои любимых кино и мультфильмов сходят с экранов прямо на прилавки.</p>
-                    </div>
-
-                    <!-- Правая колонка -->
-                    <div class="col-md-6 mb-4">
-                        <a href="#"><h2>Подарочные сертификаты</h2></a>
-                        <p>В кинотеатре "Оскар" вы можете приобрести 3 вида подарочных сертификатов - PRIME, GOLD и VIP.</p>
-                    </div>
+                <div class="col text-black">
+                    <!-- Динамические условия -->
+                    <p>{{ cinema.conditions|linebreaks }}</p>
                 </div>
 
-                <h4 class="text-black">Фотогалерея</h4>
-                <div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
-                    <div class="carousel-indicators">
-                        <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="0" class="active" aria-current="true"></button>
-                        <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="1"></button>
-                    </div>
-                    <div class="carousel-inner">
-                        <div class="carousel-item active">
-                            <img src="https://picsum.photos/1200/500?random=1" class="d-block w-100" alt="Poster 1">
+                {% if cinema.gallery and cinema.gallery.image_set.all %}
+                    <h4 class="text-black">Фотогалерея</h4>
+                    <div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-indicators">
+                            {% for slide in cinema.gallery.image_set.all %}
+                                <button type="button" data-bs-target="#carouselExample" data-bs-slide-to="{{ forloop.counter0 }}" class="{% if forloop.first %}active{% endif %}" aria-current="true"></button>
+                            {% endfor %}
                         </div>
-                        <div class="carousel-item">
-                            <img src="https://picsum.photos/1200/500?random=2" class="d-block w-100" alt="Poster 2">
+                        <div class="carousel-inner">
+                            {% for slide in cinema.gallery.image_set.all %}
+                                <div class="carousel-item {% if forloop.first %}active{% endif %}" >
+                                    <img src="{{ slide.image.url }}" class="d-block w-100" alt="Фото галереи" style="width:1000px; height:500px; object-fit:cover;">
+                                </div>
+                            {% endfor %}
                         </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        </button>
                     </div>
-                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
-                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Previous</span>
-                    </button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
-                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Next</span>
-                    </button>
-                </div>
-            </div>
+                {% endif %}
+
         </main>
     </div>
 </div>

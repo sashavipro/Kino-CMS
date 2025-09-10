@@ -71,10 +71,7 @@
 
           <!-- Превью (всегда есть <img>, даже если пусто) -->
           <div class="border bg-light d-flex align-items-center justify-content-center" style="height: 100px;">
-            <img
-              id="preview-{{ slide.id }}"
-              {% if slide.image %}src="{{ slide.image.url }}"{% endif %}
-              class="img-fluid {% if not slide.image %}d-none{% endif %}"
+            <img id="preview-{{ slide.id }}" {% if slide.image %}src="{{ slide.image.url }}"{% endif %} class="img-fluid {% if not slide.image %}d-none{% endif %}"
               style="max-height: 96px;"
               alt="slide preview">
             <i class="fa-solid fa-image fa-2x text-muted {% if slide.image %}d-none{% endif %}"

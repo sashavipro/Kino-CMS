@@ -4,7 +4,8 @@ from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from src.banner.models import HomeBanner, HomeNewsSharesBanner, BackgroundBanner
 from src.banner.forms import HomeBannerSlideForm, NewsSharesBannerForm
-from src.core.models import SeoBlock, Gallery, Image
+from src.cinema.models import Cinema, Hall
+from src.core.models import SeoBlock, Gallery, Image, GalleryImage
 from src.page.models import MainPage, OtherPage, OtherPageSlide, NewsPromotionPage
 
 
@@ -101,9 +102,6 @@ def admin_banner_slider(request):
 def admin_films(request):
     return render(request, 'core/adminlte/admin_films.html')
 
-
-def admin_cinema(request):
-    return render(request, 'core/adminlte/admin_cinema.html')
 
 
 
@@ -285,7 +283,6 @@ def admin_promotion(request):
     })
 
 
-
 @require_http_methods(["GET", "POST"])
 def admin_other_page(request):
     if request.method == "POST":
@@ -315,8 +312,6 @@ def admin_other_page(request):
         pages.append(p)
 
     return render(request, "core/adminlte/admin_other_page.html", {"pages": pages})
-
-
 
 
 #---------
@@ -572,17 +567,7 @@ def ticket_reservation(request):
 def soon(request):
     return render(request, 'core/user/soon.html')
 
-# Кинотеатры
-def cinemas(request):
-    return render(request, 'core/user/cinemas.html')
 
-# Карта кинотеатра
-def cinema_card(request):
-    return render(request, 'core/user/cinema_card.html')
-
-# Карта зала
-def card_hall(request):
-    return render(request, 'core/user/card_hall.html')
 
 # Акции и скидки
 def stocks(request):
@@ -722,3 +707,262 @@ def contacts(request):
     return render(request, 'core/user/contacts.html')
 
 
+
+
+def admin_cinema(request):
+    """
+    Отображает список кинотеатров.
+    Обрабатывает ДОБАВЛЕНИЕ и УДАЛЕНИЕ кинотеатров.
+    """
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        delete_id = request.POST.get('delete_id')
+
+        if action == 'add_cinema':
+            # Создаем пустой кинотеатр
+            Cinema.objects.create(name="Новый кинотеатр")
+            # ИСПРАВЛЕНО: Возвращаемся на ту же страницу (список кинотеатров)
+            return redirect('core:admin_cinema')
+
+        if delete_id:
+            cinema_to_delete = get_object_or_404(Cinema, pk=delete_id)
+            cinema_to_delete.delete()
+            return redirect('core:admin_cinema')
+
+    cinemas = Cinema.objects.all().order_by('name')
+    return render(request, 'core/adminlte/admin_cinema.html', {'cinemas': cinemas})
+
+
+def edit_cinema(request, cinema_pk):
+    """
+    Редактирует кинотеатр и все связанные с ним сущности.
+    """
+    cinema = get_object_or_404(Cinema, pk=cinema_pk)
+    gallery = cinema.gallery
+    # Используем 'image_set' для согласованности (или 'images', если вы добавили related_name)
+    slides = gallery.image_set.all() if gallery else []
+    seo_block = cinema.seo_block
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        delete_hall_id = request.POST.get('delete_hall_id')
+        delete_slide_id = request.POST.get('delete_slide_id')
+
+        # --- Сохранение ОСНОВНЫХ данных кинотеатра ---
+        if action == 'save_cinema':
+            cinema.name = request.POST.get('title')
+            cinema.description = request.POST.get('description')
+            cinema.conditions = request.POST.get('conditions')
+
+            if 'logo' in request.FILES:
+                cinema.logo = request.FILES['logo']
+
+            if 'main_image' in request.FILES:
+                cinema.main_image = request.FILES['main_image']
+
+            if gallery:
+                for image in slides:
+                    field_name = f"{image.pk}-image"
+                    if field_name in request.FILES:
+                        image.image = request.FILES[field_name]
+                        image.save()
+
+            slug = request.POST.get('slug', '').strip()
+            if slug:
+                seo_data = {
+                    'slug': slug,
+                    'title_seo': request.POST.get('title_seo', ''),
+                    'keywords_seo': request.POST.get('keywords', ''),
+                    'description_seo': request.POST.get('description_seo', '')
+                }
+                if seo_block:
+                    SeoBlock.objects.filter(pk=seo_block.pk).update(**seo_data)
+                else:
+                    new_seo = SeoBlock.objects.create(**seo_data)
+                    cinema.seo_block = new_seo
+            elif seo_block:
+                seo_block.delete()
+
+            cinema.save()
+
+            # ЕДИНСТВЕННЫЙ редирект в конце блока сохранения
+            return redirect('core:edit_cinema', cinema_pk=cinema.pk)
+
+        # --- Удаление изображений ---
+        if action == 'delete_logo':
+            if cinema.logo:
+                cinema.logo.delete(save=True)
+            return redirect('core:edit_cinema', cinema_pk=cinema.pk)
+
+        if action == 'delete_main_image':
+            if cinema.main_image:
+                cinema.main_image.delete(save=True)
+            return redirect('core:edit_cinema', cinema_pk=cinema.pk)
+
+        # --- Управление залами ---
+        if action == 'add_hall':
+            Hall.objects.create(cinema=cinema, number_hall="Новый зал")
+            return redirect('core:edit_cinema', cinema_pk=cinema.pk)
+
+        if delete_hall_id:
+            hall_to_delete = get_object_or_404(Hall, pk=delete_hall_id, cinema=cinema)
+            hall_to_delete.delete()
+            return redirect('core:edit_cinema', cinema_pk=cinema.pk)
+
+        # --- Управление галереей ---
+        if action == 'add_slide':
+            if not gallery:
+                gallery = Gallery.objects.create(name_gallery=f"Cinema {cinema.pk} Gallery")
+                cinema.gallery = gallery
+                cinema.save()
+
+            new_image = Image.objects.create()
+            GalleryImage.objects.create(gallery=gallery, images=new_image)
+            return redirect('core:edit_cinema', cinema_pk=cinema.pk)
+
+        if delete_slide_id:
+            if gallery:
+                image_to_delete = get_object_or_404(Image, pk=delete_slide_id)
+                GalleryImage.objects.filter(gallery=gallery, images=image_to_delete).delete()
+                image_to_delete.delete()
+            return redirect('core:edit_cinema', cinema_pk=cinema.pk)
+
+    halls = cinema.halls.all().order_by('number_hall')
+    context = {
+        'cinema': cinema,
+        'halls': halls,
+        'slides': slides,
+        'seo_block': seo_block,
+    }
+    return render(request, 'core/adminlte/edit_cinema.html', context)
+
+
+def edit_halls(request, hall_pk):
+    """
+    Редактирует зал и все связанные с ним сущности.
+    """
+    hall = get_object_or_404(Hall, pk=hall_pk)
+    gallery = hall.gallery
+    slides = gallery.image_set.all() if gallery else []
+    seo_block = hall.seo_block
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        delete_slide_id = request.POST.get('delete_slide_id')
+
+        # --- Сохранение данных зала ---
+        if action == 'save_hall':
+            hall.number_hall = request.POST.get('title')
+            hall.description = request.POST.get('description')
+
+            # Сохранение схемы зала
+            if 'scheme_image' in request.FILES:
+                hall.scheme_image = request.FILES['scheme_image']
+
+            # Сохранение баннера
+            if 'banner_image' in request.FILES:
+                hall.banner_image = request.FILES['banner_image']
+
+            # Обновление изображений в галерее
+            if gallery:
+                for image in slides:
+                    field_name = f"{image.pk}-image"
+                    if field_name in request.FILES:
+                        image.image = request.FILES[field_name]
+                        image.save()
+
+            # Обработка SEO-блока (аналогично cinema)
+            slug = request.POST.get('slug', '').strip()
+            if slug:
+                seo_data = {
+                    'slug': slug,
+                    'title_seo': request.POST.get('title_seo', ''),
+                    'keywords_seo': request.POST.get('keywords', ''),
+                    'description_seo': request.POST.get('description_seo', '')
+                }
+                if seo_block:
+                    SeoBlock.objects.filter(pk=seo_block.pk).update(**seo_data)
+                else:
+                    hall.seo_block = SeoBlock.objects.create(**seo_data)
+            elif seo_block:
+                seo_block.delete()
+
+            hall.save()
+            # После сохранения остаемся на той же странице
+            return redirect('core:edit_hall', hall_pk=hall.pk)
+
+        # --- Удаление изображений ---
+        if action == 'delete_scheme_image':
+            if hall.scheme_image: hall.scheme_image.delete(save=True)
+            return redirect('core:edit_hall', hall_pk=hall.pk)
+
+        if action == 'delete_banner_image':
+            if hall.banner_image: hall.banner_image.delete(save=True)
+            return redirect('core:edit_hall', hall_pk=hall.pk)
+
+        # --- Управление галереей ---
+        if action == 'add_slide':
+            if not gallery:
+                gallery = Gallery.objects.create(name_gallery=f"Hall {hall.pk} Gallery")
+                hall.gallery = gallery
+                hall.save()
+
+            new_image = Image.objects.create()
+            gallery.image_set.add(new_image)
+            return redirect('core:edit_hall', hall_pk=hall.pk)
+
+        if delete_slide_id:
+            if gallery:
+                slide_to_delete = get_object_or_404(Image, pk=delete_slide_id)
+                gallery.image_set.remove(slide_to_delete)
+                slide_to_delete.delete()
+            return redirect('core:edit_hall', hall_pk=hall.pk)
+
+    context = {
+        'hall': hall,
+        'slides': slides,
+        'seo_block': seo_block,
+    }
+    return render(request, 'core/adminlte/edit_halls.html', context)
+
+
+
+
+# Кинотеатры
+def cinemas(request):
+    cinemas = Cinema.objects.all()
+    return render(request, 'core/user/cinemas.html', {'cinemas': cinemas})
+
+
+# Карта кинотеатра
+def cinema_card(request, pk):
+    cinema = get_object_or_404(Cinema, pk=pk)
+
+    halls = cinema.halls.all()
+
+    seo_block = cinema.seo_block
+
+    context = {
+        'cinema': cinema,
+        'halls': halls,
+        'seo_block': seo_block,
+    }
+
+    return render(request, 'core/user/cinema_card.html', context)
+
+# Карта зала
+def card_hall(request, pk):
+    """
+    Отображает детальную страницу одного зала.
+    """
+    hall = get_object_or_404(Hall, pk=pk)
+    # Получаем все залы того же кинотеатра для бокового меню
+    sibling_halls = hall.cinema.halls.all().order_by('number_hall')
+
+    context = {
+        'hall': hall,
+        'cinema': hall.cinema,  # Передаем родительский кинотеатр
+        'halls': sibling_halls,  # Передаем все залы этого кинотеатра
+        'seo_block': hall.seo_block,
+    }
+    return render(request, 'core/user/card_hall.html', context)

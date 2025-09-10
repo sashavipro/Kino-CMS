@@ -1,6 +1,9 @@
 {% extends 'core/user/layout.html' %}
 
-{% block title %}Карточка зала{% endblock %}
+{% block title %}{% if seo_block %}{{ seo_block.title_seo }}{% else %}Hall {{ hall.number_hall }} - {{ cinema.name }}{% endif %}{% endblock %}
+{% block keywords %}{% if seo_block %}{{ seo_block.keywords_seo }}{% endif %}{% endblock %}
+{% block description %}{% if seo_block %}{{ seo_block.description_seo }}{% endif %}{% endblock %}
+{% block og_url %}{% if seo_block %}{{ request.build_absolute_uri }}{% endif %}{% endblock %}
 
 {% block cssstyle %}
 <style>
@@ -15,7 +18,11 @@
 <div class="container-fluid">
     <!-- Баннер -->
     <div class="text-center">
-        <img src="https://picsum.photos/1200/400?random=1" alt=""class="">
+        {% if hall.banner_image %}
+        <img src="{{ hall.banner_image.url }}" alt="Баннер {{ hall.number_hall }}" style="width:1000px; height:500px; object-fit:cover;">
+        {% else %}
+        <img src="https://picsum.photos/1200/400?random=1" alt="">
+        {% endif %}
     </div>
     <div class="row">
         <!-- Левая колонка -->
@@ -26,11 +33,12 @@
                 </div>
             </div>
             <div>
-                <h4 class="text-black">Количество залов: 3</h4>
+                <h4 class="text-black">Кинотеатр <a href="{% url 'core:cinema_card' cinema.pk %}">{{ cinema.name }}</a></h4>
+                <h4 class="text-black">Все залы ({{ halls|length }}):</h4>
                 <ul class="list-unstyled">
-                    <li><a href="#">Зал 1</a></li>
-                    <li><a href="#">Зал 2</a></li>
-                    <li><a href="#">Зал 3</a></li>
+                    {% for h in halls %}
+                    <li><a href="{% url 'core:card_hall' h.pk %}">{{ h.number_hall }}</a></li>
+                    {% endfor %}
                 </ul>
             </div>
             <div>
@@ -49,42 +57,47 @@
         <!-- Правая колонка (каталог фильмов) -->
         <main class="col-9 p-4">
             <div class="container mt-4">
-                <h1 class="text-center text-black mb-4">Зал 3</h1>
+                <h1 class="text-center text-black mb-4">Зал {{ hall.number_hall }}</h1>
                 <div class="row">
                     <div class="col text-black">
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla quam velit, vulputate eu pharetra nec, mattis ac neque. Duis vulputate commodo lectus, ac blandit elit tincidunt id. Sed rhoncus, tortor sed eleifend tristique, tortor mauris molestie elit, et lacinia ipsum quam nec dui. Quisque nec mauris sit amet elit iaculis pretium sit amet quis magna. Aenean velit odio, elementum in tempus ut, vehicula eu diam. Pellentesque rhoncus aliquam mattis. Ut vulputate eros sed felis sodales nec vulputate justo hendrerit. Vivamus varius pretium ligula, a aliquam odio euismod sit amet. Quisque laoreet sem sit amet orci ullamcorper at ultricies metus viverra. Pellentesque arcu mauris, malesuada quis ornare accumsan, blandit sed diam.</p>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla quam velit, vulputate eu pharetra nec, mattis ac neque. Duis vulputate commodo lectus, ac blandit elit tincidunt id. Sed rhoncus, tortor sed eleifend tristique, tortor mauris molestie elit, et lacinia ipsum quam nec dui. Quisque nec mauris sit amet elit iaculis pretium sit amet quis magna. Aenean velit odio, elementum in tempus ut, vehicula eu diam. Pellentesque rhoncus aliquam mattis. Ut vulputate eros sed felis sodales nec vulputate justo hendrerit. Vivamus varius pretium ligula, a aliquam odio euismod sit amet. Quisque laoreet sem sit amet orci ullamcorper at ultricies metus viverra. Pellentesque arcu mauris, malesuada quis ornare accumsan, blandit sed diam.</p>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla quam velit, vulputate eu pharetra nec, mattis ac neque. Duis vulputate commodo lectus, ac blandit elit tincidunt id. Sed rhoncus, tortor sed eleifend tristique, tortor mauris molestie elit, et lacinia ipsum quam nec dui. Quisque nec mauris sit amet elit iaculis pretium sit amet quis magna. Aenean velit odio, elementum in tempus ut, vehicula eu diam. Pellentesque rhoncus aliquam mattis. Ut vulputate eros sed felis sodales nec vulputate justo hendrerit. Vivamus varius pretium ligula, a aliquam odio euismod sit amet. Quisque laoreet sem sit amet orci ullamcorper at ultricies metus viverra. Pellentesque arcu mauris, malesuada quis ornare accumsan, blandit sed diam.</p>
+                        <p>{{ hall.description|linebreaks }}</p>
                     </div>
                 </div>
                 <h1 class="text-center text-black mb-4">Карта зала</h1>
                 <div class="row text-black">
-                    <img src="static/core/user/img/card-hall.png" alt="">
+                    {% if hall.scheme_image %}
+                    <img src="{{ hall.scheme_image.url }}" alt="Схема зала {{ hall.number_hall }}">
+                    {% else %}
+                    <p class="text-center">Схема зала не загружена.</p>
+                    {% endif %}
                 </div>
 
-                <h4 class="text-center text-black">Фотогалерея</h4>
-                <div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
+                <!-- галерея слайдов -->
+                  {% if hall.gallery and hall.gallery.image_set.all %}
+                  <h4 class="text-black text-center">Фотогалерея</h4>
+                  <div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
                     <div class="carousel-indicators">
-                        <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="0" class="active" aria-current="true"></button>
-                        <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="1"></button>
+                        <!-- ИСПРАВЛЕНИЕ №2: Правильный путь к изображениям для цикла -->
+                        {% for slide in hall.gallery.image_set.all %}
+                            <button type="button" data-bs-target="#carouselExample" data-bs-slide-to="{{ forloop.counter0 }}" class="{% if forloop.first %}active{% endif %}" aria-current="true"></button>
+                        {% endfor %}
                     </div>
                     <div class="carousel-inner">
-                        <div class="carousel-item active">
-                            <img src="https://picsum.photos/1200/500?random=1" class="d-block w-100" alt="Poster 1">
+                      {% for slide in hall.gallery.image_set.all %}
+                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                          <img src="{{ slide.image.url }}" class="d-block w-100" alt="{{ hall.number_hall }} - Фото {{ forloop.counter }}" style="width:1000px; height:500px; object-fit:cover;">
                         </div>
-                        <div class="carousel-item">
-                            <img src="https://picsum.photos/1200/500?random=2" class="d-block w-100" alt="Poster 2">
-                        </div>
+                      {% endfor %}
                     </div>
                     <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
-                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Previous</span>
+                      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                     </button>
                     <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
-                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Next</span>
+                      <span class="carousel-control-next-icon" aria-hidden="true"></span>
                     </button>
-                </div>
+                  </div>
+
+                {% endif %}
 
             </div>
 
