@@ -1,0 +1,58 @@
+<!-- core/user/other_page_detail.html -->
+{% extends 'core/user/layout.html' %}
+
+{% block title %}{{ page.seo_block.title_seo|default:page.title }}{% endblock %}
+{% block keywords %}{{ page.seo_block.keywords_seo|default:'' }}{% endblock %}
+{% block description %}{{ page.seo_block.description_seo|default:page.description }}{% endblock %}
+
+{% block content %}
+    <!-- главная картинка -->
+<div class="text-center">
+    {% if page.main_image %}
+        <img src="{{ page.main_image.url }}" alt="{{ page.title }}" style="width:1000px; height:500px; object-fit:cover;">
+    {% endif %}
+</div>
+<div class="container w-80">
+  <div class="row">
+    <div class="col-lg-9 w-80 text-black">
+        <!-- заголовок -->
+        <div class="text-center my-4">
+            <h2>{{ page.title }}</h2>
+        </div>
+
+        <div class="col text-black">
+            {{ page.description|safe }}
+        </div>
+        <!-- галерея слайдов -->
+        {% if slides %}
+        <h4 class="text-black text-center">Фотогалерея</h4>
+         <div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            {% for slide in slides %}
+                {% if slide.image %}
+                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                    <img src="{{ slide.image.url }}" alt="Галерея" style="width:1000px; height:500px; object-fit:cover;">
+                </div>
+                {% endif %}
+            {% endfor %}
+            </div>
+              <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+              </button>
+              <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+              </button>
+            </div>
+        {% endif %}
+    </div>
+        <!-- боковая колонка -->
+    <div class="col-lg-3 w-20">
+      <div class="ad-block">
+        <img src="https://picsum.photos/300/250?random=1" alt="Реклама">
+      </div>
+    </div>
+  </div>
+</div>
+ <!-- Bootstrap JS (5.x) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

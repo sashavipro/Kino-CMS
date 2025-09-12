@@ -127,14 +127,22 @@
                 <li><a href="{% url 'core:cinemas' %}">{% translate "Кинотеатры"%}</a></li>
                 <li><a href="{% url 'core:stocks' %}">{% translate "Акции"%}</a></li>
                 <li class="dropdown">
-                    <a href="{% url 'core:about_cinema' %}">{% translate "О кинотеатре"%}</a>
+                    <!-- Эта ссылка может вести на какую-то основную страницу "О нас", если она есть -->
+                    <a href="#">{% translate "Страницы кинотеатра"%}</a>
                     <ul class="dropdown-menu">
+                        {# Статические ссылки, которые не являются объектами OtherPage #}
                         <li><a href="{% url 'core:news' %}">{% translate "Новости"%}</a></li>
-                        <li><a href="{% url 'core:advertising' %}">{% translate "Реклама"%}</a></li>
-                        <li><a href="{% url 'core:cafe' %}">{% translate "Кафе"%}</a></li>
-                        <li><a href="{% url 'core:mob_app' %}">{% translate "Мобильное приложение"%}</a></li>
                         <li><a href="{% url 'core:contacts' %}">{% translate "Контакты"%}</a></li>
-                        <li><a href="{% url 'core:vip_hall' %}">{% translate "Vip-зал"%}</a></li>
+
+                        {# --- НАЧАЛО ДИНАМИЧЕСКОГО БЛОКА --- #}
+                        {# Итерируем по страницам, которые мы получили из context_processor #}
+                        {% for page in other_pages_for_menu %}
+                            <li>
+                                {# Генерируем URL с помощью нового универсального маршрута #}
+                                <a href="{% url 'core:other_page_detail' page.name %}">{{ page.title }}</a>
+                            </li>
+                        {% endfor %}
+                        {# --- КОНЕЦ ДИНАМИЧЕСКОГО БЛОКА --- #}
                     </ul>
                 </li>
             </ul>

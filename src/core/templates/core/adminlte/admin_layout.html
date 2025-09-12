@@ -146,13 +146,9 @@
                 {% url 'core:admin_users_page' as users_page_url %}
                 {% url 'core:admin_mailing' as mailing_url %}
 
-                {% url 'core:admin_other_page' as other_page_url %}
-                {% url 'core:admin_home_page' as home_page_url %}
-                {% url 'core:admin_about_cinema_page' as about_cinema_url %}
-                {% url 'core:admin_cafe_page' as cafe_url %}
-                {% url 'core:admin_vip_hall_page' as vip_hall_url %}
-                {% url 'core:admin_advertising_page' as advertising_url %}
-                {% url 'core:admin_contacts_page' as contacts_url %}
+                {% url 'core:admin_home_page' as home_edit_url %}
+                {% url 'core:admin_contacts_page' as contacts_edit_url %}
+                {% url 'core:admin_other_page' as page_list_url %}
 
                 <li class="nav-item">
                     <a href="{{ stats_url }}" class="nav-link {% if request.path == stats_url %}active{% endif %}">
@@ -185,9 +181,8 @@
                     </a>
                 </li>
 
-                {% with page_urls=other_page_url|add:home_page_url|add:about_cinema_url|add:cafe_url|add:vip_hall_url|add:advertising_url|add:contacts_url %}
-                <li class="nav-item {% if request.path in page_urls %}menu-open{% endif %}">
-                    <a href="{{ other_page_url }}" class="nav-link {% if request.path in page_urls %}active{% endif %}">
+               <li class="nav-item {% if request.path == home_edit_url or request.path == contacts_edit_url or request.path == page_list_url or 'admin/pages/edit' in request.path %}menu-open{% endif %}">
+                    <a href="{{ page_list_url }}" class="nav-link {% if request.path == home_edit_url or request.path == contacts_edit_url or request.path == page_list_url or 'admin/pages/edit' in request.path %}active{% endif %}">
                         <p>
                             Страницы
                             <i class="nav-arrow bi bi-chevron-right"></i>
@@ -195,38 +190,29 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ home_page_url }}" class="nav-link {% if request.path == home_page_url %}active{% endif %}">
+                            <a href="{{ home_edit_url }}" class="nav-link {% if request.path == home_edit_url %}active{% endif %}">
                                 <i class="nav-icon bi bi-circle"></i><p>Главная страница</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a href="{{ about_cinema_url }}" class="nav-link {% if request.path == about_cinema_url %}active{% endif %}">
-                                <i class="nav-icon bi bi-circle"></i><p>О кинотеатре</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ cafe_url }}" class="nav-link {% if request.path == cafe_url %}active{% endif %}">
-                                <i class="nav-icon bi bi-circle"></i><p>Кафе - Бар</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ vip_hall_url }}" class="nav-link {% if request.path == vip_hall_url %}active{% endif %}">
-                                <i class="nav-icon bi bi-circle"></i><p>Vip-зал</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ advertising_url }}" class="nav-link {% if request.path == advertising_url %}active{% endif %}">
-                                <i class="nav-icon bi bi-circle"></i><p>Реклама</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ contacts_url }}" class="nav-link {% if request.path == contacts_url %}active{% endif %}">
+                            <a href="{{ contacts_edit_url }}" class="nav-link {% if request.path == contacts_edit_url %}active{% endif %}">
                                 <i class="nav-icon bi bi-circle"></i><p>Контакты</p>
                             </a>
                         </li>
+                        <!-- Динамический список всех остальных страниц -->
+                        {% for page in admin_other_pages %}
+                        <li class="nav-item">
+                            {% url 'core:edit_other_page' page.name as edit_url %}
+                            <a href="{{ edit_url }}" class="nav-link {% if request.path == edit_url %}active{% endif %}">
+                                <i class="nav-icon bi bi-circle"></i>
+                                <!-- Отображаем заголовок, а если его нет - системное имя -->
+                                <p>{{ page.title|default:page.name }}</p>
+                            </a>
+                        </li>
+                        {% endfor %}
                     </ul>
                 </li>
-                {% endwith %}
+
 
                 <li class="nav-item">
                     <a href="{{ users_page_url }}" class="nav-link {% if request.path == users_page_url %}active{% endif %}">

@@ -1,5 +1,8 @@
+from types import SimpleNamespace
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from src.banner.models import HomeBanner, HomeNewsSharesBanner, BackgroundBanner
@@ -13,6 +16,7 @@ def admin_stats(request):
     return render(request, 'core/adminlte/admin_stats.html')
 
 
+# Главная
 def admin_banner_slider(request):
     home_slides = HomeBanner.objects.all().order_by("id")
     news_slides = HomeNewsSharesBanner.objects.all().order_by("id")
@@ -98,13 +102,100 @@ def admin_banner_slider(request):
         "background": background,
         "speed_choices": [3, 5, 7, 10, 15],
     })
+def index(request):
+    try:
+        main_page = MainPage.objects.get()
+    except MainPage.DoesNotExist:
+        main_page = None
 
+    seo_block = main_page.seo_block if main_page and main_page.seo_block else None
+
+    context = {
+        'main_page': main_page,
+        'seo_block': seo_block,
+        "home_slides": HomeBanner.objects.filter(status_banner=True).order_by("id"),
+        "background": BackgroundBanner.objects.filter(status_banner=True).first(),
+        "news_slides": HomeNewsSharesBanner.objects.filter(status_banner=True).order_by("id"),
+    }
+    return render(request, "core/user/index.html", context)
+def admin_home_page(request):
+    """
+       Редактор главной страницы через админку (admin_home_page.html).
+       Ожидает поля POST:
+         - phone1, phone2, seoText
+         - url (slug), title, keywords, description  (для SeoBlock)
+       Логика:
+         - создаём MainPage если не существует (singleton)
+         - по slug: если такой SeoBlock есть — обновляем его полями из формы,
+           иначе создаём новый SeoBlock и присоединяем к main_page.
+         - сохраняем main_page и перенаправляем на ту же страницу с сообщением.
+       """
+    # Получаем или создаём singleton MainPage (defaults пустые, чтобы не упасть)
+    main_page, _ = MainPage.objects.get_or_create(
+        defaults={'phone1': '', 'phone2': '', 'seo_text': ''}
+    )
+    seo_block = main_page.seo_block
+
+    if request.method == 'POST':
+        phone1 = request.POST.get('phone1', '').strip()
+        phone2 = request.POST.get('phone2', '').strip()
+        seo_text = request.POST.get('seoText', '').strip()
+
+        slug = request.POST.get('url', '').strip()
+        title = request.POST.get('title', '').strip()
+        keywords = request.POST.get('keywords', '').strip()
+        description = request.POST.get('description', '').strip()
+
+        # Обновляем поля главной страницы
+        main_page.phone1 = phone1
+        main_page.phone2 = phone2
+        main_page.seo_text = seo_text
+
+        # Если slug задан — создаём/находим SeoBlock и обновляем поля
+        if slug:
+            # get_or_create по slug. Если найден — обновляем поля.
+            seo_obj, created = SeoBlock.objects.get_or_create(
+                slug=slug,
+                defaults={
+                    'title_seo': title or slug,
+                    'keywords_seo': keywords,
+                    'description_seo': description,
+                }
+            )
+            # В любом случае обновляем поля (на случай, если был найден существующий)
+            seo_obj.title_seo = title or seo_obj.title_seo
+            seo_obj.keywords_seo = keywords
+            seo_obj.description_seo = description
+            seo_obj.save()
+
+            main_page.seo_block = seo_obj
+        else:
+            # Если slug пустой — отвязываем seo_block
+            main_page.seo_block = None
+
+        main_page.save()
+        messages.success(request, 'Данные главной страницы сохранены.')
+        return redirect('core:admin_home_page')
+
+    # GET — показываем форму с текущими значениями
+    context = {
+        'main_page': main_page,
+        'seo_block': seo_block,
+    }
+    return render(request, 'core/adminlte/admin_home_page.html', context)
+
+
+# Афиша # Скоро # Фильм из афиши
 def admin_films(request):
     return render(request, 'core/adminlte/admin_films.html')
+def soon(request):
+    return render(request, 'core/user/soon.html')
+def poster(request):
+    return render(request, 'core/user/poster.html')
+def film_page(request):
+    return render(request, 'core/user/film_page.html')
 
-
-
-
+# Акции и скидки и новости
 def admin_news(request):
     if request.method == "POST" and request.POST.get("action") == "create":
         NewsPromotionPage.objects.create(
@@ -129,8 +220,13 @@ def admin_news(request):
     return render(request, "core/adminlte/admin_news.html", {
         "news_list": news_list
     })
+def news(request):  # Имя функции может быть 'news_list' или другое
+    news_items = NewsPromotionPage.objects.filter(is_promotion=False, status=True).order_by("-time_created")
 
-
+    context = {
+        'news_list': news_items
+    }
+    return render(request, 'core/user/news.html', context)
 def edit_news(request, pk):
     # Используем имя 'item', т.к. это может быть и новость, и акция
     item = get_object_or_404(NewsPromotionPage, pk=pk)
@@ -257,7 +353,6 @@ def edit_news(request, pk):
         'slides': gallery_images,
     }
     return render(request, 'core/adminlte/edit_news.html', context)
-
 def admin_promotion(request):
     if request.method == "POST" and request.POST.get("action") == "create":
         NewsPromotionPage.objects.create(
@@ -281,285 +376,6 @@ def admin_promotion(request):
     return render(request, "core/adminlte/admin_promotion.html", {
         "promotion_list": promotion_list
     })
-
-
-@require_http_methods(["GET", "POST"])
-def admin_other_page(request):
-    if request.method == "POST":
-        # Создание страницы
-        if "create_page" in request.POST:
-            OtherPage.objects.create(name="Новая страница", created=timezone.now(), status=False)
-            return redirect("core:admin_other_page")
-
-        # Удаление страницы
-        if "delete_page" in request.POST:
-            page_id = request.POST.get("delete_page")
-            page = get_object_or_404(OtherPage, id=page_id)
-            page.delete()
-            return redirect("core:admin_other_page")
-
-    # Объединяем MainPage и OtherPage
-    main_pages = MainPage.objects.all()
-    other_pages = OtherPage.objects.all()
-
-    # Добавляем поле type для различия
-    pages = []
-    for p in main_pages:
-        p.type = "main"
-        pages.append(p)
-    for p in other_pages:
-        p.type = "other"
-        pages.append(p)
-
-    return render(request, "core/adminlte/admin_other_page.html", {"pages": pages})
-
-
-#---------
-def admin_home_page(request):
-    """
-       Редактор главной страницы через админку (admin_home_page.html).
-       Ожидает поля POST:
-         - phone1, phone2, seoText
-         - url (slug), title, keywords, description  (для SeoBlock)
-       Логика:
-         - создаём MainPage если не существует (singleton)
-         - по slug: если такой SeoBlock есть — обновляем его полями из формы,
-           иначе создаём новый SeoBlock и присоединяем к main_page.
-         - сохраняем main_page и перенаправляем на ту же страницу с сообщением.
-       """
-    # Получаем или создаём singleton MainPage (defaults пустые, чтобы не упасть)
-    main_page, _ = MainPage.objects.get_or_create(
-        defaults={'phone1': '', 'phone2': '', 'seo_text': ''}
-    )
-    seo_block = main_page.seo_block
-
-    if request.method == 'POST':
-        phone1 = request.POST.get('phone1', '').strip()
-        phone2 = request.POST.get('phone2', '').strip()
-        seo_text = request.POST.get('seoText', '').strip()
-
-        slug = request.POST.get('url', '').strip()
-        title = request.POST.get('title', '').strip()
-        keywords = request.POST.get('keywords', '').strip()
-        description = request.POST.get('description', '').strip()
-
-        # Обновляем поля главной страницы
-        main_page.phone1 = phone1
-        main_page.phone2 = phone2
-        main_page.seo_text = seo_text
-
-        # Если slug задан — создаём/находим SeoBlock и обновляем поля
-        if slug:
-            # get_or_create по slug. Если найден — обновляем поля.
-            seo_obj, created = SeoBlock.objects.get_or_create(
-                slug=slug,
-                defaults={
-                    'title_seo': title or slug,
-                    'keywords_seo': keywords,
-                    'description_seo': description,
-                }
-            )
-            # В любом случае обновляем поля (на случай, если был найден существующий)
-            seo_obj.title_seo = title or seo_obj.title_seo
-            seo_obj.keywords_seo = keywords
-            seo_obj.description_seo = description
-            seo_obj.save()
-
-            main_page.seo_block = seo_obj
-        else:
-            # Если slug пустой — отвязываем seo_block
-            main_page.seo_block = None
-
-        main_page.save()
-        messages.success(request, 'Данные главной страницы сохранены.')
-        return redirect('core:admin_home_page')
-
-    # GET — показываем форму с текущими значениями
-    context = {
-        'main_page': main_page,
-        'seo_block': seo_block,
-    }
-    return render(request, 'core/adminlte/admin_home_page.html', context)
-
-
-def admin_users(request):
-    return render(request, 'core/adminlte/admin_users.html')
-
-
-def admin_about_cinema_page(request):
-    return edit_other_page(request, page_name="about_cinema_page", template="core/adminlte/admin_about_cinema_page.html")
-
-def admin_cafe_page(request):
-    return edit_other_page(request, page_name="cafe_page", template="core/adminlte/admin_cafe_page.html")
-
-
-def admin_vip_hall_page(request):
-    return edit_other_page(request, page_name="vip_hall_page", template="core/adminlte/admin_vip_hall_page.html")
-
-
-def admin_advertising_page(request):
-    return edit_other_page(request, page_name="advertising_page", template="core/adminlte/admin_advertising_page.html")
-
-
-
-
-def edit_other_page(request, page_name, template="core/adminlte/edit_other_page.html"):
-    page, _ = OtherPage.objects.get_or_create(
-        name=page_name,
-        defaults={"title": "", "description": ""}
-    )
-    #seo_block = page.seo_block
-    slides = page.slides.all()
-
-    if request.method == "POST":
-        action = request.POST.get("action")
-
-        # Удалить слайд
-        delete_id = request.POST.get("delete_id")
-        if delete_id:
-            OtherPageSlide.objects.filter(pk=delete_id, page=page).delete()
-            messages.success(request, "Слайд удалён.")
-            return redirect(request.path)
-
-        # Добавить слайд
-        if action == "add_slide":
-            OtherPageSlide.objects.create(page=page)
-            messages.success(request, "Слайд добавлен.")
-            return redirect(request.path)
-
-        # Удалить главную картинку
-        if action == "delete_main_image":
-            if page.main_image:
-                page.main_image.delete(save=False)
-                page.main_image = None
-                page.save()
-                messages.success(request, "Главная картинка удалена.")
-            return redirect(request.path)
-
-        # ---- Обычное сохранение страницы (ОДНА кнопка «Сохранить») ----
-        page.title = request.POST.get("title", "").strip()
-        page.description = request.POST.get("description", "").strip()
-
-        # Обновление главной картинки (если загружена)
-        if "main_image" in request.FILES:
-            page.main_image = request.FILES["main_image"]
-
-        # Обновление файлов слайдов
-        for slide in slides:
-            field_name = f"{slide.id}-image"
-            if field_name in request.FILES:
-                slide.image = request.FILES[field_name]
-                slide.save()
-
-        # Статус
-        page.status = 'status' in request.POST
-
-        # SEO блок
-        slug = request.POST.get("slug", "").strip()
-        title_seo = request.POST.get("title_seo", "").strip()
-        keywords_seo = request.POST.get("keywords", "").strip()  # Убедитесь, что имя в HTML - "keywords_seo"
-        description_seo = request.POST.get("description_seo", "").strip()
-
-        # Если slug не предоставлен, отвязываем и потенциально удаляем SEO блок
-        if not slug:
-            # Если вы хотите удалить связанный SeoBlock, когда slug стирается:
-            # if page.seo_block:
-            #     page.seo_block.delete() # Это удалит объект SeoBlock из базы данных
-            page.seo_block = None
-        else:
-            # Если у страницы уже есть SEO блок, обновляем его
-            if page.seo_block:
-                seo_obj = page.seo_block
-                seo_obj.slug = slug
-                seo_obj.title_seo = title_seo
-                seo_obj.keywords_seo = keywords_seo
-                seo_obj.description_seo = description_seo
-                seo_obj.save()
-            # Если у страницы нет SEO блока, создаем новый
-            else:
-                # Проверяем, не занят ли уже такой slug другим объектом
-                if SeoBlock.objects.filter(slug=slug).exists():
-                    messages.error(request, f"SEO блок с таким slug «{slug}» уже существует. Придумайте другой.")
-                    # Прерываем сохранение и возвращаем пользователя на страницу редактирования
-                    # Важно вернуть redirect, чтобы избежать повторной отправки формы
-                    return redirect(request.path)
-                else:
-                    seo_obj = SeoBlock.objects.create(
-                        slug=slug,
-                        title_seo=title_seo,
-                        keywords_seo=keywords_seo,
-                        description_seo=description_seo,
-                    )
-                    page.seo_block = seo_obj
-
-        page.save()
-        messages.success(request, f"Изменения страницы «{page_name}» сохранены.")
-        return redirect(request.path)
-
-    context = {"page": page, "seo_block": page.seo_block, "slides": slides}
-    return render(request, template, context)
-
-#---------
-def admin_mailing(request):
-    return render(request, 'core/adminlte/admin_mailing.html')
-
-#------------------------------
-# Главная
-def index(request):
-    try:
-        main_page = MainPage.objects.get()
-    except MainPage.DoesNotExist:
-        main_page = None
-
-    seo_block = main_page.seo_block if main_page and main_page.seo_block else None
-
-    context = {
-        'main_page': main_page,
-        'seo_block': seo_block,
-        "home_slides": HomeBanner.objects.filter(status_banner=True).order_by("id"),
-        "background": BackgroundBanner.objects.filter(status_banner=True).first(),
-        "news_slides": HomeNewsSharesBanner.objects.filter(status_banner=True).order_by("id"),
-    }
-    return render(request, "core/user/index.html", context)
-
-# Афиша
-def poster(request):
-    return render(request, 'core/user/poster.html')
-
-# Фильм из афиши
-def film_page(request):
-    return render(request, 'core/user/film_page.html')
-
-# Расписание
-def schedule(request):
-    return render(request, 'core/user/schedule.html')
-
-# Бронь билетов
-def ticket_reservation(request):
-    # Пример структуры зала: количество рядов и кол-во мест в каждом
-    hall_layout = {
-        'rows': [
-            {'number': 1, 'seats': 12},
-            {'number': 2, 'seats': 13},
-            {'number': 3, 'seats': 15},
-            {'number': 4, 'seats': 13},
-            {'number': 5, 'seats': 13},
-            {'number': 6, 'seats': 13},
-            {'number': 7, 'seats': 13},
-            {'number': 8, 'seats': 13},
-            {'number': 9, 'seats': 13},
-            {'number': 10, 'seats': 20}
-        ]
-    }
-    return render(request, 'core/user/ticket_reservation.html', {'hall_layout': hall_layout})
-
-# Скоро
-def soon(request):
-    return render(request, 'core/user/soon.html')
-
-
-
-# Акции и скидки
 def stocks(request):
     promotions = NewsPromotionPage.objects.filter(
         is_promotion=True,  # Условие 1: Это должна быть акция
@@ -570,8 +386,6 @@ def stocks(request):
         'promotion_list': promotions
     }
     return render(request, 'core/user/stocks.html', context)
-
-# Картачка акций и скидок
 def stocks_card(request, pk):
     """
     Отображает одну конкретную акцию по её ID,
@@ -593,195 +407,194 @@ def stocks_card(request, pk):
     return render(request, 'core/user/stocks_card.html', context)
 
 
-# О кинотеатре
-def about_cinema(request):
-    page = get_object_or_404(OtherPage, name="about_cinema_page")
+@require_http_methods(["GET", "POST"])
+def admin_other_page(request):
+    if request.method == "POST":
+        # ... (логика создания и удаления страниц остается без изменений) ...
+        if "create_page" in request.POST:
+            base_name = "новая-страница"
+            new_name = base_name
+            counter = 1
+            while OtherPage.objects.filter(name=new_name).exists():
+                counter += 1
+                new_name = f"{base_name}-{counter}"
+
+            unique_slug = f'page-{int(timezone.now().timestamp())}'
+            new_seo_block = SeoBlock.objects.create(slug=unique_slug)
+
+            new_page = OtherPage.objects.create(
+                name=new_name,
+                title="Новая страница", # Сразу задаем временный заголовок
+                description="",
+                seo_block=new_seo_block,
+                status=False
+            )
+            return redirect("core:edit_other_page", page_name=new_page.name)
+
+        if "delete_page" in request.POST:
+            page_id = request.POST.get("delete_page")
+            page = get_object_or_404(OtherPage, id=page_id)
+            page.delete()
+            return redirect("core:admin_other_page")
+
+    # Создаем универсальный список для передачи в шаблон
+    pages_to_render = []
+
+    # 1. Главная страница
+    main_page_obj = MainPage.objects.first()
+    if main_page_obj:
+        pages_to_render.append({
+            'display_title': "Главная страница",
+            'created': main_page_obj.time_created,
+            'status': main_page_obj.status,
+            'type': "main",
+            'id': main_page_obj.id,
+            'system_name': None # Не нужно для URL
+        })
+
+    # 2. Страница контактов
+    try:
+        contact_seo = SeoBlock.objects.get(slug='contacts')
+        pages_to_render.append({
+            'display_title': 'Контакты',
+            'created': contact_seo.time_created if hasattr(contact_seo, 'time_created') else timezone.now(),
+            'status': True,
+            'type': 'contact',
+            'id': 'contact',
+            'system_name': None # Не нужно для URL
+        })
+    except SeoBlock.DoesNotExist:
+        pass
+
+    # 3. Другие страницы
+    other_pages = OtherPage.objects.all()
+    for p in other_pages:
+        pages_to_render.append({
+            # КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: Используем p.title, а если он пуст - p.name
+            'display_title': p.title or p.name,
+            'created': p.time_created,
+            'status': p.status,
+            'type': "other",
+            'id': p.id,
+            'system_name': p.name  # Системное имя для URL
+        })
+
+    return render(request, "core/adminlte/admin_other_page.html", {"pages": pages_to_render})
+def edit_other_page(request, page_name):
+    # Находим страницу по ее уникальному имени или возвращаем 404
+    page = get_object_or_404(OtherPage, name=page_name)
+
+    # Получаем связанные объекты
     seo_block = page.seo_block
-
-    context = {
-        'page': page,
-        'seo_block': seo_block,
-        'slides': page.slides.all(),
-    }
-
-    return render(request, 'core/user/about_cinema.html', context)
-
-
-# Новости
-def news(request):  # Имя функции может быть 'news_list' или другое
-    news_items = NewsPromotionPage.objects.filter(is_promotion=False, status=True).order_by("-time_created")
-
-    context = {
-        'news_list': news_items
-    }
-    return render(request, 'core/user/news.html', context)
-
-
-# Реклама
-def advertising(request):
-    page = get_object_or_404(OtherPage, name="advertising_page")
-    seo_block = page.seo_block
-
-    context = {
-        'page': page,
-        'seo_block': seo_block,  # <--- ВОТ КЛЮЧЕВОЕ ИЗМЕНЕНИЕ
-        'slides': page.slides.all(),  # Также не забудьте передать слайды, если они нужны на странице
-    }
-
-    return render(request, 'core/user/advertising.html', context)
-
-
-# Vip зал
-def vip_hall(request):
-    page = get_object_or_404(OtherPage, name="vip_hall_page")
-    seo_block = page.seo_block
-
-    context = {
-        'page': page,
-        'seo_block': seo_block,
-        'slides': page.slides.all(),
-    }
-
-    return render(request, 'core/user/vip_hall.html',context)
-
-
-# Кафе
-def cafe(request):
-    page = get_object_or_404(OtherPage, name="cafe_page")
-    seo_block = page.seo_block
-
-    table_data = {
-        'headers': [
-            {'name': 'Head 1', 'sortable': True},
-            {'name': 'Head 2', 'sortable': True},
-            {'name': 'Head 3', 'sortable': True},
-            {'name': 'Выбор', 'sortable': False},
-        ],
-        'rows': [
-            {
-                'cells': ['Cell 1', 'Cell 2', 'Cell 3'],
-                'selection': {'type': 'checkbox', 'checked': False}
-            },
-            {
-                'cells': ['Cell 4', 'Cell 5', 'Cell 6'],
-                'selection': {'type': 'checkbox', 'checked': True}
-            },
-            {
-                'cells': ['Cell 7', 'Cell 8', 'Cell 9'],
-                'selection': {'type': 'radio', 'name': 'option', 'checked': False}
-            },
-            {
-                'cells': ['Cell 10', 'Cell 11', 'Cell 12'],
-                'selection': {'type': 'radio', 'name': 'option', 'checked': True}
-            },
-        ]
-    }
-
-    context = {
-        'page': page,
-        'seo_block': seo_block,
-        'slides': page.slides.all(),
-        'table_data': table_data,
-    }
-
-    return render(request, 'core/user/cafe.html', context)
-
-
-# Моб. приложение
-def mob_app(request):
-    return render(request, 'core/user/mob_app.html')
-
-def admin_contacts_page(request):
-    """
-       Управляет контактами и SEO-блоком в админ-панели.
-       """
-    # Получаем или создаем SEO-блок для страницы контактов
-    seo_block, _ = SeoBlock.objects.get_or_create(
-        slug='contacts',
-        defaults={'title_seo': 'Контакты'}
-    )
+    slides = OtherPageSlide.objects.filter(page=page)  # Замените PageSlide на вашу модель слайдов
 
     if request.method == 'POST':
-        action = request.POST.get('action')
+        # --- Здесь будет вся логика сохранения данных из формы ---
 
-        # --- ОБРАБОТКА ДЕЙСТВИЙ ИЗ ФОРМЫ ---
+        # Обновление основных полей
+        page.status = 'status' in request.POST
+        page.title = request.POST.get('title', '')
+        page.description = request.POST.get('description', '')
 
-        # 1. Добавить новый контакт
-        if action == 'add_contact':
-            Contact.objects.create(name='Новый кинотеатр', status=False, address='')
-            return redirect('core:admin_contacts_page')
+        # Обновление главной картинки
+        if request.FILES.get('main_image'):
+            page.main_image = request.FILES['main_image']
 
-        # 2. Удалить контакт по 'крестику'
-        if 'delete_id' in request.POST:
-            contact_to_delete = get_object_or_404(Contact, pk=request.POST.get('delete_id'))
-            contact_to_delete.delete()  # Метод delete в модели также удалит файл
-            return redirect('core:admin_contacts_page')
+        # Логика удаления главной картинки
+        if request.POST.get('action') == 'delete_main_image':
+            if page.main_image:
+                page.main_image.delete(save=False)  # save=False, так как мы сохраним объект ниже
 
-        # 3. Удалить логотип (исправленная логика)
-        if 'delete_logo' in request.POST:
-            contact_pk = request.POST.get('delete_logo')
-            contact_to_update = get_object_or_404(Contact, pk=contact_pk)
-            if contact_to_update.logo:
-                contact_to_update.logo.delete(save=True)  # Удаляем файл и сохраняем
-            return redirect('core:admin_contacts_page')
+        page.save()
 
-        # 4. Сохранить все изменения
-        if action == 'save_all':
-            # Обновляем SEO-блок
+        # Обновление SEO-блока
+        if seo_block:
+            seo_block.slug = request.POST.get('slug', '')
             seo_block.title_seo = request.POST.get('title_seo', '')
             seo_block.keywords_seo = request.POST.get('keywords', '')
             seo_block.description_seo = request.POST.get('description_seo', '')
             seo_block.save()
 
-            # Обновляем все контакты
-            for contact in Contact.objects.all():
-                prefix = f'contact-{contact.pk}-'
+        # --- Логика для галереи ---
 
-                contact.name = request.POST.get(prefix + 'name', contact.name)
-                contact.address = request.POST.get(prefix + 'address', contact.address)
-                contact.coords = request.POST.get(prefix + 'coords', contact.coords)
-                contact.status = request.POST.get(prefix + 'status') == 'on'
+        # Добавление нового слайда
+        if request.POST.get('action') == 'add_slide':
+            OtherPageSlide.objects.create(page=page)  # Создаем пустой слайд
 
-                # Загрузка нового логотипа
-                if prefix + 'logo' in request.FILES:
-                    if contact.logo:  # Если есть старый логотип, удаляем его
-                        contact.logo.delete(save=False)
-                    contact.logo = request.FILES[prefix + 'logo']
+        # Удаление слайда
+        if 'delete_id' in request.POST:
+            slide_to_delete = get_object_or_404(OtherPageSlide, id=request.POST.get('delete_id'))
+            slide_to_delete.delete()
 
-                contact.save()
-            return redirect('core:admin_contacts_page')
+        # Обновление изображений в существующих слайдах
+        for slide in slides:
+            image_file = request.FILES.get(f'{slide.id}-image')
+            if image_file:
+                slide.image = image_file
+                slide.save()
 
-    # GET-запрос: просто отображаем все контакты и SEO-блок
-    contacts = Contact.objects.all()
-    context = {
-        'contacts': contacts,
-        'seo_block': seo_block,
-    }
-    # Укажите правильный путь к вашему шаблону админки
-    return render(request, 'core/adminlte/admin_contacts_page.html', context)
-# Контакты
-
-def contacts(request):
-    """
-    Отображает страницу с контактами для пользователей.
-    Показывает только активные контакты.
-    """
-    # Мы жестко задаем slug='contacts' для поиска SEO-блока этой страницы
-    seo_block = get_object_or_404(SeoBlock, slug='contacts')
-
-    # Фильтруем контакты по статусу 'ВКЛ'
-    contacts = Contact.objects.filter(status=True)
+        # После всех операций перенаправляем, чтобы избежать повторной отправки формы
+        return redirect('core:edit_other_page', page_name=page.name)
 
     context = {
-        'contacts': contacts,
+        'page': page,
+        'slides': slides,
         'seo_block': seo_block,
     }
-    # Укажите правильный путь к вашему шаблону
-    return render(request, 'core/user/contacts.html', context)
+
+    # КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: рендерим шаблон-обертку вместо "голой" формы
+    return render(request, 'core/adminlte/admin_edit_page_wrapper.html', context)
+def other_page_detail(request, page_name):
+    """
+    Универсальное представление для отображения любой "другой страницы"
+    для пользователей.
+    """
+    # Ищем страницу по имени и обязательно проверяем, что она активна (status=True)
+    page = get_object_or_404(OtherPage, name=page_name, status=True)
+    seo_block = page.seo_block
+    slides = page.slides.all() # Убедитесь, что у вас есть related_name='slides' в модели слайдов
+
+    context = {
+        'page': page,
+        'seo_block': seo_block,
+        'slides': slides,
+    }
+
+    # Всегда рендерим один и тот же шаблон
+    return render(request, 'core/user/other_page_detail.html', context)
+
+def admin_users(request):
+    return render(request, 'core/adminlte/admin_users.html')
 
 
+def admin_mailing(request):
+    return render(request, 'core/adminlte/admin_mailing.html')
 
 
+# Расписание
+def schedule(request):
+    return render(request, 'core/user/schedule.html')
+# Бронь билетов
+def ticket_reservation(request):
+    # Пример структуры зала: количество рядов и кол-во мест в каждом
+    hall_layout = {
+        'rows': [
+            {'number': 1, 'seats': 12},
+            {'number': 2, 'seats': 13},
+            {'number': 3, 'seats': 15},
+            {'number': 4, 'seats': 13},
+            {'number': 5, 'seats': 13},
+            {'number': 6, 'seats': 13},
+            {'number': 7, 'seats': 13},
+            {'number': 8, 'seats': 13},
+            {'number': 9, 'seats': 13},
+            {'number': 10, 'seats': 20}
+        ]
+    }
+    return render(request, 'core/user/ticket_reservation.html', {'hall_layout': hall_layout})
+
+
+# Кинотеатры Карта кинотеатра Карта зала
 def admin_cinema(request):
     """
     Отображает список кинотеатров.
@@ -802,8 +615,9 @@ def admin_cinema(request):
 
     cinemas = Cinema.objects.all().order_by('name')
     return render(request, 'core/adminlte/admin_cinema.html', {'cinemas': cinemas})
-
-
+def cinemas(request):
+    cinemas = Cinema.objects.all()
+    return render(request, 'core/user/cinemas.html', {'cinemas': cinemas})
 def edit_cinema(request, cinema_pk):
     """
     Редактирует кинотеатр и все связанные с ним сущности.
@@ -905,8 +719,20 @@ def edit_cinema(request, cinema_pk):
         'seo_block': seo_block,
     }
     return render(request, 'core/adminlte/edit_cinema.html', context)
+def cinema_card(request, pk):
+    cinema = get_object_or_404(Cinema, pk=pk)
 
+    halls = cinema.halls.all()
 
+    seo_block = cinema.seo_block
+
+    context = {
+        'cinema': cinema,
+        'halls': halls,
+        'seo_block': seo_block,
+    }
+
+    return render(request, 'core/user/cinema_card.html', context)
 def edit_halls(request, hall_pk):
     """
     Редактирует зал и все связанные с ним сущности.
@@ -994,33 +820,6 @@ def edit_halls(request, hall_pk):
         'seo_block': seo_block,
     }
     return render(request, 'core/adminlte/edit_halls.html', context)
-
-
-
-
-# Кинотеатры
-def cinemas(request):
-    cinemas = Cinema.objects.all()
-    return render(request, 'core/user/cinemas.html', {'cinemas': cinemas})
-
-
-# Карта кинотеатра
-def cinema_card(request, pk):
-    cinema = get_object_or_404(Cinema, pk=pk)
-
-    halls = cinema.halls.all()
-
-    seo_block = cinema.seo_block
-
-    context = {
-        'cinema': cinema,
-        'halls': halls,
-        'seo_block': seo_block,
-    }
-
-    return render(request, 'core/user/cinema_card.html', context)
-
-# Карта зала
 def card_hall(request, pk):
     """
     Отображает детальную страницу одного зала.
@@ -1035,3 +834,98 @@ def card_hall(request, pk):
         'seo_block': hall.seo_block,
     }
     return render(request, 'core/user/card_hall.html', context)
+
+
+# Контакты
+def admin_contacts_page(request):
+    """
+       Управляет контактами и SEO-блоком в админ-панели.
+       """
+    # Получаем или создаем SEO-блок для страницы контактов
+    seo_block, _ = SeoBlock.objects.get_or_create(
+        slug='contacts',
+        defaults={'title_seo': 'Контакты'}
+    )
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        # --- ОБРАБОТКА ДЕЙСТВИЙ ИЗ ФОРМЫ ---
+
+        # 1. Добавить новый контакт
+        if action == 'add_contact':
+            Contact.objects.create(name='Новый кинотеатр', status=False, address='')
+            return redirect('core:admin_contacts_page')
+
+        # 2. Удалить контакт по 'крестику'
+        if 'delete_id' in request.POST:
+            contact_to_delete = get_object_or_404(Contact, pk=request.POST.get('delete_id'))
+            contact_to_delete.delete()  # Метод delete в модели также удалит файл
+            return redirect('core:admin_contacts_page')
+
+        # 3. Удалить логотип (исправленная логика)
+        if 'delete_logo' in request.POST:
+            contact_pk = request.POST.get('delete_logo')
+            contact_to_update = get_object_or_404(Contact, pk=contact_pk)
+            if contact_to_update.logo:
+                contact_to_update.logo.delete(save=True)  # Удаляем файл и сохраняем
+            return redirect('core:admin_contacts_page')
+
+        # 4. Сохранить все изменения
+        if action == 'save_all':
+            # Обновляем SEO-блок
+            seo_block.title_seo = request.POST.get('title_seo', '')
+            seo_block.keywords_seo = request.POST.get('keywords', '')
+            seo_block.description_seo = request.POST.get('description_seo', '')
+            seo_block.save()
+
+            # Обновляем все контакты
+            for contact in Contact.objects.all():
+                prefix = f'contact-{contact.pk}-'
+
+                contact.name = request.POST.get(prefix + 'name', contact.name)
+                contact.address = request.POST.get(prefix + 'address', contact.address)
+                contact.coords = request.POST.get(prefix + 'coords', contact.coords)
+                contact.status = request.POST.get(prefix + 'status') == 'on'
+
+                # Загрузка нового логотипа
+                if prefix + 'logo' in request.FILES:
+                    if contact.logo:  # Если есть старый логотип, удаляем его
+                        contact.logo.delete(save=False)
+                    contact.logo = request.FILES[prefix + 'logo']
+
+                contact.save()
+            return redirect('core:admin_contacts_page')
+
+    # GET-запрос: просто отображаем все контакты и SEO-блок
+    contacts = Contact.objects.all()
+    context = {
+        'contacts': contacts,
+        'seo_block': seo_block,
+    }
+    # Укажите правильный путь к вашему шаблону админки
+    return render(request, 'core/adminlte/admin_contacts_page.html', context)
+def contacts(request):
+    """
+    Отображает страницу с контактами для пользователей.
+    Показывает только активные контакты.
+    """
+    # Мы жестко задаем slug='contacts' для поиска SEO-блока этой страницы
+    seo_block = get_object_or_404(SeoBlock, slug='contacts')
+
+    # Фильтруем контакты по статусу 'ВКЛ'
+    contacts = Contact.objects.filter(status=True)
+
+    context = {
+        'contacts': contacts,
+        'seo_block': seo_block,
+    }
+    # Укажите правильный путь к вашему шаблону
+    return render(request, 'core/user/contacts.html', context)
+
+
+
+
+
+
+

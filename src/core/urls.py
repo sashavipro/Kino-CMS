@@ -20,14 +20,10 @@ urlpatterns = [
     path('adminlte/admin_promotion', views.admin_promotion, name='admin_promotion'),
 
 
-    path("adminlte/edit/<str:page_name>/", views.edit_other_page, name="edit_other_page"),
-    path('adminlte/admin_other_page', views.admin_other_page, name='admin_other_page'),
-    path('adminlte/admin_home_page', views.admin_home_page, name='admin_home_page'),
-    path('adminlte/admin_about_cinema_page', views.admin_about_cinema_page, name='admin_about_cinema_page'),
-    path('adminlte/admin_cafe_page', views.admin_cafe_page, name='admin_cafe_page'),
-    path("adminlte/admin_vip_hall_page", views.admin_vip_hall_page, name="admin_vip_hall_page"),
-    path("adminlte/admin_advertising_page", views.admin_advertising_page, name="admin_advertising_page"),
-    path('adminlte/admin_contacts_page', views.admin_contacts_page, name='admin_contacts_page'),
+    path('adminlte/pages', views.admin_other_page, name='admin_other_page'),
+    path('admin/pages/edit/<str:page_name>/', views.edit_other_page, name='edit_other_page'),
+    path('adminlte/home_page', views.admin_home_page, name='admin_home_page'),
+    path('adminlte/contacts', views.admin_contacts_page, name='admin_contacts_page'),
 
 
 
@@ -40,24 +36,17 @@ urlpatterns = [
 
     path('poster', views.poster, name='poster'),
     path('film_page', views.film_page, name='film_page'),
-
-
     path('schedule', views.schedule, name='schedule'),
     path('ticket_reservation', views.ticket_reservation, name='ticket_reservation'),
-
-
     path('soon', views.soon, name='soon'),
 
     path('stocks', views.stocks, name='stocks'),
     path('stock/<int:pk>/', views.stocks_card, name='stock_card'),
-
-
-    path('about_cinema', views.about_cinema, name='about_cinema'),
     path('news', views.news, name='news'),
-    path('advertising', views.advertising, name='advertising'),
-    path('vip_hall', views.vip_hall, name='vip_hall'),
-    path('cafe', views.cafe, name='cafe'),
-    path('mob_app', views.mob_app, name='mob_app'),
+
+
+    path('page/<str:page_name>/', views.other_page_detail, name='other_page_detail'),
+
     path('contacts', views.contacts, name='contacts'),
 
 

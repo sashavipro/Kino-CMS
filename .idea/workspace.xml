@@ -4,15 +4,25 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9b21c351-83b9-4d5d-8ff4-be87719ca970" name="Changes" comment="code changes #10 - add cinema and hall">
-      <change afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_contacts_page.html" afterDir="false" />
+    <list default="true" id="9b21c351-83b9-4d5d-8ff4-be87719ca970" name="Changes" comment="code changes #11 - add contact page">
+      <change afterPath="$PROJECT_DIR$/src/core/context_processors.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_edit_page_wrapper.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/core/templates/core/user/other_page_detail.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Config/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/Config/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_advertising_page.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_cafe_page.html" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_layout.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_layout.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/edit_other_page.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/edit_other_page.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/contacts.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/contacts.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_other_page.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_other_page.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_vip_hall_page.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/about_cinema.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/advertising.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/cafe.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/layout.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/layout.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/mob_app.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/vip_hall.html" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/core/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/core/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/page/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/page/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/users/migrations/0001_initial.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/users/migrations/0001_initial.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -26,8 +36,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Python Script" />
         <option value="HTML File" />
+        <option value="Python Script" />
       </list>
     </option>
   </component>
@@ -215,7 +225,7 @@
       <workItem from="1757439212819" duration="6693000" />
       <workItem from="1757484477766" duration="33461000" />
       <workItem from="1757577833044" duration="12294000" />
-      <workItem from="1757661957252" duration="1088000" />
+      <workItem from="1757661957252" duration="12092000" />
     </task>
     <task id="LOCAL-00001" summary="code changes #2">
       <option name="closed" value="true" />
@@ -289,7 +299,15 @@
       <option name="project" value="LOCAL" />
       <updated>1757514672234</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="code changes #11 - add contact page">
+      <option name="closed" value="true" />
+      <created>1757663122037</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1757663122037</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TerminalProjectNonSharedOptionsProvider">
@@ -320,6 +338,7 @@
     <MESSAGE value="code changes #8 - fix date input in profile -&gt; delete forms(users) and new logic on views(users)." />
     <MESSAGE value="code changes #9 - fix cafe.html, admin_banner_slider.html" />
     <MESSAGE value="code changes #10 - add cinema and hall" />
-    <option name="LAST_COMMIT_MESSAGE" value="code changes #10 - add cinema and hall" />
+    <MESSAGE value="code changes #11 - add contact page" />
+    <option name="LAST_COMMIT_MESSAGE" value="code changes #11 - add contact page" />
   </component>
 </project>
