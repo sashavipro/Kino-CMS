@@ -26,13 +26,29 @@ class MainPage(models.Model):
 
 
 class Contact(models.Model):
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=100)
     address = models.TextField()
-    coords = models.CharField(max_length=200)  # координаты для гугл карты
-    logo = models.ImageField(upload_to="static/image/")
-    seo_block = models.ForeignKey(SeoBlock, on_delete=models.CASCADE, null=True, blank=True)
+    coords = models.CharField(max_length=500, blank=True)
+    logo = models.ImageField(upload_to="contacts/logos/", blank=True, null=True)
+    seo_block = models.ForeignKey(SeoBlock, on_delete=models.SET_NULL, null=True, blank=True)
     status = models.BooleanField(default=True)
     time_created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['time_created']  # Новые контакты будут появляться в конце списка
+        verbose_name = 'Контакт'
+        verbose_name_plural = 'Контакты'
+
+    def __str__(self):
+        return self.name
+
+    def delete(self, *args, **kwargs):
+        # Удаляем связанный файл логотипа при удалении объекта
+        if self.logo:
+            # Проверяем, существует ли файл, перед удалением
+            if os.path.exists(self.logo.path):
+                self.logo.delete(save=False)
+        super().delete(*args, **kwargs)
 
 
 class OtherPage(models.Model):

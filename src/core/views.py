@@ -6,7 +6,7 @@ from src.banner.models import HomeBanner, HomeNewsSharesBanner, BackgroundBanner
 from src.banner.forms import HomeBannerSlideForm, NewsSharesBannerForm
 from src.cinema.models import Cinema, Hall
 from src.core.models import SeoBlock, Gallery, Image, GalleryImage
-from src.page.models import MainPage, OtherPage, OtherPageSlide, NewsPromotionPage
+from src.page.models import MainPage, OtherPage, OtherPageSlide, NewsPromotionPage, Contact
 
 
 def admin_stats(request):
@@ -381,6 +381,7 @@ def admin_home_page(request):
     }
     return render(request, 'core/adminlte/admin_home_page.html', context)
 
+
 def admin_users(request):
     return render(request, 'core/adminlte/admin_users.html')
 
@@ -400,19 +401,8 @@ def admin_advertising_page(request):
     return edit_other_page(request, page_name="advertising_page", template="core/adminlte/admin_advertising_page.html")
 
 
-def admin_child_room_page(request):
-    return render(request, 'core/adminlte/admin_child_room_page.html')
 
 
-def admin_contacts_page(request):
-    return render(request, "core/adminlte/admin_contacts_page.html")
-
-
-def admin_users_page(request):
-    return render(request, 'core/adminlte/admin_users_page.html')
-
-
-# views.py (фрагмент edit_other_page)
 def edit_other_page(request, page_name, template="core/adminlte/edit_other_page.html"):
     page, _ = OtherPage.objects.get_or_create(
         name=page_name,
@@ -701,10 +691,93 @@ def cafe(request):
 def mob_app(request):
     return render(request, 'core/user/mob_app.html')
 
+def admin_contacts_page(request):
+    """
+       Управляет контактами и SEO-блоком в админ-панели.
+       """
+    # Получаем или создаем SEO-блок для страницы контактов
+    seo_block, _ = SeoBlock.objects.get_or_create(
+        slug='contacts',
+        defaults={'title_seo': 'Контакты'}
+    )
 
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        # --- ОБРАБОТКА ДЕЙСТВИЙ ИЗ ФОРМЫ ---
+
+        # 1. Добавить новый контакт
+        if action == 'add_contact':
+            Contact.objects.create(name='Новый кинотеатр', status=False, address='')
+            return redirect('core:admin_contacts_page')
+
+        # 2. Удалить контакт по 'крестику'
+        if 'delete_id' in request.POST:
+            contact_to_delete = get_object_or_404(Contact, pk=request.POST.get('delete_id'))
+            contact_to_delete.delete()  # Метод delete в модели также удалит файл
+            return redirect('core:admin_contacts_page')
+
+        # 3. Удалить логотип (исправленная логика)
+        if 'delete_logo' in request.POST:
+            contact_pk = request.POST.get('delete_logo')
+            contact_to_update = get_object_or_404(Contact, pk=contact_pk)
+            if contact_to_update.logo:
+                contact_to_update.logo.delete(save=True)  # Удаляем файл и сохраняем
+            return redirect('core:admin_contacts_page')
+
+        # 4. Сохранить все изменения
+        if action == 'save_all':
+            # Обновляем SEO-блок
+            seo_block.title_seo = request.POST.get('title_seo', '')
+            seo_block.keywords_seo = request.POST.get('keywords', '')
+            seo_block.description_seo = request.POST.get('description_seo', '')
+            seo_block.save()
+
+            # Обновляем все контакты
+            for contact in Contact.objects.all():
+                prefix = f'contact-{contact.pk}-'
+
+                contact.name = request.POST.get(prefix + 'name', contact.name)
+                contact.address = request.POST.get(prefix + 'address', contact.address)
+                contact.coords = request.POST.get(prefix + 'coords', contact.coords)
+                contact.status = request.POST.get(prefix + 'status') == 'on'
+
+                # Загрузка нового логотипа
+                if prefix + 'logo' in request.FILES:
+                    if contact.logo:  # Если есть старый логотип, удаляем его
+                        contact.logo.delete(save=False)
+                    contact.logo = request.FILES[prefix + 'logo']
+
+                contact.save()
+            return redirect('core:admin_contacts_page')
+
+    # GET-запрос: просто отображаем все контакты и SEO-блок
+    contacts = Contact.objects.all()
+    context = {
+        'contacts': contacts,
+        'seo_block': seo_block,
+    }
+    # Укажите правильный путь к вашему шаблону админки
+    return render(request, 'core/adminlte/admin_contacts_page.html', context)
 # Контакты
+
 def contacts(request):
-    return render(request, 'core/user/contacts.html')
+    """
+    Отображает страницу с контактами для пользователей.
+    Показывает только активные контакты.
+    """
+    # Мы жестко задаем slug='contacts' для поиска SEO-блока этой страницы
+    seo_block = get_object_or_404(SeoBlock, slug='contacts')
+
+    # Фильтруем контакты по статусу 'ВКЛ'
+    contacts = Contact.objects.filter(status=True)
+
+    context = {
+        'contacts': contacts,
+        'seo_block': seo_block,
+    }
+    # Укажите правильный путь к вашему шаблону
+    return render(request, 'core/user/contacts.html', context)
 
 
 
@@ -719,9 +792,7 @@ def admin_cinema(request):
         delete_id = request.POST.get('delete_id')
 
         if action == 'add_cinema':
-            # Создаем пустой кинотеатр
             Cinema.objects.create(name="Новый кинотеатр")
-            # ИСПРАВЛЕНО: Возвращаемся на ту же страницу (список кинотеатров)
             return redirect('core:admin_cinema')
 
         if delete_id:
@@ -785,7 +856,6 @@ def edit_cinema(request, cinema_pk):
 
             cinema.save()
 
-            # ЕДИНСТВЕННЫЙ редирект в конце блока сохранения
             return redirect('core:edit_cinema', cinema_pk=cinema.pk)
 
         # --- Удаление изображений ---
@@ -956,13 +1026,12 @@ def card_hall(request, pk):
     Отображает детальную страницу одного зала.
     """
     hall = get_object_or_404(Hall, pk=pk)
-    # Получаем все залы того же кинотеатра для бокового меню
     sibling_halls = hall.cinema.halls.all().order_by('number_hall')
 
     context = {
         'hall': hall,
-        'cinema': hall.cinema,  # Передаем родительский кинотеатр
-        'halls': sibling_halls,  # Передаем все залы этого кинотеатра
+        'cinema': hall.cinema,
+        'halls': sibling_halls,
         'seo_block': hall.seo_block,
     }
     return render(request, 'core/user/card_hall.html', context)

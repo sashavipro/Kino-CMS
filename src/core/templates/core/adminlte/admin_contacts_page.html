@@ -1,0 +1,93 @@
+{% extends 'core/adminlte/admin_layout.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    {% for contact in contacts %}
+    <!-- Карточка одного контакта/кинотеатра -->
+    <div class="card mb-4 position-relative">
+      <div class="card-body p-4">
+        <!-- Кнопка удаления контакта -->
+        <button type="submit" name="delete_id" value="{{ contact.pk }}" class="btn-close position-absolute top-0 end-0 m-2" onclick="return confirm('Вы уверены, что хотите удалить этот контакт?');"></button>
+          <!-- Название -->
+        <div class="mb-3">
+            <label class="form-label">Название кинотеатра</label>
+            <input type="text" name="contact-{{ contact.pk }}-name" class="form-control" value="{{ contact.name|default:'' }}">
+        </div>
+
+        <!-- Адрес -->
+        <div class="mb-3">
+            <label class="form-label">Адрес</label>
+            <textarea class="form-control" name="contact-{{ contact.pk }}-address" rows="4">{{ contact.address|default:'' }}</textarea>
+        </div>
+
+        <!-- Координаты -->
+        <div class="mb-3">
+            <label class="form-label">URL для встраивания карты (из Google Maps)</label>
+            <input type="url" class="form-control" name="contact-{{ contact.pk }}-coords" value="{{ contact.coords|default:'' }}" placeholder="https://www.google.com/maps/embed?pb=...">
+        </div>
+
+        <!-- Лого -->
+        <div class="mb-3">
+            <label class="form-label">Лого</label>
+            <input type="file" name="contact-{{ contact.pk }}-logo" class="form-control" accept="image/*">
+            {% if contact.logo %}
+            <div class="mt-2 position-relative d-inline-block">
+                <img src="{{ contact.logo.url }}" class="img-thumbnail" style="max-width:200px;">
+
+                <!-- ИСПРАВЛЕННАЯ КНОПКА УДАЛЕНИЯ ЛОГО -->
+                <button type="submit" name="delete_logo" value="{{ contact.pk }}" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1" title="Удалить логотип">
+                    &times; <!-- Это значок крестика -->
+                </button>
+            </div>
+            {% endif %}
+        </div>
+
+      <!-- Status -->
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" name="contact-{{ contact.pk }}-status" id="switch-{{ contact.pk }}" {% if contact.status %}checked{% endif %}>
+            <label class="form-check-label" for="switch-{{ contact.pk }}">ВКЛ</label>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+    <!-- Кнопка добавить еще кинотеатр -->
+    <div class="text-center mb-4">
+        <button type="submit" name="action" value="add_contact" class="btn btn-outline-secondary">
+          <i class="bi bi-plus-circle me-1"></i> Добавить еще кинотеатр
+        </button>
+    </div>
+
+  <!-- SEO блок -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">SEO блок страницы Контактов</h5>
+      <div class="mb-3">
+          <label for="slug" class="form-label">URL (slug)</label>
+          <input type="text" id="slug" name="slug" class="form-control" value="{% if seo_block %}{{ seo_block.slug|default:'contacts' }}{% endif %}" readonly>
+      </div>
+      <div class="mb-3">
+          <label for="title_seo" class="form-label">Title</label>
+          <input type="text" id="title_seo" name="title_seo" class="form-control" value="{% if seo_block %}{{ seo_block.title_seo }}{% endif %}">
+      </div>
+      <div class="mb-3">
+          <label for="keywords" class="form-label">Keywords</label>
+          <input type="text" id="keywords" name="keywords" class="form-control" value="{% if seo_block %}{{ seo_block.keywords_seo }}{% endif %}">
+      </div>
+      <div class="mb-3">
+          <label for="description_seo" class="form-label">Description</label>
+          <textarea id="description_seo" name="description_seo" class="form-control" rows="3">{% if seo_block %}{{ seo_block.description_seo }}{% endif %}</textarea>
+      </div>
+    </div>
+  </div>
+
+   <!-- Кнопка сохранить -->
+    <div class="text-center">
+      <button type="submit" name="action" value="save_all" class="btn btn-primary btn-lg">Сохранить все</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

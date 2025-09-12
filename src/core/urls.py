@@ -27,9 +27,7 @@ urlpatterns = [
     path('adminlte/admin_cafe_page', views.admin_cafe_page, name='admin_cafe_page'),
     path("adminlte/admin_vip_hall_page", views.admin_vip_hall_page, name="admin_vip_hall_page"),
     path("adminlte/admin_advertising_page", views.admin_advertising_page, name="admin_advertising_page"),
-    path('adminlte/admin_child_room_page', views.admin_child_room_page, name='admin_child_room_page'),
     path('adminlte/admin_contacts_page', views.admin_contacts_page, name='admin_contacts_page'),
-    path('adminlte/admin_users_page', views.admin_users_page, name='admin_users_page'),
 
 
 
@@ -49,10 +47,6 @@ urlpatterns = [
 
 
     path('soon', views.soon, name='soon'),
-
-
-
-
 
     path('stocks', views.stocks, name='stocks'),
     path('stock/<int:pk>/', views.stocks_card, name='stock_card'),
