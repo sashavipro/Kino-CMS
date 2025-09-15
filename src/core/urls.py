@@ -27,7 +27,11 @@ urlpatterns = [
 
 
 
-    path('adminlte/admin_users', views.admin_users, name='admin_users'),
+    path('adminlte/users/', views.admin_users, name='admin_users'),
+    path('adminlte/users/edit/<int:user_pk>/', views.edit_users, name='edit_user'),
+
+
+
     path('adminlte/admin_mailing', views.admin_mailing, name='admin_mailing'),
 
 #---PAGE---

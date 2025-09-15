@@ -2,13 +2,13 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
+# 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-25 18:21+0300\n"
+"POT-Creation-Date: 2025-09-15 11:27+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,112 +18,167 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: .\main\templates\main\layout.html:32
+#: src/core/templates/core/user/layout.html:82
 msgid "Log Out"
 msgstr "Выйти"
 
-#: .\main\templates\main\layout.html:37
+#: src/core/templates/core/user/layout.html:87
 msgid "Логин"
 msgstr "Login"
 
-#: .\main\templates\main\layout.html:39
+#: src/core/templates/core/user/layout.html:89
 msgid "Регистрация"
 msgstr "Registration"
 
-#: .\main\templates\main\layout.html:45
+#: src/core/templates/core/user/layout.html:95
 msgid "Покупайте электронные билеты"
 msgstr "Buy e-tickets"
 
-#: .\main\templates\main\layout.html:46
+#: src/core/templates/core/user/layout.html:96
 msgid "и обходите очереди на кассах! ОТПРАВЛЯЙТЕСЬ СРАЗУ В ЗАЛ!"
 msgstr "and skip the lines at the box office! GO STRAIGHT TO THE AUDITORIUM!"
 
-#: .\main\templates\main\layout.html:52
+#: src/core/templates/core/user/layout.html:102
 msgid "Главная"
 msgstr "Home"
 
-#: .\main\templates\main\layout.html:52
+#: src/core/templates/core/user/layout.html:102
 msgid "Логотип кинотеатра"
 msgstr "Cinema logo"
 
-#: .\main\templates\main\layout.html:56
+#: src/core/templates/core/user/layout.html:106
 msgid "Поиск фильмов..."
 msgstr "Search for movies..."
 
-#: .\main\templates\main\layout.html:74 .\main\templates\main\layout.html:135
+#: src/core/templates/core/user/layout.html:124
+#: src/core/templates/core/user/layout.html:192
 msgid "Афиша"
 msgstr "Showtimes"
 
-#: .\main\templates\main\layout.html:75 .\main\templates\main\layout.html:137
+#: src/core/templates/core/user/layout.html:125
+#: src/core/templates/core/user/layout.html:194
 msgid "Расписание"
 msgstr "Schedule"
 
-#: .\main\templates\main\layout.html:76
+#: src/core/templates/core/user/layout.html:126
 msgid "Скоро"
 msgstr "Coming soon"
 
-#: .\main\templates\main\layout.html:77 .\main\templates\main\layout.html:139
+#: src/core/templates/core/user/layout.html:127
+#: src/core/templates/core/user/layout.html:196
 msgid "Кинотеатры"
 msgstr "Cinemas"
 
-#: .\main\templates\main\layout.html:78 .\main\templates\main\layout.html:140
+#: src/core/templates/core/user/layout.html:128
+#: src/core/templates/core/user/layout.html:197
 msgid "Акции"
 msgstr "Promotions"
 
-#: .\main\templates\main\layout.html:80 .\main\templates\main\layout.html:146
-msgid "О кинотеатре"
-msgstr "About the cinema"
+#: src/core/templates/core/user/layout.html:131
+#, fuzzy
+#| msgid "Логотип кинотеатра"
+msgid "Страницы кинотеатра"
+msgstr "Cinema logo"
 
-#: .\main\templates\main\layout.html:82 .\main\templates\main\layout.html:148
+#: src/core/templates/core/user/layout.html:134
+#: src/core/templates/core/user/layout.html:205
 msgid "Новости"
 msgstr "News"
 
-#: .\main\templates\main\layout.html:83 .\main\templates\main\layout.html:149
-msgid "Реклама"
-msgstr "Advertising"
-
-#: .\main\templates\main\layout.html:84
-msgid "Кафе"
-msgstr "Café"
-
-#: .\main\templates\main\layout.html:85
-msgid "Мобильное приложение"
-msgstr "Mobile app"
-
-#: .\main\templates\main\layout.html:86 .\main\templates\main\layout.html:151
+#: src/core/templates/core/user/layout.html:135
+#: src/core/templates/core/user/layout.html:208
 msgid "Контакты"
 msgstr "Contacts"
 
-#: .\main\templates\main\layout.html:87
-msgid "Vip-зал"
-msgstr "Vip-hall"
-
-#: .\main\templates\main\layout.html:93
+#: src/core/templates/core/user/layout.html:151
 msgid "Язык"
 msgstr "Language"
 
-#: .\main\templates\main\layout.html:98
+#: src/core/templates/core/user/layout.html:156
 msgid "Русский"
 msgstr "Russian"
 
-#: .\main\templates\main\layout.html:104
+#: src/core/templates/core/user/layout.html:162
 msgid "Английский"
 msgstr "English"
 
-#: .\main\templates\main\layout.html:125
+#: src/core/templates/core/user/layout.html:182
 #, fuzzy
 #| msgid "Мобильное приложение"
 msgid "Мобильные приложения"
 msgstr "Mobile app"
 
-#: .\main\templates\main\layout.html:130
+#: src/core/templates/core/user/layout.html:187
 msgid "Разработка сайтов: AVADA-MEDIA"
 msgstr "Website development: AVADA-MEDIA"
 
-#: .\main\templates\main\layout.html:138
+#: src/core/templates/core/user/layout.html:195
 msgid "Скоро в прокате"
 msgstr "Coming soon"
 
-#: .\main\templates\main\layout.html:150
+#: src/core/templates/core/user/layout.html:203
+msgid "О кинотеатре"
+msgstr "About the cinema"
+
+#: src/core/templates/core/user/layout.html:206
+msgid "Реклама"
+msgstr "Advertising"
+
+#: src/core/templates/core/user/layout.html:207
 msgid "Кафе-Бар"
 msgstr "Café-Bar"
+
+#: src/core/templates/core/user/news.html:10
+msgid "Акции и Скидки"
+msgstr "Stocks and Promotions"
+
+#: src/core/templates/core/user/news.html:28
+msgid "Пока новостей нет."
+msgstr "No news yet."
+
+#: src/core/templates/core/user/news.html:35
+#: src/core/templates/core/user/stocks.html:43
+msgid "Назад"
+msgstr "Back"
+
+#: src/core/templates/core/user/news.html:40
+#: src/core/templates/core/user/stocks.html:48
+msgid "Вперед"
+msgstr "Forward"
+
+#: src/core/templates/core/user/other_page_detail.html:28
+msgid "Фотогалерея"
+msgstr "Photo gallery"
+
+#: src/core/templates/core/user/other_page_detail.html:34
+msgid "Галерея"
+msgstr "Gallery"
+
+#: src/core/untils/my_validator.py:10
+msgid "At least one keyword is required."
+msgstr "Требуется как минимум одно ключевое слово"
+
+#: src/core/untils/my_validator.py:19
+msgid "Unsupported file format. Please upload a JPEG or PNG image."
+msgstr "Неподдерживаемый формат файла. Загрузите изображение в формате JPEG или PNG."
+
+#: src/core/untils/my_validator.py:26
+msgid "The image size exceeds the maximum allowed size of 15MB."
+msgstr "Размер изображения превышает максимально допустимый размер 15 МБ."
+
+#: src/core/untils/my_validator.py:35
+msgid "Invalid URL format."
+msgstr "Неверный формат URL-адреса"
+
+#: src/core/untils/my_validator.py:43
+msgid "The field cannot be zero or negative."
+msgstr "Поле не может быть равно нулю или отрицательным."
+
+#~ msgid "Кафе"
+#~ msgstr "Café"
+
+#~ msgid "Мобильное приложение"
+#~ msgstr "Mobile app"
+
+#~ msgid "Vip-зал"
+#~ msgstr "Vip-hall"

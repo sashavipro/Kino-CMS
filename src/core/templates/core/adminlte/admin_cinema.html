@@ -17,7 +17,13 @@
               <i class="fas fa-times"></i>
             </button>
           </form>
-          <span class="text-muted">{{ cinema.logo|default:"Logo" }}</span>
+           {% if cinema.logo %}
+            <!-- Если у кинотеатра ЕСТЬ логотип, показываем его -->
+            <img src="{{ cinema.logo.url }}" alt="Логотип {{ cinema.name }}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+          {% else %}
+            <!-- Если логотипа НЕТ, показываем иконку-заглушку -->
+            <i class="fas fa-image fa-2x text-muted"></i>
+          {% endif %}
         </div>
       </a>
       <small class="d-block mt-2">{{ cinema.name }}</small>

@@ -1,15 +1,18 @@
-from types import SimpleNamespace
+import re
 
+from django.contrib.auth.decorators import user_passes_test
+from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
+from django.core.paginator import Paginator
 from src.banner.models import HomeBanner, HomeNewsSharesBanner, BackgroundBanner
 from src.banner.forms import HomeBannerSlideForm, NewsSharesBannerForm
 from src.cinema.models import Cinema, Hall
 from src.core.models import SeoBlock, Gallery, Image, GalleryImage
 from src.page.models import MainPage, OtherPage, OtherPageSlide, NewsPromotionPage, Contact
+from src.users.models import CustomUser
 
 
 def admin_stats(request):
@@ -104,7 +107,7 @@ def admin_banner_slider(request):
     })
 def index(request):
     try:
-        main_page = MainPage.objects.get()
+        main_page = MainPage.objects.get(status=True)
     except MainPage.DoesNotExist:
         main_page = None
 
@@ -119,17 +122,6 @@ def index(request):
     }
     return render(request, "core/user/index.html", context)
 def admin_home_page(request):
-    """
-       Редактор главной страницы через админку (admin_home_page.html).
-       Ожидает поля POST:
-         - phone1, phone2, seoText
-         - url (slug), title, keywords, description  (для SeoBlock)
-       Логика:
-         - создаём MainPage если не существует (singleton)
-         - по slug: если такой SeoBlock есть — обновляем его полями из формы,
-           иначе создаём новый SeoBlock и присоединяем к main_page.
-         - сохраняем main_page и перенаправляем на ту же страницу с сообщением.
-       """
     # Получаем или создаём singleton MainPage (defaults пустые, чтобы не упасть)
     main_page, _ = MainPage.objects.get_or_create(
         defaults={'phone1': '', 'phone2': '', 'seo_text': ''}
@@ -150,6 +142,8 @@ def admin_home_page(request):
         main_page.phone1 = phone1
         main_page.phone2 = phone2
         main_page.seo_text = seo_text
+
+        main_page.status = 'status' in request.POST
 
         # Если slug задан — создаём/находим SeoBlock и обновляем поля
         if slug:
@@ -172,6 +166,7 @@ def admin_home_page(request):
         else:
             # Если slug пустой — отвязываем seo_block
             main_page.seo_block = None
+
 
         main_page.save()
         messages.success(request, 'Данные главной страницы сохранены.')
@@ -197,35 +192,47 @@ def film_page(request):
 
 # Акции и скидки и новости
 def admin_news(request):
-    if request.method == "POST" and request.POST.get("action") == "create":
-        NewsPromotionPage.objects.create(
-            name="НОВАЯ НОВОСТЬ",
-            status=True,
-            description="",
-            time_created=timezone.now(),
-            is_promotion=False  # Указываем, что создаем именно новость
-        )
-        return redirect("core:admin_news")
+    # Логика POST-запросов (создание/удаление) остается без изменений
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "create":
+            NewsPromotionPage.objects.create(name="НОВАЯ НОВОСТЬ", status=True, is_promotion=False)
+            return redirect("core:admin_news")
+        if action == "delete":
+            item_id = request.POST.get("item_id")
+            item = get_object_or_404(NewsPromotionPage, pk=item_id, is_promotion=False)
+            item.delete()
+            return redirect("core:admin_news")
 
-    # удалить новость
-    if request.method == "POST" and request.POST.get("action") == "delete":
-        pk = request.POST.get("news_id")
-        # При удалении тоже проверяем, что это новость
-        news = get_object_or_404(NewsPromotionPage, pk=pk, is_promotion=False)
-        news.delete()
-        return redirect("core:admin_news")
+    # Получаем полный список новостей
+    news_queryset = NewsPromotionPage.objects.filter(is_promotion=False).order_by("-time_created")
 
-    # Получаем из базы ТОЛЬКО НОВОСТИ
-    news_list = NewsPromotionPage.objects.filter(is_promotion=False).order_by("-time_created")
-    return render(request, "core/adminlte/admin_news.html", {
-        "news_list": news_list
-    })
-def news(request):  # Имя функции может быть 'news_list' или другое
-    news_items = NewsPromotionPage.objects.filter(is_promotion=False, status=True).order_by("-time_created")
+    # Добавляем пагинацию (20 новостей на страницу в админке)
+    paginator = Paginator(news_queryset, 1)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "core/adminlte/admin_news.html", {"news_list": page_obj})
+def news(request):
+    news_queryset = NewsPromotionPage.objects.filter(is_promotion=False, status=True).order_by("-time_created")
+
+    # Добавляем пагинацию (9 новостей на страницу, удобно для сетки 3x3)
+    paginator = Paginator(news_queryset, 1)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # --- ПОЛУЧАЕМ SEO-БЛОК ДЛЯ СТРАНИЦЫ ---
+    try:
+        # Ищем по тому самому "якорю", который создали в админке
+        seo_block = SeoBlock.objects.get(slug='news-list')
+    except SeoBlock.DoesNotExist:
+        seo_block = None  # Если забыли создать в админке, сайт не упадет
 
     context = {
-        'news_list': news_items
+        'news_list': page_obj,
+        'seo_block': seo_block
     }
+
     return render(request, 'core/user/news.html', context)
 def edit_news(request, pk):
     # Используем имя 'item', т.к. это может быть и новость, и акция
@@ -354,37 +361,48 @@ def edit_news(request, pk):
     }
     return render(request, 'core/adminlte/edit_news.html', context)
 def admin_promotion(request):
-    if request.method == "POST" and request.POST.get("action") == "create":
-        NewsPromotionPage.objects.create(
-            name="НОВАЯ АКЦИЯ",
-            status=True,
-            description="",
-            time_created=timezone.now(),
-            is_promotion=True  # Указываем, что создаем именно АКЦИЮ
-        )
-        return redirect("core:admin_promotion")
+    # Логика POST-запросов (создание/удаление) остается без изменений
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "create":
+            NewsPromotionPage.objects.create(name="НОВАЯ АКЦИЯ", status=True, is_promotion=True)
+            return redirect("core:admin_promotion")
+        if action == "delete":
+            item_id = request.POST.get("item_id")
+            item = get_object_or_404(NewsPromotionPage, pk=item_id, is_promotion=True)
+            item.delete()
+            return redirect("core:admin_promotion")
 
-    if request.method == "POST" and request.POST.get("action") == "delete":
-        pk = request.POST.get("promotion_id")
-        # При удалении проверяем, что это акция
-        promotion = get_object_or_404(NewsPromotionPage, pk=pk, is_promotion=True)
-        promotion.delete()
-        return redirect("core:admin_promotion")
+    # Получаем полный список акций
+    promotion_queryset = NewsPromotionPage.objects.filter(is_promotion=True).order_by("-time_created")
 
-    # Получаем из базы ТОЛЬКО АКЦИИ
-    promotion_list = NewsPromotionPage.objects.filter(is_promotion=True).order_by("-time_created")
-    return render(request, "core/adminlte/admin_promotion.html", {
-        "promotion_list": promotion_list
-    })
+    # Добавляем пагинацию (20 акций на страницу в админке)
+    paginator = Paginator(promotion_queryset, 1)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "core/adminlte/admin_promotion.html", {"promotion_list": page_obj})
 def stocks(request):
-    promotions = NewsPromotionPage.objects.filter(
-        is_promotion=True,  # Условие 1: Это должна быть акция
-        status=True  # Условие 2: У нее должен быть статус "ВКЛ"
-    ).order_by("-time_created")
+    promotions_queryset = NewsPromotionPage.objects.filter(is_promotion=True, status=True).order_by("-time_created")
 
+    # Добавляем пагинацию (9 акций на страницу)
+    paginator = Paginator(promotions_queryset, 1)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # --- ПОЛУЧАЕМ SEO-БЛОК ДЛЯ СТРАНИЦЫ ---
+    try:
+        # Ищем по "якорю" для акций
+        seo_block = SeoBlock.objects.get(slug='promotions-list')
+    except SeoBlock.DoesNotExist:
+        seo_block = None
+
+    # --- ДОБАВЛЯЕМ SEO-БЛОК В КОНТЕКСТ ---
     context = {
-        'promotion_list': promotions
+        'promotion_list': page_obj,
+        'seo_block': seo_block
     }
+
     return render(request, 'core/user/stocks.html', context)
 def stocks_card(request, pk):
     """
@@ -410,7 +428,6 @@ def stocks_card(request, pk):
 @require_http_methods(["GET", "POST"])
 def admin_other_page(request):
     if request.method == "POST":
-        # ... (логика создания и удаления страниц остается без изменений) ...
         if "create_page" in request.POST:
             base_name = "новая-страница"
             new_name = base_name
@@ -470,7 +487,6 @@ def admin_other_page(request):
     other_pages = OtherPage.objects.all()
     for p in other_pages:
         pages_to_render.append({
-            # КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: Используем p.title, а если он пуст - p.name
             'display_title': p.title or p.name,
             'created': p.time_created,
             'status': p.status,
@@ -481,15 +497,13 @@ def admin_other_page(request):
 
     return render(request, "core/adminlte/admin_other_page.html", {"pages": pages_to_render})
 def edit_other_page(request, page_name):
-    # Находим страницу по ее уникальному имени или возвращаем 404
     page = get_object_or_404(OtherPage, name=page_name)
 
-    # Получаем связанные объекты
     seo_block = page.seo_block
-    slides = OtherPageSlide.objects.filter(page=page)  # Замените PageSlide на вашу модель слайдов
+    slides = OtherPageSlide.objects.filter(page=page)
 
     if request.method == 'POST':
-        # --- Здесь будет вся логика сохранения данных из формы ---
+        # --- вся логика сохранения данных из формы ---
 
         # Обновление основных полей
         page.status = 'status' in request.POST
@@ -533,7 +547,6 @@ def edit_other_page(request, page_name):
                 slide.image = image_file
                 slide.save()
 
-        # После всех операций перенаправляем, чтобы избежать повторной отправки формы
         return redirect('core:edit_other_page', page_name=page.name)
 
     context = {
@@ -563,8 +576,124 @@ def other_page_detail(request, page_name):
     # Всегда рендерим один и тот же шаблон
     return render(request, 'core/user/other_page_detail.html', context)
 
+
+
+
+# Декоратор для проверки, что пользователь - суперюзер
+def is_superuser(user):
+    return user.is_superuser
+
+@user_passes_test(is_superuser)
 def admin_users(request):
-    return render(request, 'core/adminlte/admin_users.html')
+    """
+       Отображает список пользователей.
+       Обрабатывает ПОИСК, СОРТИРОВКУ, УДАЛЕНИЕ и ПАГИНАЦИЮ.
+       """
+    # --- Логика POST-запроса (удаление) остается без изменений ---
+    if request.method == 'POST' and 'delete_user' in request.POST:
+        user_id = request.POST.get('delete_user')
+        user_to_delete = get_object_or_404(CustomUser, pk=user_id)
+        if request.user.pk != user_to_delete.pk:
+            user_to_delete.delete()
+        return redirect('core:admin_users')
+
+    # --- Логика GET-запроса (сортировка и поиск) остается без изменений ---
+    users_list = CustomUser.objects.all()  # Переименовываем, чтобы не путать с итоговым списком
+    search_query = request.GET.get('q', '')
+    sort_by = request.GET.get('sort', 'id')
+    order = request.GET.get('order', 'asc')
+
+    if search_query:
+        users_list = users_list.filter(
+            Q(id__icontains=search_query) | Q(email__icontains=search_query) |
+            Q(phone__icontains=search_query) | Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) | Q(username__icontains=search_query) |
+            Q(city__icontains=search_query)
+        )
+
+    valid_sort_fields = ['id', 'date_joined', 'birthday', 'email', 'phone', 'last_name', 'username', 'city']
+    if sort_by in valid_sort_fields:
+        if order == 'desc':
+            sort_by = f'-{sort_by}'
+        users_list = users_list.order_by(sort_by)
+
+    # --- 2. ДОБАВЛЯЕМ ЛОГИКУ ПАГИНАЦИИ ---
+    # Создаем объект Paginator. 20 - количество пользователей на странице.
+    paginator = Paginator(users_list, 1)
+
+    # Получаем номер страницы из GET-параметра 'page'. По умолчанию - страница 1.
+    page_number = request.GET.get('page')
+
+    # Получаем объект Page для запрошенной страницы.
+    # .get_page() безопаснее, чем .page(), т.к. обрабатывает некорректные номера страниц.
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,  # <-- 3. ПЕРЕДАЕМ В ШАБЛОН ОБЪЕКТ СТРАНИЦЫ, А НЕ ВЕСЬ СПИСОК
+        'search_query': search_query,
+        'sort': sort_by.lstrip('-'),  # Убираем минус для передачи в шаблон
+        'order': order
+    }
+    return render(request, 'core/adminlte/admin_users.html', context)
+@user_passes_test(is_superuser)
+def edit_users(request, user_pk):
+    """
+        Редактирует данные конкретного пользователя.
+        """
+    user_to_edit  = get_object_or_404(CustomUser, pk=user_pk)
+    success = False
+    errors = []
+
+    if request.method == 'POST':
+        # Эта логика почти полностью взята из profile_view
+        user_to_edit.first_name = request.POST.get('first_name', user_to_edit.first_name)
+        user_to_edit.last_name = request.POST.get('last_name', user_to_edit.last_name)
+        user_to_edit.username = request.POST.get('username', user_to_edit.username)
+        user_to_edit.address = request.POST.get('address', user_to_edit.address)
+        user_to_edit.city = request.POST.get('city', user_to_edit.city)
+        user_to_edit.birthday = request.POST.get('birthday') or None
+        user_to_edit.card_number = request.POST.get('card_number', user_to_edit.card_number)
+        user_to_edit.gender = request.POST.get('gender', user_to_edit.gender)
+        user_to_edit.language = request.POST.get('language', user_to_edit.language)
+
+        email = request.POST.get('email')
+        if email and email != user_to_edit.email:
+            if CustomUser.objects.filter(email=email).exclude(pk=user_to_edit.pk).exists():
+                errors.append('Этот email уже используется.')
+            else:
+                user_to_edit.email = email
+
+        phone = request.POST.get('phone')
+        phone_regex = r'^\+?1?\d{9,15}$'
+        if phone and phone.strip() and not re.match(phone_regex, phone):
+            errors.append('Введите корректный номер телефона.')
+        else:
+            user_to_edit.phone = phone
+
+        password = request.POST.get('password1')
+        password2 = request.POST.get('password2')
+        if password or password2:
+            if password == password2:
+                if password:
+                    user_to_edit.set_password(password)
+            else:
+                errors.append('Пароли не совпадают.')
+
+        if not errors:
+            user_to_edit.save()
+            success = True
+            return redirect('core:admin_users')
+
+    context = {
+        'user_to_edit': user_to_edit,
+        'success': success,
+        'errors': errors,
+        'gender_choices': CustomUser.GENDER_CHOICES,
+        'language_choices': CustomUser.LANGUAGE_CHOICES,
+        'city_choices': CustomUser.CITY_CHOICES,
+    }
+    return render(request, 'core/adminlte/edit_users.html', context)
+
 
 
 def admin_mailing(request):

@@ -1,7 +1,9 @@
 {% extends 'core/user/layout.html' %}
 
-<!-- Используем название акции в заголовке страницы для SEO -->
-{% block title %}{{ promotion.name }}{% endblock %}
+{% block title %}{% if seo_block %}{{ seo_block.title_seo }}{% else %}Акции и Скидки{% endif %}{% endblock %}
+{% block keywords %}{% if seo_block %}{{ seo_block.keywords_seo }}{% endif %}{% endblock %}
+{% block description %}{% if seo_block %}{{ seo_block.description_seo }}{% endif %}{% endblock %}
+
 
 {% block content %}
     <!-- Баннер (может быть динамическим, если нужно) -->

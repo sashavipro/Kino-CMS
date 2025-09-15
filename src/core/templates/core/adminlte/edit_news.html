@@ -18,8 +18,16 @@
         <!-- Языковые кнопки -->
         <div class="col-md-6 mb-3">
           <div class="btn-group" role="group">
-            <button type="button" class="btn btn-outline-secondary active">Русский</button>
-            <button type="button" class="btn btn-outline-secondary">English</button>
+            <!-- Кнопка для русского языка -->
+            <button type="button" onclick="setLanguage('ru')"
+                    class="btn btn-outline-secondary {% if request.LANGUAGE_CODE == 'ru' %}active{% endif %}">
+                    Русский
+            </button>
+            <!-- Кнопка для английского языка -->
+            <button type="button" onclick="setLanguage('en')"
+                    class="btn btn-outline-secondary {% if request.LANGUAGE_CODE == 'en' %}active{% endif %}">
+                    English
+            </button>
           </div>
         </div>
       </div>
@@ -174,5 +182,18 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 });
+</script>
+
+    <form id="languageForm" method="post" action="/i18n/setlang/" style="display: none;">
+    {% csrf_token %}
+    <input name="next" type="hidden" value="{{ request.get_full_path }}">
+    <input id="languageInput" name="language" type="hidden" value="">
+</form>
+
+<script>
+function setLanguage(langCode) {
+    document.getElementById('languageInput').value = langCode;
+    document.getElementById('languageForm').submit();
+}
 </script>
 {% endblock %}

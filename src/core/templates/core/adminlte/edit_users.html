@@ -1,0 +1,118 @@
+{% extends 'core/adminlte/admin_layout.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow p-4">
+        <h3 class="text-center mb-4">Страница клиента</h3>
+        <form method="POST">
+            {% csrf_token %}
+            <!-- Заменяем user на user_to_edit во всех полях -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="first_name" class="form-label">Имя</label>
+                    <input type="text" name="first_name" id="first_name" class="input-register form-control" placeholder="Your first name" value="{{ user_to_edit.first_name|default:'' }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Язык</label>
+                    <div>
+                        {% for value, label in language_choices %}
+                            <div class="form-check form-check-inline">
+                                <input type="radio" class="form-check-input" name="language" id="lang_{{ value }}" value="{{ value }}" {% if user_to_edit.language == value %}checked{% endif %}>
+                                <label class="form-check-label" for="lang_{{ value }}">{{ label }}</label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="last_name" class="form-label">Фамилия</label>
+                    <input type="text" name="last_name" id="last_name" class="input-register form-control" placeholder="Your last name" value="{{ user_to_edit.last_name|default:'' }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Пол</label>
+                    <div>
+                        {% for value, label in gender_choices %}
+                            <div class="form-check form-check-inline">
+                                <input type="radio" class="form-check-input" name="gender" id="gender_{{ value }}" value="{{ value }}" {% if user_to_edit.gender == value %}checked{% endif %}>
+                                <label class="form-check-label" for="gender_{{ value }}">{{ label }}</label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="username" class="form-label">Псевдоним</label>
+                    <input type="text" name="username" id="username" class="input-register form-control" placeholder="Your username" value="{{ user_to_edit.username|default:'' }}">
+                </div>
+                <div class="col-md-6">
+                    <label for="phone" class="form-label">Телефон</label>
+                    <input type="text" name="phone" id="phone" class="input-register form-control" placeholder="Your phone" value="{{ user_to_edit.phone|default:'' }}">
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="email" class="form-label">E-mail</label>
+                    <input type="email" name="email" id="email" class="input-register form-control" placeholder="Your email" value="{{ user_to_edit.email|default:'' }}">
+                </div>
+                <div class="col-md-6">
+                    <label for="birthday" class="form-label">Дата рождения</label>
+                    <input type="date" name="birthday" id="birthday" class="input-register form-control" value="{{ user_to_edit.birthday|date:'Y-m-d' }}">
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="address" class="form-label">Адрес</label>
+                    <input type="text" name="address" id="address" class="input-register form-control" placeholder="Your address" value="{{ user_to_edit.address|default:'' }}">
+                </div>
+                <div class="col-md-6">
+                    <label for="city" class="form-label">Город</label>
+                    <select name="city" id="city" class="form-select">
+                        <option value="">---------</option>
+                        {% for value, label in city_choices %}
+                            <option value="{{ value }}" {% if user_to_edit.city == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="password" class="form-label">Новый пароль</label>
+                    <input type="password" name="password1" id="password" class="input-register form-control" placeholder="New password">
+                </div>
+                <div class="col-md-6">
+                    <label for="confirm_password" class="form-label">Повторить новый пароль</label>
+                    <input type="password" name="password2" id="confirm_password" class="input-register form-control" placeholder="Confirm new password">
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <label for="card_number" class="form-label">Номер карты</label>
+                    <input type="text" name="card_number" id="card_number" class="input-register form-control" placeholder="Your card number" value="{{ user_to_edit.card_number|default:'' }}">
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary px-5">Сохранить</button>
+            </div>
+        </form>
+        {% if errors %}
+            <div class="alert alert-danger mt-3">
+                {% for error in errors %}
+                    <p class="mb-0">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% if success %}
+            <p class="text-success mt-3 text-center">Изменения сохранены!</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
