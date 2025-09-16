@@ -1,6 +1,7 @@
 import os
 
 from django.db import models
+from django.urls import reverse
 
 from src.core.models import SeoBlock, Gallery
 
@@ -62,15 +63,38 @@ class Hall(models.Model):
 
 
 
-# class Film(models.Model):
-#     title = models.CharField(max_length=100)
-#     trailer_url = models.URLField()
-#     is_2d = models.BooleanField(default=True)
-#     is_3d = models.BooleanField(default=False)
-#     is_imax = models.BooleanField(default=False)
-#
-#     def __str__(self):
-#         return self.title
+# models.py
+
+class Film(models.Model):
+    # Добавляем выбор статуса
+    class Status(models.TextChoices):
+        NOW_SHOWING = 'now_showing', 'Сейчас в кино'
+        COMING_SOON = 'coming_soon', 'Скоро'
+
+    def get_absolute_url(self):
+        # Возвращает URL для страницы этого конкретного фильма
+        return reverse('core:film_page', args=[str(self.id)])
+
+    title = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    main_image = models.ImageField(upload_to="film/poster/", blank=True, null=True)
+    gallery = models.OneToOneField(Gallery, on_delete=models.SET_NULL, blank=True, null=True)
+    trailer_url = models.URLField(blank=True)
+
+    # Добавляем новые поля
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+    )
+
+    is_2d = models.BooleanField(default=True)
+    is_3d = models.BooleanField(default=False)
+    is_imax = models.BooleanField(default=False)
+
+    seo_block = models.ForeignKey(SeoBlock, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return self.title
 #
 #
 #

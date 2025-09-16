@@ -1,0 +1,72 @@
+<!-- core/user/search_results.html -->
+
+{% extends 'core/user/layout.html' %}
+
+{% block title %}Результаты поиска по запросу "{{ query }}"{% endblock %}
+
+{% block style-body %}class="bg-dark text-light"{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Левая колонка -->
+        <aside class="col-3">
+            <div class="ad-block">
+                <img src="https://picsum.photos/1200/500?random=1" alt="">
+            </div>
+        </aside>
+
+        <!-- Правая колонка (результаты) -->
+        <main class="col-9 p-4">
+            {% if query %}
+                <h2 class="text-light mb-4">Результаты поиска по запросу: "{{ query }}"</h2>
+            {% else %}
+                <h2 class="text-light mb-4">Пожалуйста, введите поисковый запрос</h2>
+            {% endif %}
+
+            <div class="movie-grid">
+                {% for film in films %}
+                <div>
+                    <div class="movie-poster">
+                        <a href="{% url 'core:film_page' film.pk %}">
+                            <img src="{{ film.main_image.url }}">
+                        </a>
+                        <div class="card-body p-0 d-flex flex-column align-items-end gap-1">
+                          {% if film.is_3d %}<span class="badge bg-primary text-white">3D</span>{% endif %}
+                          {% if film.is_imax %}<span class="badge bg-success text-white">IMAX</span>{% endif %}
+                        </div>
+                    </div>
+                    <a href="{% url 'core:film_page' film.pk %}" class="d-block mt-2 text-info text-decoration-none">{{ film.title }}</a>
+                    <a href="{% url 'core:film_page' film.pk %}" class="btn btn-buy mt-2">ПОДРОБНЕЕ</a>
+                </div>
+                {% empty %}
+                {% if query %}
+                    <p class="text-light">К сожалению, по вашему запросу ничего не найдено.</p>
+                {% endif %}
+                {% endfor %}
+            </div>
+
+            <!-- БЛОК ПАГИНАЦИИ -->
+            <nav aria-label="Page navigation" class="mt-4">
+              {% if films.has_other_pages %}
+                <ul class="pagination justify-content-center">
+                  {% if films.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?q={{ query|urlencode }}&page={{ films.previous_page_number }}">Назад</a></li>
+                  {% endif %}
+
+                  {% for num in films.paginator.page_range %}
+                    <li class="page-item {% if films.number == num %}active{% endif %}">
+                        <a class="page-link" href="?q={{ query|urlencode }}&page={{ num }}">{{ num }}</a>
+                    </li>
+                  {% endfor %}
+
+                  {% if films.has_next %}
+                    <li class="page-item"><a class="page-link" href="?q={{ query|urlencode }}&page={{ films.next_page_number }}">Вперед</a></li>
+                  {% endif %}
+                </ul>
+              {% endif %}
+            </nav>
+        </main>
+    </div>
+</div>
+{% endblock %}

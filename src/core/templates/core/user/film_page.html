@@ -52,9 +52,12 @@
 {% endblock %}
 
 {% block content %}
-<!-- Header with YouTube placeholder -->
 <div class="header-bg">
-    <iframe width="560" height="315" src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allowfullscreen></iframe>
+    {% if embed_url %}
+        <iframe width="560" height="315" src="{{ embed_url }}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    {% else %}
+        <p>Трейлер недоступен.</p>
+    {% endif %}
 </div>
 <div class="container mt-4">
 <!-- Cinema Schedule Title and Filters -->
@@ -118,12 +121,14 @@
 <div class="container mt-4">
     <div class="row">
         <div class="col-md-4">
-            <img  src="https://picsum.photos/1200/500?random=1" alt="Poster" class="poster-img">
+             {% if film.main_image %}
+                <img src="{{ film.main_image.url }}" alt="Постер фильма {{ film.title }}" class="poster-img">
+            {% endif %}
         </div>
         <div class="col-md-8">
             <button class="btn btn-outline-light me-2">Купить билет</button>
-            <h2>Неоновый демон</h2>
-            <p>Красочный психологический триллер от обладателя премии Каннского кинофестиваля автора "Только Бог простит" Рафаэля Фонтенота и "Проклятого" Тома Хардмана. Начинающая модель переезжает в Лос-Анджелес. На своей первой фотосессии Джесси (Эль Фэннинг) знакомится с работницей салона красоты Руби (Дженна Мэлоун), Сарой (366н) и Джули (Белла Хиткот). Вскоре модель получает первый контракт с модельным агентством. Джесси полная фотофобия и обожает животных, ей сабботирует ее монологист, в которой живущий не дает свой жертве.</p>
+            <h2>{{ film.title }}</h2>
+            <p>{{ film.description|linebreaks }}</p>
         </div>
     </div>
 
@@ -131,32 +136,38 @@
         <div class="col-md-4">
             <img src="https://picsum.photos/1200/500?random=1" alt="Poster" class="poster-img">
         </div>
+
         <div class="col-md-8">
+             <!-- галерея -->
+    {% if film.gallery and film.gallery.image_set.all %}
+    <div class="row mt-4">
+        <div class="col-md-8 offset-md-4">
             <h4>Кадры и постеры</h4>
-            <div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
+            <div id="filmGallery" class="carousel slide" data-bs-ride="carousel">
                 <div class="carousel-indicators">
-                    <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="0" class="active" aria-current="true"></button>
-                    <button type="button" data-bs-target="#myCarousel" data-bs-slide-to="1"></button>
+                    {% for image in film.gallery.image_set.all %}
+                        <button type="button" data-bs-target="#filmGallery" data-bs-slide-to="{{ forloop.counter0 }}" class="{% if forloop.first %}active{% endif %}" aria-current="true"></button>
+                    {% endfor %}
                 </div>
                 <div class="carousel-inner">
-                    <div class="carousel-item active">
-                        <img src="https://picsum.photos/1200/500?random=1" class="d-block w-100" alt="Poster 1">
+                    {% for image in film.gallery.image_set.all %}
+                    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                        <img src="{{ image.image.url }}" class="d-block w-100" alt="Кадр {{ forloop.counter }}">
                     </div>
-                    <div class="carousel-item">
-                        <img src="https://picsum.photos/1200/500?random=2" class="d-block w-100" alt="Poster 2">
-                    </div>
+                    {% endfor %}
                 </div>
-                <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+                <button class="carousel-control-prev" type="button" data-bs-target="#filmGallery" data-bs-slide="prev">
                     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                     <span class="visually-hidden">Previous</span>
                 </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+                <button class="carousel-control-next" type="button" data-bs-target="#filmGallery" data-bs-slide="next">
                     <span class="carousel-control-next-icon" aria-hidden="true"></span>
                     <span class="visually-hidden">Next</span>
                 </button>
             </div>
         </div>
     </div>
+    {% endif %}
 
     <div class="mt-4">
         <div class="ad-block">

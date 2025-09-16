@@ -2,13 +2,13 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+#
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-15 11:27+0000\n"
+"POT-Creation-Date: 2025-09-15 14:49+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -75,10 +75,8 @@ msgid "Акции"
 msgstr "Promotions"
 
 #: src/core/templates/core/user/layout.html:131
-#, fuzzy
-#| msgid "Логотип кинотеатра"
 msgid "Страницы кинотеатра"
-msgstr "Cinema logo"
+msgstr "Page cinema"
 
 #: src/core/templates/core/user/layout.html:134
 #: src/core/templates/core/user/layout.html:205
@@ -128,21 +126,21 @@ msgstr "Advertising"
 msgid "Кафе-Бар"
 msgstr "Café-Bar"
 
-#: src/core/templates/core/user/news.html:10
+#: src/core/templates/core/user/news.html:15
 msgid "Акции и Скидки"
 msgstr "Stocks and Promotions"
 
-#: src/core/templates/core/user/news.html:28
+#: src/core/templates/core/user/news.html:33
 msgid "Пока новостей нет."
 msgstr "No news yet."
 
-#: src/core/templates/core/user/news.html:35
-#: src/core/templates/core/user/stocks.html:43
+#: src/core/templates/core/user/news.html:40
+#: src/core/templates/core/user/stocks.html:46
 msgid "Назад"
 msgstr "Back"
 
-#: src/core/templates/core/user/news.html:40
-#: src/core/templates/core/user/stocks.html:48
+#: src/core/templates/core/user/news.html:45
+#: src/core/templates/core/user/stocks.html:51
 msgid "Вперед"
 msgstr "Forward"
 

@@ -64,6 +64,29 @@
         .banner p {
             font-size: 16px;
         }
+
+        .live-search-results {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-top: none;
+            z-index: 1000;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .live-search-item {
+            display: block;
+            padding: 8px 12px;
+            color: black;
+            text-decoration: none;
+        }
+        .live-search-item:hover {
+            background-color: #f0f0f0;
+        }
     </style>
 </head>
 <body>
@@ -102,8 +125,14 @@
             <a href="{% url 'core:home' %}" title="{% translate "Главная"%}"><img src="chrome://branding/content/about-logo.png" alt="{% translate "Логотип кинотеатра"%}"></a>
         </div>
 
-        <div class="search">
-            <input type="text" placeholder="{% translate "Поиск фильмов..."%}">
+        <div class="search" style="position: relative;">
+            <form method="GET" action="{% url 'core:search_results' %}">
+                <!-- Даем ID нашему полю ввода -->
+                <input type="text" name="q" id="searchInput" placeholder="{% translate "Поиск фильмов..."%}" required autocomplete="off">
+                <button type="submit" style="display: none;"></button>
+            </form>
+            <!--  контейнер для результатов -->
+            <div id="searchResults" class="live-search-results"></div>
         </div>
 
         <div class="social">
@@ -225,5 +254,52 @@
         </div>
     </footer>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const resultsDiv = document.getElementById('searchResults');
+        let searchTimeout;
+
+        searchInput.addEventListener('keyup', function() {
+            const query = this.value;
+
+            // Отменяем предыдущий таймаут, чтобы не слать запросы на каждую букву
+            clearTimeout(searchTimeout);
+
+            if (query.length < 2) {
+                resultsDiv.style.display = 'none';
+                return;
+            }
+
+            // Устанавливаем задержку в 300ms перед отправкой запроса
+            searchTimeout = setTimeout(() => {
+                fetch(`/api/search-films/?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        resultsDiv.innerHTML = ''; // Очищаем предыдущие результаты
+                        if (data.films && data.films.length > 0) {
+                            resultsDiv.style.display = 'block';
+                            data.films.forEach(film => {
+                                const link = document.createElement('a');
+                                link.href = film.url;
+                                link.className = 'live-search-item';
+                                link.textContent = film.title;
+                                resultsDiv.appendChild(link);
+                            });
+                        } else {
+                            resultsDiv.style.display = 'none';
+                        }
+                    });
+            }, 300);
+        });
+
+        // Скрываем результаты, если кликнули вне поля поиска
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target)) {
+                resultsDiv.style.display = 'none';
+            }
+        });
+    });
+    </script>
 </body>
 </html>

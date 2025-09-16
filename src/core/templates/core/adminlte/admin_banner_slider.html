@@ -13,6 +13,13 @@
 
         <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
+        <!-- Status -->
+        <div class="col-md-6 mb-3">
+          <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="switch_home" name="home_status" {% if home_slides and home_slides.0.status_banner %}checked{% endif %}>
+            <label class="form-check-label" for="switch">ВКЛ</label>
+          </div>
+        </div>
       <input type="hidden" name="action" value="save_home_slides">
 
       <!-- Слайды -->
@@ -78,6 +85,7 @@
     </form>
   </div>
 </div>
+
 <!-- end. На главной верх -->
 
 
@@ -89,9 +97,17 @@
   <div class="card-body">
     <form method="post" enctype="multipart/form-data" class="d-flex gap-3">
       {% csrf_token %}
+
       <input type="hidden" name="action" value="save_background">
 
       <div>
+        <!-- Status -->
+        <div class="col-md-6 mb-3">
+          <div class="form-check form-switch">
+               <input class="form-check-input" type="checkbox" id="switch_bg" name="background_status" {% if background and background.status_banner %}checked{% endif %}>
+            <label class="form-check-label" for="switch">ВКЛ</label>
+          </div>
+        </div>
         <div class="form-check">
           <input class="form-check-input" type="radio" name="mode" value="image"
                  id="bgImage" {% if background and background.image_banner %}checked{% endif %}>
@@ -144,9 +160,17 @@
   <div class="card-body">
     <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
+    <!-- Status -->
+        <div class="col-md-6 mb-3">
+          <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="switch_news" name="news_status" {% if news_slides and news_slides.0.status_banner %}checked{% endif %}>
+            <label class="form-check-label" for="switch">ВКЛ</label>
+          </div>
+        </div>
       <input type="hidden" name="action" value="save_news_slides">
 
       <div class="d-flex flex-wrap gap-3">
+
         {% for banner in news_slides %}
           <div class="border rounded p-2 text-center position-relative" style="width: 180px;">
             <!-- Кнопка удаления -->

@@ -9,8 +9,15 @@ urlpatterns = [
 #---ADMIN PAGE---
     path('adminlte/', views.admin_stats, name='admin_stats'),
     path("adminlte/admin_banner_slider", views.admin_banner_slider, name="admin_banner_slider"),
-    path('adminlte/admin_films', views.admin_films, name='admin_films'),
 
+    path('adminlte/films', views.admin_films, name='admin_films'),
+    path('adminlte/films/edit/<int:film_pk>/', views.edit_film, name='edit_film'),
+    path('', views.index, name='home'),
+    path('soon/', views.soon, name='soon'),
+    path('poster/', views.poster, name='poster'),
+    path('film/<int:film_pk>/', views.film_page, name='film_page'),
+    path('search/', views.search_results, name='search_results'),
+    path('api/search-films/', views.live_search_films, name='live_search_films'),
 
 
     path('adminlte/admin_news', views.admin_news, name='admin_news'),
@@ -35,14 +42,12 @@ urlpatterns = [
     path('adminlte/admin_mailing', views.admin_mailing, name='admin_mailing'),
 
 #---PAGE---
-    path('', views.index, name='home'),
 
 
-    path('poster', views.poster, name='poster'),
-    path('film_page', views.film_page, name='film_page'),
+
     path('schedule', views.schedule, name='schedule'),
     path('ticket_reservation', views.ticket_reservation, name='ticket_reservation'),
-    path('soon', views.soon, name='soon'),
+
 
     path('stocks', views.stocks, name='stocks'),
     path('stock/<int:pk>/', views.stocks_card, name='stock_card'),

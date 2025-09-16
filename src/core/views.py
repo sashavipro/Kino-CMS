@@ -1,15 +1,17 @@
 import re
 
+from django.conf import settings
 from django.contrib.auth.decorators import user_passes_test
 from django.db.models import Q
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.utils import timezone
+from django.utils import timezone, translation
 from django.views.decorators.http import require_http_methods
 from django.core.paginator import Paginator
 from src.banner.models import HomeBanner, HomeNewsSharesBanner, BackgroundBanner
-from src.banner.forms import HomeBannerSlideForm, NewsSharesBannerForm
-from src.cinema.models import Cinema, Hall
+from src.banner.forms import HomeBannerSlideForm, NewsSharesBannerForm, BackgroundForm
+from src.cinema.models import Cinema, Hall, Film
 from src.core.models import SeoBlock, Gallery, Image, GalleryImage
 from src.page.models import MainPage, OtherPage, OtherPageSlide, NewsPromotionPage, Contact
 from src.users.models import CustomUser
@@ -18,6 +20,62 @@ from src.users.models import CustomUser
 def admin_stats(request):
     return render(request, 'core/adminlte/admin_stats.html')
 
+
+def search_results(request):
+    """
+    Обрабатывает поисковый запрос и отображает найденные фильмы с пагинацией.
+    """
+    # 1. Получаем поисковый запрос из GET-параметра 'q'.
+    #    Если его нет, query будет пустой строкой.
+    query = request.GET.get('q', '')
+
+    results = []
+    # 2. Если запрос не пустой, выполняем поиск
+    if query:
+        # Ищем по названию ИЛИ по описанию, без учета регистра
+        # Также ищем только среди фильмов, которые "Сейчас в кино" или "Скоро"
+        results = Film.objects.filter(
+            (Q(title__icontains=query) | Q(description__icontains=query))
+        ).distinct().order_by('-id')
+
+    # 3. Добавляем пагинацию
+    paginator = Paginator(results, 12)  # 12 результатов на страницу
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'query': query,
+        'films': page_obj,  # Передаем под именем 'films', чтобы переиспользовать код карточки
+    }
+    return render(request, 'core/user/search_results.html', context)
+
+
+def live_search_films(request):
+    """
+    Возвращает список фильмов в формате JSON для "живого" поиска.
+    """
+    # Получаем поисковый запрос 'q' из GET-параметров
+    query = request.GET.get('q', '')
+
+    films_data = []
+
+    # Если запрос не пустой, выполняем поиск
+    if query:
+        # Ищем 5 самых релевантных фильмов
+        films = Film.objects.filter(
+            Q(title__icontains=query) | Q(description__icontains=query)
+        ).distinct()[:5]  # Ограничиваем количество результатов
+
+        # Формируем список словарей с нужными данными
+        for film in films:
+            films_data.append({
+                'title': film.title,
+                'url': film.get_absolute_url(),  # Предполагаем, что у вас есть этот метод
+                'poster_url': film.main_image.url if film.main_image else ''
+            })
+
+    # Возвращаем данные в формате JSON
+    return JsonResponse({'films': films_data})
 
 # Главная
 def admin_banner_slider(request):
@@ -49,6 +107,8 @@ def admin_banner_slider(request):
         # === СОХРАНЕНИЕ HOME SLIDES ===
         if action == "save_home_slides":
             speed = request.POST.get("speed", 5)
+            home_status_is_on = 'home_status' in request.POST
+
             for banner in home_slides:
                 prefix = str(banner.id)
                 form = HomeBannerSlideForm(
@@ -58,11 +118,12 @@ def admin_banner_slider(request):
                 )
                 if form.is_valid():
                     form.save()
-            HomeBanner.objects.update(speed_banner=speed)
+            HomeBanner.objects.update(status_banner=home_status_is_on, speed_banner=speed)
             return redirect("core:admin_banner_slider")
 
         # === СОХРАНЕНИЕ NEWS SLIDES ===
         if action == "save_news_slides":
+            news_status_is_on = 'news_status' in request.POST
             for banner in news_slides:
                 prefix = str(banner.id)
                 form = NewsSharesBannerForm(
@@ -72,26 +133,25 @@ def admin_banner_slider(request):
                 )
                 if form.is_valid():
                     form.save()
+            HomeNewsSharesBanner.objects.update(status_banner=news_status_is_on)
             return redirect("core:admin_banner_slider")
 
         # === ФОН ===
         if action == "save_background":
-            mode = request.POST.get("mode")
-            color = request.POST.get("color")
-            image = request.FILES.get("image")
+            # 5. Считываем состояние переключателя для фона
+            background_status_is_on = 'background_status' in request.POST
 
-            if not background:
-                background = BackgroundBanner.objects.create()
+            # Используем BackgroundForm для обработки mode, color, image
+            form = BackgroundForm(request.POST, request.FILES, instance=background)
+            if form.is_valid():
+                saved_background = form.save(commit=False)
+                # 6. Устанавливаем статус вручную
+                saved_background.status_banner = background_status_is_on
+                saved_background.save()
 
-            if mode == "image" and image:
-                background.image_banner = image
-                background.color = ""
-            elif mode == "color" and color:
-                background.image_banner = None
-                background.color = color.strip()
-            background.save()
             return redirect("core:admin_banner_slider")
 
+            # Удаление фона теперь не нужно, т.к. форма может установить пустые значения
         if action == "delete_background":
             if background:
                 background.image_banner = None
@@ -113,12 +173,18 @@ def index(request):
 
     seo_block = main_page.seo_block if main_page and main_page.seo_block else None
 
+    # Добавляем фильмы для главной страницы
+    today_films = Film.objects.filter(status=Film.Status.NOW_SHOWING)[:4]
+    soon_films = Film.objects.filter(status=Film.Status.COMING_SOON).order_by('-id')[:4]
+
     context = {
         'main_page': main_page,
         'seo_block': seo_block,
         "home_slides": HomeBanner.objects.filter(status_banner=True).order_by("id"),
         "background": BackgroundBanner.objects.filter(status_banner=True).first(),
         "news_slides": HomeNewsSharesBanner.objects.filter(status_banner=True).order_by("id"),
+        'today_films': today_films,
+        'soon_films': soon_films,
     }
     return render(request, "core/user/index.html", context)
 def admin_home_page(request):
@@ -182,13 +248,162 @@ def admin_home_page(request):
 
 # Афиша # Скоро # Фильм из афиши
 def admin_films(request):
-    return render(request, 'core/adminlte/admin_films.html')
+    """
+    Отображает списки фильмов и обрабатывает создание новых фильмов.
+    """
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        # Создаем фильм "Сейчас в кино"
+        if action == 'add_now_showing':
+            new_film = Film.objects.create(title="Новый фильм (в прокате)", status=Film.Status.NOW_SHOWING)
+            return redirect('core:edit_film', film_pk=new_film.pk)
+
+        # Создаем фильм "Скоро"
+        if action == 'add_coming_soon':
+            new_film = Film.objects.create(title="Новый фильм (скоро)", status=Film.Status.COMING_SOON)
+            return redirect('core:edit_film', film_pk=new_film.pk)
+
+        if action == 'delete_film':
+            film_id = request.POST.get('film_id')
+            film_to_delete = get_object_or_404(Film, pk=film_id)
+            film_to_delete.delete()
+            return redirect('core:admin_films')
+
+    now_showing_list = Film.objects.filter(status=Film.Status.NOW_SHOWING).order_by('-id')
+    coming_soon_list = Film.objects.filter(status=Film.Status.COMING_SOON).order_by('-id')
+
+    # --- Пагинация для блока "Сейчас в кино" ---
+    paginator_now = Paginator(now_showing_list, 1)  # 4 фильмов на страницу в админке
+    page_now_number = request.GET.get('page_now')
+    page_obj_now = paginator_now.get_page(page_now_number)
+
+    # --- Пагинация для блока "Скоро в прокате" ---
+    paginator_soon = Paginator(coming_soon_list, 1)
+    page_soon_number = request.GET.get('page_soon')
+    page_obj_soon = paginator_soon.get_page(page_soon_number)
+
+    context = {
+        'now_showing_films': page_obj_now,
+        'coming_soon_films': page_obj_soon,
+    }
+    return render(request, 'core/adminlte/admin_films.html', context)
 def soon(request):
-    return render(request, 'core/user/soon.html')
+    films_list = Film.objects.filter(status=Film.Status.COMING_SOON).order_by('-id')
+    paginator = Paginator(films_list, 1)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'core/user/soon.html', {'films': page_obj})
 def poster(request):
-    return render(request, 'core/user/poster.html')
-def film_page(request):
-    return render(request, 'core/user/film_page.html')
+    films_list = Film.objects.filter(status=Film.Status.NOW_SHOWING).order_by('-id')
+    paginator = Paginator(films_list, 1) # 1 фильмов на страницу для пользователей
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'core/user/poster.html', {'films': page_obj})
+def film_page(request, film_pk):
+    film = get_object_or_404(Film, pk=film_pk)
+
+    # Преобразуем ссылку YouTube для встраивания
+    embed_url = ''
+    if film.trailer_url:
+        if 'watch?v=' in film.trailer_url:
+            embed_url = film.trailer_url.replace('watch?v=', 'embed/')
+        else:
+            embed_url = film.trailer_url  # На случай если уже в формате embed
+
+    context = {
+        'film': film,
+        'embed_url': embed_url
+    }
+    return render(request, 'core/user/film_page.html', context)
+def edit_film(request, film_pk):
+    film = get_object_or_404(Film, pk=film_pk)
+    seo_block = film.seo_block
+    gallery_images = Image.objects.filter(galleryimage__gallery=film.gallery) if film.gallery else []
+    if request.method == 'POST':
+        action = request.POST.get("action")
+
+        # Удалить главную картинку
+        if action == "delete_main_image":
+            if film.main_image:
+                film.main_image.delete(save=True)
+            messages.success(request, "Главная картинка удалена.")
+            return redirect('core:edit_film', film_pk=film.pk)
+
+        # Добавить слот для картинки в галерею
+        if action == "add_slide":
+            if not film.gallery:
+                gallery = Gallery.objects.create(name_gallery=f"Film_{film.pk}_gallery")
+                film.gallery = gallery
+                film.save()
+
+            new_image = Image.objects.create()
+            GalleryImage.objects.create(gallery=film.gallery, images=new_image)
+            messages.success(request, "Слот для изображения добавлен.")
+            return redirect('core:edit_film', film_pk=film.pk)
+
+        # Удалить картинку из галереи
+        if delete_id := request.POST.get("delete_id"):
+            image_to_delete = get_object_or_404(Image, pk=delete_id)
+            GalleryImage.objects.filter(gallery=film.gallery, images=image_to_delete).delete()
+            image_to_delete.delete()
+            messages.success(request, "Изображение из галереи удалено.")
+            return redirect('core:edit_film', film_pk=film.pk)
+
+        # --- ОСНОВНОЕ СОХРАНЕНИЕ ---
+        # Обновление основных полей
+        film.title = request.POST.get('title', '')
+        film.description = request.POST.get('description', '')
+        film.trailer_url = request.POST.get('trailer_url', '')
+
+        # Обновление чекбоксов
+        film.is_2d = 'is_2d' in request.POST
+        film.is_3d = 'is_3d' in request.POST
+        film.is_imax = 'is_imax' in request.POST
+
+        # Сохранение главной картинки ---
+        if 'main_image' in request.FILES:
+            film.main_image = request.FILES['main_image']
+
+        # Обновление изображений в галерее ---
+        if film.gallery:
+            for image in film.gallery.image_set.all():
+                field_name = f"{image.pk}-image"
+                if field_name in request.FILES:
+                    image.image = request.FILES[field_name]
+                    image.save()
+
+        # Сохранение SEO-блока ---
+        slug = request.POST.get("slug", "").strip()
+        if slug:
+            seo_data = {
+                'title_seo': request.POST.get("title_seo", "").strip(),
+                'keywords_seo': request.POST.get("keywords", "").strip(),
+                'description_seo': request.POST.get("description_seo", "").strip()
+            }
+            if film.seo_block:
+                SeoBlock.objects.filter(pk=film.seo_block.pk).update(slug=slug, **seo_data)
+            else:
+                new_seo = SeoBlock.objects.create(slug=slug, **seo_data)
+                film.seo_block = new_seo
+        else: # Если slug пустой, отвязываем/удаляем SEO блок
+            if film.seo_block:
+                film.seo_block.delete()
+            film.seo_block = None
+
+        film.save()
+        messages.success(request, f"Фильм «{film.title}» успешно сохранен.")
+        return redirect('core:admin_films')
+
+    context = {
+        'film': film,
+        'seo_block': film.seo_block,
+        'gallery_images': gallery_images,
+    }
+    return render(request, 'core/adminlte/edit_film.html', context)
+
+
+
 
 # Акции и скидки и новости
 def admin_news(request):
