@@ -1,5 +1,7 @@
 <!-- core/user/other_page_detail.html -->
 {% extends 'core/user/layout.html' %}
+{% load static %}
+{% load i18n %}
 
 {% block title %}{{ page.seo_block.title_seo|default:page.title }}{% endblock %}
 {% block keywords %}{{ page.seo_block.keywords_seo|default:'' }}{% endblock %}

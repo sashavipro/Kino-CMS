@@ -1,6 +1,6 @@
 from modeltranslation.translator import register, TranslationOptions
 
-from src.cinema.models import Film
+from src.cinema.models import Film, Cinema, Hall
 from src.core.models import SeoBlock
 from src.page.models import MainPage, OtherPage, NewsPromotionPage
 
@@ -20,6 +20,15 @@ class NewsPromotionPageTranslationOptions(TranslationOptions):
 @register(Film)
 class FilmTranslationOptions(TranslationOptions):
     fields = ('title', 'description',)
+
+@register(Cinema)
+class CinemaTranslationOptions(TranslationOptions):
+    fields = ('name', 'description', 'conditions')
+
+
+@register(Hall)
+class HallTranslationOptions(TranslationOptions):
+    fields = ('number_hall', 'description')
 
 @register(SeoBlock)
 class SeoBlockTranslationOptions(TranslationOptions):

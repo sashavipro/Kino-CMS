@@ -7,54 +7,68 @@
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
       <div class="row d-flex">
-        <!-- Status -->
-        <div class="col-md-6 mb-3">
-          <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" id="switch" name="status" {% if item.status %}checked{% endif %}>
-            <label class="form-check-label" for="switch">ВКЛ</label>
-          </div>
+        <div class="col-md-6 mb-3 d-flex align-items-center gap-3">
+            <!-- Status -->
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="switch" name="status" {% if item.status %}checked{% endif %}>
+                <label class="form-check-label" for="switch">ВКЛ</label>
+            </div>
+
+            <!-- Дата публикации -->
+            <div class="d-flex align-items-center gap-2">
+                <label for="publicationDate" class="form-label mb-0" style="white-space: nowrap;">Дата публикации:</label>
+                <input type="date" class="form-control" id="publicationDate" name="publicationDate" value="{{ item.time_created|date:'Y-m-d' }}">
+            </div>
         </div>
 
-        <!-- Языковые кнопки -->
-        <div class="col-md-6 mb-3">
-          <div class="btn-group" role="group">
-            <!-- Кнопка для русского языка -->
-            <button type="button" onclick="setLanguage('ru')"
-                    class="btn btn-outline-secondary {% if request.LANGUAGE_CODE == 'ru' %}active{% endif %}">
-                    Русский
-            </button>
-            <!-- Кнопка для английского языка -->
-            <button type="button" onclick="setLanguage('en')"
-                    class="btn btn-outline-secondary {% if request.LANGUAGE_CODE == 'en' %}active{% endif %}">
-                    English
-            </button>
-          </div>
+          <!-- Навигация по вкладкам (Tabs) для языков -->
+        <ul class="nav nav-tabs" id="languageTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="ru-tab" data-bs-toggle="tab" data-bs-target="#ru-content" type="button" role="tab">Русский</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="en-tab" data-bs-toggle="tab" data-bs-target="#en-content" type="button" role="tab">English</button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Содержимое вкладок -->
+    <div class="tab-content" id="languageTabsContent">
+      <!-- Русская версия -->
+      <div class="tab-pane fade show active" id="ru-content" role="tabpanel">
+        <div class="col-md-3">
+          <label for="id_name_ru" class="form-label">Название новости/акции</label>
+          <input type="text" id="id_name_ru" name="name_ru" class="form-control" value="{{ item.name_ru }}">
+        </div>
+        <div class="mb-3">
+          <label for="id_description_ru" class="form-label">Описание</label>
+          <textarea id="id_description_ru" name="description_ru" class="form-control" rows="5">{{ item.description_ru }}</textarea>
         </div>
       </div>
-    <div class="row d-flex">
-        <!-- Заголовок -->
-        <div class="col-md-3">
-          <label for="id_title" class="form-label">Название новости</label>
-          <input type="text" id="id_title" name="title" class="form-control" value="{{ item.name }}">
+      <!-- Английская версия -->
+      <div class="tab-pane fade" id="en-content" role="tabpanel">
+        <div class="mt-3">
+          <label for="id_name_en" class="form-label">News/promotion title</label>
+          <input type="text" id="id_name_en" name="name_en" class="form-control" value="{{ item.name_en }}">
         </div>
-
-        <div class="col-md-2">
-        <!-- Дата публикации -->
-        <label for="publicationDate" class="form-label">Дата публикации</label>
-        <input type="date" class="form-control" id="publicationDate" name="publicationDate" value="{{ item.time_created|date:'Y-m-d' }}">
+        <div class="mb-3">
+          <label for="id_description_en" class="form-label">Description</label>
+          <textarea id="id_description_en" name="description_en" class="form-control" rows="5">{{ item.description_en }}</textarea>
         </div>
+      </div>
     </div>
 
+    <hr>
 
-    <!-- Описание -->
-    <div class="mb-3">
-      <label for="id_description" class="form-label">Текст под заголовком</label>
-        <textarea id="id_description" name="description" class="form-control" rows="5">{{ item.description }}</textarea>
-    </div>
+    <!-- ОБЩИЕ ПОЛЯ (не переводятся) -->
+
+
+
+
 
     <!-- Главная картинка -->
     <div class="mb-3">
-      <label for="id_main_image" class="form-label">Главная картинка</label>
+      <label for="id_main_image" class="form-label">Main image</label>
       <input type="file" id="id_main_image" name="main_image" class="form-control">
 
       <div class="position-relative d-inline-block mt-2">
@@ -68,7 +82,7 @@
         {% if item.main_image %}
           <button type="submit" name="action" value="delete_main_image"
                   class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1">
-            Удалить главную
+            Delete
           </button>
         {% endif %}
       </div>
@@ -76,7 +90,7 @@
 
 
 <!-- Галерея -->
-<h4 class="mt-4">Галерея</h4>
+<h4 class="mt-4">Gallery</h4>
 
 <div class="d-flex flex-wrap gap-3">
   <!-- 'slides' теперь это список объектов Image -->
@@ -84,7 +98,7 @@
     <div class="border rounded p-2 text-center position-relative" style="width: 180px;">
       <!-- Кнопка удаления использует PK объекта Image -->
       <button type="submit" name="delete_id" value="{{ image_obj.pk }}"
-              class="btn-close position-absolute top-0 end-0" aria-label="Удалить"></button>
+              class="btn-close position-absolute top-0 end-0" aria-label="Delete"></button>
 
       <div class="border bg-light d-flex align-items-center justify-content-center" style="height: 100px;">
         <img
@@ -107,7 +121,7 @@
   <div class="d-flex align-items-center justify-content-center border rounded p-2" style="width: 180px;">
     <button type="submit" name="action" value="add_slide"
             class="btn btn-outline-success btn-sm w-100">
-      <i class="fa-solid fa-plus"></i> Добавить изображение
+      <i class="fa-solid fa-plus"></i> Add slide
     </button>
   </div>
 </div>
@@ -116,31 +130,39 @@
 
     <!-- Ссылка на видео -->
         <div class="mb-3">
-          <label for="id_title" class="form-label">Ссылка на видео</label>
+          <label for="id_title" class="form-label">Link to video</label>
           <input type="text" id="id_url_movie" name="url_movie" class="form-control" value="{{ item.url_movie|default:'' }}">
         </div>
 
     <!-- SEO блок -->
-    <h5 class="mt-4">SEO блок</h5>
-    <div class="mb-3">
-      <label for="slug">URL</label>
-      <input type="text" id="slug" name="slug" class="form-control" value="{{ seo_block.slug|default:'' }}">
-    </div>
-    <div class="mb-3">
-      <label for="title_seo">Title</label>
-      <input type="text" id="title_seo" name="title_seo" class="form-control" value="{{ seo_block.title_seo|default:'' }}">
-    </div>
-    <div class="mb-3">
-      <label for="keywords">Keywords</label>
-      <input type="text" id="keywords" name="keywords" class="form-control" value="{{ seo_block.keywords_seo|default:'' }}">
-    </div>
-    <div class="mb-3">
-      <label for="description_seo">Description</label>
-      <textarea id="description_seo" name="description_seo" class="form-control">{{ seo_block.description_seo|default:'' }}</textarea>
+    <h5 class="mt-4">SEO block</h5>
+    <div class="mb-3"><label for="slug">URL (common for all languages)</label><input type="text" id="slug" name="slug" class="form-control" value="{{ seo_block.slug|default:'' }}"></div>
+
+    <!-- SEO Tabs -->
+    <ul class="nav nav-tabs" id="seoTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="seo-ru-tab" data-bs-toggle="tab" data-bs-target="#seo-ru-content" type="button" role="tab">Русский SEO</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="seo-en-tab" data-bs-toggle="tab" data-bs-target="#seo-en-content" type="button" role="tab">English SEO</button>
+      </li>
+    </ul>
+    <div class="tab-content" id="seoTabsContent">
+      <div class="tab-pane fade show active" id="seo-ru-content" role="tabpanel">
+        <div class="mt-3"><label for="title_seo_ru">Title (RU)</label><input type="text" id="title_seo_ru" name="title_seo_ru" class="form-control" value="{{ seo_block.title_seo_ru|default:'' }}"></div>
+        <div class="mb-3"><label for="keywords_seo_ru">Keywords (RU)</label><input type="text" id="keywords_seo_ru" name="keywords_seo_ru" class="form-control" value="{{ seo_block.keywords_seo_ru|default:'' }}"></div>
+        <div class="mb-3"><label for="description_seo_ru">Description (RU)</label><textarea id="description_seo_ru" name="description_seo_ru" class="form-control">{{ seo_block.description_seo_ru|default:'' }}</textarea></div>
+      </div>
+      <div class="tab-pane fade" id="seo-en-content" role="tabpanel">
+        <div class="mt-3"><label for="title_seo_en">Title (EN)</label><input type="text" id="title_seo_en" name="title_seo_en" class="form-control" value="{{ seo_block.title_seo_en|default:'' }}"></div>
+        <div class="mb-3"><label for="keywords_seo_en">Keywords (EN)</label><input type="text" id="keywords_seo_en" name="keywords_seo_en" class="form-control" value="{{ seo_block.keywords_seo_en|default:'' }}"></div>
+        <div class="mb-3"><label for="description_seo_en">Description (EN)</label><textarea id="description_seo_en" name="description_seo_en" class="form-control">{{ seo_block.description_seo_en|default:'' }}</textarea></div>
+      </div>
     </div>
 
-    <!-- Сохранение (ЕДИНСТВЕННАЯ кнопка сохранения) -->
-    <button type="submit" class="btn btn-primary">Сохранить</button>
+    <hr>
+    <!-- Сохранение -->
+    <button type="submit" class="btn btn-primary">Save</button>
   </form>
 </div>
 <!-- Подключение Bootstrap JS (для работы модальных окон, если нужно) -->
@@ -184,16 +206,4 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 
-    <form id="languageForm" method="post" action="/i18n/setlang/" style="display: none;">
-    {% csrf_token %}
-    <input name="next" type="hidden" value="{{ request.get_full_path }}">
-    <input id="languageInput" name="language" type="hidden" value="">
-</form>
-
-<script>
-function setLanguage(langCode) {
-    document.getElementById('languageInput').value = langCode;
-    document.getElementById('languageForm').submit();
-}
-</script>
 {% endblock %}
