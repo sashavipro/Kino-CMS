@@ -1,21 +1,23 @@
 import re
 
+from celery import shared_task
 from django.conf import settings
 from django.contrib.auth.decorators import user_passes_test
+from django.core.mail import send_mail
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.utils import timezone, translation
-from django.views.decorators.http import require_http_methods
+from django.utils import timezone
+from django.views.decorators.http import require_http_methods, require_POST
 from django.core.paginator import Paginator
 from src.banner.models import HomeBanner, HomeNewsSharesBanner, BackgroundBanner
 from src.banner.forms import HomeBannerSlideForm, NewsSharesBannerForm, BackgroundForm
 from src.cinema.models import Cinema, Hall, Film
-from src.core.models import SeoBlock, Gallery, Image, GalleryImage
+from src.core.models import SeoBlock, Gallery, Image, GalleryImage, MailingTemplate, MailingCampaign
 from src.page.models import MainPage, OtherPage, OtherPageSlide, NewsPromotionPage, Contact
 from src.users.models import CustomUser
-
+from .tasks import send_mailing_task
 
 
 def admin_stats(request):
@@ -878,7 +880,7 @@ def admin_users(request):
 
     # --- 2. ДОБАВЛЯЕМ ЛОГИКУ ПАГИНАЦИИ ---
     # Создаем объект Paginator. 1 - количество пользователей на странице.
-    paginator = Paginator(users_list, 1)
+    paginator = Paginator(users_list, 20)
 
     # Получаем номер страницы из GET-параметра 'page'. По умолчанию - страница 1.
     page_number = request.GET.get('page')
@@ -955,9 +957,209 @@ def edit_users(request, user_pk):
     }
     return render(request, 'core/adminlte/edit_users.html', context)
 
+# рассылка
+
+# --- ФУНКЦИИ ДЛЯ СТРАНИЦЫ УПРАВЛЕНИЯ РАССЫЛКОЙ ---
 
 def admin_mailing(request):
-    return render(request, 'core/adminlte/admin_mailing.html')
+    """
+    Отображает страницу управления рассылками и обрабатывает
+    действия, требующие перезагрузки страницы (загрузка/удаление шаблонов).
+    """
+    # --- Обрабатываем только действия, которые приходят от обычных форм ---
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'upload_template':
+            template_file = request.FILES.get('template_file')
+            if template_file:
+                template_name = template_file.name
+                MailingTemplate.objects.create(name=template_name, file=template_file)
+                messages.success(request, f"Шаблон '{template_name}' успешно загружен.")
+            else:
+                messages.error(request, "Необходимо выбрать файл для загрузки.")
+            return redirect('core:admin_mailing')
+
+        elif action == 'delete_template':
+            template_id = request.POST.get('template_id')
+            if template_id:
+                template = get_object_or_404(MailingTemplate, id=template_id)
+                template.delete()
+                messages.success(request, f"Шаблон '{template.name}' удален.")
+            else:
+                messages.error(request, "Ошибка при удалении: не найден ID шаблона.")
+            return redirect('core:admin_mailing')
+
+    # --- Готовим данные для отображения страницы (GET-запрос) ---
+    templates = MailingTemplate.objects.all()[:5]
+    all_users_count = CustomUser.objects.exclude(email__exact='').count()
+    last_campaign = MailingCampaign.objects.order_by('-started_at').first()
+
+    initial_percentage = 0
+    if last_campaign and last_campaign.total_recipients > 0:
+        initial_percentage = round((last_campaign.sent_count / last_campaign.total_recipients) * 100)
+
+    context = {
+        'templates': templates,
+        'all_users_count': all_users_count,
+        'last_campaign': last_campaign,
+        'initial_percentage': initial_percentage,
+    }
+    return render(request, 'core/adminlte/admin_mailing.html', context)
+
+
+
+@shared_task(bind=True)
+def send_mailing_task(self, campaign_id):
+    """
+    Задача Celery, которая получает ID кампании и выполняет рассылку,
+    обновляя ее статус в базе данных.
+    """
+    try:
+        campaign = MailingCampaign.objects.get(id=campaign_id)
+        # 1. Помечаем кампанию как "в процессе"
+        campaign.status = MailingCampaign.Status.IN_PROGRESS
+        campaign.save()
+
+        user_emails = list(CustomUser.objects.exclude(email__exact='').values_list('email', flat=True))
+
+        # Читаем и объединяем HTML-шаблоны
+        html_contents = [tpl.file.read().decode('utf-8') for tpl in campaign.templates.all()]
+        combined_html = "<br><hr><br>".join(html_contents)
+
+        total_emails = len(user_emails)
+        sent_count = 0
+
+        for email in user_emails:
+            try:
+                send_mail(
+                    subject="Новости нашего кинотеатра",
+                    message="",
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[email],
+                    html_message=combined_html,
+                    fail_silently=False,
+                )
+                sent_count += 1
+
+                # 2. Обновляем счетчик в БД (например, каждые 5 писем, чтобы не нагружать БД)
+                if sent_count % 5 == 0 or sent_count == total_emails:
+                    campaign.sent_count = sent_count
+                    campaign.save(update_fields=['sent_count'])
+
+            except Exception as e:
+                print(f"Не удалось отправить письмо на {email}: {e}")
+
+        # 3. Помечаем кампанию как "завершенную"
+        campaign.status = MailingCampaign.Status.COMPLETED
+        campaign.completed_at = timezone.now()
+        campaign.sent_count = sent_count  # Финальное обновление счетчика
+        campaign.save()
+        return f"Рассылка завершена. Отправлено {sent_count} из {total_emails} писем."
+
+    except MailingCampaign.DoesNotExist:
+        return f"Ошибка: Кампания с ID {campaign_id} не найдена."
+    except Exception as e:
+        # В случае критической ошибки помечаем кампанию как проваленную
+        if 'campaign' in locals():
+            campaign.status = MailingCampaign.Status.FAILED
+            campaign.save()
+        print(f"Критическая ошибка в задаче рассылки: {e}")
+        # Повторно вызываем исключение, чтобы Celery сам пометил задачу как FAILED
+        raise e
+
+
+# --- API-ФУНКЦИИ ДЛЯ РАБОТЫ С JAVASCRIPT (БЕЗ ПЕРЕЗАГРУЗКИ СТРАНИЦЫ) ---
+
+@require_POST
+def start_mailing_api(request):
+    """
+    Принимает AJAX-запрос для запуска рассылки. Не рендерит HTML.
+    """
+    if MailingCampaign.objects.filter(status=MailingCampaign.Status.IN_PROGRESS).exists():
+        return JsonResponse({'status': 'error', 'message': 'Предыдущая рассылка еще не завершена.'}, status=400)
+
+    selected_template_ids = request.POST.getlist('template_ids[]')
+    if not selected_template_ids:
+        return JsonResponse({'status': 'error', 'message': 'Не выбраны шаблоны для рассылки.'}, status=400)
+
+    campaign = MailingCampaign.objects.create(
+        total_recipients=CustomUser.objects.exclude(email__exact='').count()
+    )
+    campaign.templates.set(selected_template_ids)
+
+    # Запускаем задачу Celery, передавая ей ID кампании
+    task = send_mailing_task.delay(campaign_id=campaign.id)
+
+    campaign.task_id = task.id
+    campaign.save()
+
+    return JsonResponse({'status': 'success', 'message': 'Рассылка запущена!', 'task_id': task.id})
+
+
+def get_mailing_status_api(request):
+    """
+    Принимает AJAX-запрос для получения статуса последней рассылки. Не рендерит HTML.
+    """
+    campaign = MailingCampaign.objects.order_by('-started_at').first()
+    if not campaign:
+        return JsonResponse({'status': 'no_campaign', 'message': 'Еще не было ни одной рассылки.'})
+
+    percentage = 0
+    if campaign.total_recipients > 0:
+        percentage = round((campaign.sent_count / campaign.total_recipients) * 100)
+
+    data = {
+        'status_code': campaign.status,
+        'status_display': campaign.get_status_display(),
+        'sent': campaign.sent_count,
+        'total': campaign.total_recipients,
+        'percentage': percentage,
+        'task_id': campaign.task_id,
+        'is_running': campaign.status == MailingCampaign.Status.IN_PROGRESS,
+    }
+    return JsonResponse(data)
+
+
+def mailing_choice(request):
+    # --- Логика GET-запроса (сортировка и поиск) остается без изменений ---
+    users_list = CustomUser.objects.all()  # Переименовываем, чтобы не путать с итоговым списком
+    search_query = request.GET.get('q', '')
+    sort_by = request.GET.get('sort', 'id')
+    order = request.GET.get('order', 'asc')
+
+    if search_query:
+        users_list = users_list.filter(
+            Q(id__icontains=search_query) | Q(email__icontains=search_query) |
+            Q(phone__icontains=search_query) | Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) | Q(username__icontains=search_query) |
+            Q(city__icontains=search_query)
+        )
+
+    valid_sort_fields = ['id', 'date_joined', 'birthday', 'email', 'phone', 'last_name', 'username', 'city']
+    if sort_by in valid_sort_fields:
+        if order == 'desc':
+            sort_by = f'-{sort_by}'
+        users_list = users_list.order_by(sort_by)
+
+    # --- 2. ДОБАВЛЯЕМ ЛОГИКУ ПАГИНАЦИИ ---
+    # Создаем объект Paginator. 1 - количество пользователей на странице.
+    paginator = Paginator(users_list, 1)
+
+    # Получаем номер страницы из GET-параметра 'page'. По умолчанию - страница 1.
+    page_number = request.GET.get('page')
+
+    # Получаем объект Page для запрошенной страницы.
+    # .get_page() безопаснее, чем .page(), т.к. обрабатывает некорректные номера страниц.
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,  # <-- 3. ПЕРЕДАЕМ В ШАБЛОН ОБЪЕКТ СТРАНИЦЫ, А НЕ ВЕСЬ СПИСОК
+        'search_query': search_query,
+        'sort': sort_by.lstrip('-'),  # Убираем минус для передачи в шаблон
+        'order': order
+    }
+    return render(request, 'core/adminlte/mailing_choice.html',context)
 
 
 # Расписание
@@ -1314,10 +1516,5 @@ def contacts(request):
     }
     # Укажите правильный путь к вашему шаблону
     return render(request, 'core/user/contacts.html', context)
-
-
-
-
-
 
 

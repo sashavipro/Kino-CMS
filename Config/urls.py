@@ -7,7 +7,7 @@ from django.conf.urls.static import static
 from django.conf.urls.i18n import i18n_patterns
 
 urlpatterns = [
-    path('', include('src.core.urls', namespace="core")),
+    path('', include('src.core.urls')),
     path("admin/", admin.site.urls),
     path('users/', include('src.users.urls', namespace='users')),
     path('i18n/', include('django.conf.urls.i18n')),

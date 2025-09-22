@@ -39,7 +39,11 @@ urlpatterns = [
 
 
 
-    path('adminlte/admin_mailing', views.admin_mailing, name='admin_mailing'),
+    path('adminlte/mailing/', views.admin_mailing, name='admin_mailing'),
+    path('adminlte/mailing/choice/', views.mailing_choice, name='mailing_choice'),
+    # НОВЫЕ МАРШРУТЫ ДЛЯ AJAX
+    path('api/mailing/start/', views.start_mailing_api, name='start_mailing_api'),
+    path('api/mailing/status/', views.get_mailing_status_api, name='get_mailing_status_api'),
 
 #---PAGE---
 

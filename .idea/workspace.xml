@@ -4,18 +4,24 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9b21c351-83b9-4d5d-8ff4-be87719ca970" name="Changes" comment="code changes #14 - &#10;Movies,&#10;poster,&#10;coming soon,&#10;movie page,&#10;pagination on the poster, coming soon, and admin pages (separately for each block),&#10;Live Search and Fallback Search.">
+    <list default="true" id="9b21c351-83b9-4d5d-8ff4-be87719ca970" name="Changes" comment="code changes #15 - fixed the language button tab and removed unnecessary redirects">
+      <change afterPath="$PROJECT_DIR$/Config/celery_app.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/core/management/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/core/management/commands/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/core/management/commands/create_test_users.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/core/tasks.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/mailing_choice.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/core/templates/core/user/hi.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/edit_cinema.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/edit_cinema.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/edit_film.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/edit_film.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/edit_halls.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/edit_halls.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/edit_news.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/edit_news.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/edit_other_page.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/edit_other_page.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/card_hall.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/card_hall.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/other_page_detail.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/other_page_detail.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/translation.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/translation.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Config/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/Config/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Config/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/Config/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Config/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/Config/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/media/static/image/bg.webp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_mailing.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_mailing.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/core/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/users/migrations/0001_initial.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/users/migrations/0001_initial.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/users/migrations/0001_initial.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -83,7 +89,7 @@
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.externalTools&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;terminal&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
   &quot;keyToStringList&quot;: {
@@ -95,11 +101,11 @@
 }</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="\\wsl$\Ubuntu\home\user\projects\Kino_CMS\src\core\management\commands" />
+      <recent name="\\wsl$\Ubuntu\home\user\projects\Kino_CMS\Config" />
       <recent name="\\wsl$\Ubuntu\home\user\projects\Kino_CMS\src\core\static\core\adminlte" />
       <recent name="\\wsl$\Ubuntu\home\user\projects\Kino_CMS\src\core" />
       <recent name="\\wsl$\Ubuntu\home\user\projects\Kino_CMS\src\users\static" />
-      <recent name="\\wsl$\Ubuntu\home\user\projects\Kino_CMS\src\cinema\migrations" />
-      <recent name="\\wsl$\Ubuntu\home\user\projects\Kino_CMS\src\core\static\core\admin" />
     </key>
   </component>
   <component name="RunManager">
@@ -222,7 +228,11 @@
       <workItem from="1757947992905" duration="56000" />
       <workItem from="1758007655416" duration="17924000" />
       <workItem from="1758118587096" duration="6907000" />
-      <workItem from="1758179485375" duration="13168000" />
+      <workItem from="1758179485375" duration="14440000" />
+      <workItem from="1758199864471" duration="3298000" />
+      <workItem from="1758267579998" duration="10230000" />
+      <workItem from="1758278538111" duration="12485000" />
+      <workItem from="1758529276456" duration="1283000" />
     </task>
     <task id="LOCAL-00001" summary="code changes #2">
       <option name="closed" value="true" />
@@ -328,11 +338,18 @@
       <option name="project" value="LOCAL" />
       <updated>1758030091063</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="code changes #15 - fixed the language button tab and removed unnecessary redirects">
+      <option name="closed" value="true" />
+      <created>1758193219117</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1758193219117</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TerminalProjectNonSharedOptionsProvider">
-    <option name="shellPath" value="wsl --distribution Ubuntu" />
     <option name="startingDirectory" value="\\wsl$\Ubuntu\home\user\projects\Kino_CMS\" />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -374,6 +391,7 @@
     <MESSAGE value="code changes #12 - &#10;add create page&#10;new views logic for admin/user page" />
     <MESSAGE value="code changes #13 - &#10;&#10;added page users -&gt; table sorting and table search &#10;&#10;added pagination -&gt; users, news, promotions&#10;&#10;language buttons in editors work" />
     <MESSAGE value="code changes #14 - &#10;Movies,&#10;poster,&#10;coming soon,&#10;movie page,&#10;pagination on the poster, coming soon, and admin pages (separately for each block),&#10;Live Search and Fallback Search." />
-    <option name="LAST_COMMIT_MESSAGE" value="code changes #14 - &#10;Movies,&#10;poster,&#10;coming soon,&#10;movie page,&#10;pagination on the poster, coming soon, and admin pages (separately for each block),&#10;Live Search and Fallback Search." />
+    <MESSAGE value="code changes #15 - fixed the language button tab and removed unnecessary redirects" />
+    <option name="LAST_COMMIT_MESSAGE" value="code changes #15 - fixed the language button tab and removed unnecessary redirects" />
   </component>
 </project>

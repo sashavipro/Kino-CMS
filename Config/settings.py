@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'src.page.apps.PageConfig',  # PAGE
     'src.cinema.apps.CinemaConfig',  # CINEMA
     'src.banner.apps.BannerConfig',  # banner
+    'django_celery_results',
 
 ]
 
@@ -164,12 +165,15 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 
-# (Опционально) Настройки для хранения языка
-# SESSION_COOKIE_AGE = 1209600 # 2 недели
-# LANGUAGE_COOKIE_NAME = 'django_language' # Имя cookie
-# LANGUAGE_COOKIE_AGE = 1209600 # Срок жизни cookie
-# LANGUAGE_COOKIE_DOMAIN = None # Домен cookie
-# LANGUAGE_COOKIE_PATH = '/' # Путь cookie
-# LANGUAGE_COOKIE_SECURE = False # Требовать HTTPS
-# LANGUAGE_COOKIE_HTTPONLY = False # Доступен только через HTTP
-# LANGUAGE_COOKIE_SAMESITE = None # Атрибут SameSite
+# --- CELERY SETTINGS ---
+# Убедитесь, что у вас запущен сервер Redis (по умолчанию на порту 6379)
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'django-db' # Будем хранить результаты в БД Django
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC' # Или ваш часовой пояс
+
+
+# Вместо реальной отправки, письма будут выводиться в консоль
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

@@ -1,5 +1,216 @@
 {% extends 'core/adminlte/admin_layout.html' %}
 
 {% block content %}
+<div class="container mt-4">
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
 
+  <div class="card border p-4 shadow-sm">
+    <h2 class="text-center mb-4">E-mail Рассылка</h2>
+
+    <!-- Форма загрузки -->
+    <form action="{% url 'core:admin_mailing' %}" method="post" enctype="multipart/form-data" class="mb-4 border-bottom pb-4">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="upload_template">
+      <div class="row align-items-center">
+        <label class="col-form-label col-md-4">Загрузить новый HTML-шаблон</label>
+        <div class="col-md-8">
+            <div class="input-group"><input type="file" name="template_file" class="form-control" required><button class="btn btn-success" type="submit">Загрузить</button></div>
+        </div>
+      </div>
+    </form>
+
+    <!-- ОСНОВНОЙ БЛОК УПРАВЛЕНИЯ -->
+    <div>
+      <div class="row mb-3">
+        <label class="col-form-label col-md-4">Выбрать получателей</label>
+        <div class="col-md-8 d-flex align-items-center gap-3">
+          <div class="form-check">
+            <input type="radio" class="form-check-input" id="allUsers" name="send_to" value="all" checked>
+            <label class="form-check-label" for="allUsers">Все пользователи ({{ all_users_count }})</label>
+          </div>
+          <div class="form-check">
+            <input type="radio" class="form-check-input" id="selective" name="send_to" value="selective" disabled>
+            <label class="form-check-label text-muted" for="selective">Выборочно (в разработке)</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <label class="col-form-label col-md-4">Отправлено писем:</label>
+        <div class="col-md-8">
+            <span id="emailCount" class="text-primary fw-bold">{% if last_campaign %}{{ last_campaign.sent_count }} / {{ last_campaign.total_recipients }}{% else %}0 / 0{% endif %}</span>
+        </div>
+      </div>
+      <div class="row mb-3">
+        <label class="col-form-label col-md-4">Статус:</label>
+        <div class="col-md-8">
+             <span>Рассылка выполнена на:
+                <span id="progressPercentage" class="text-success fw-bold">{{ initial_percentage }}%</span>
+             </span>
+        </div>
+      </div>
+      <div class="row mb-4">
+          <div class="col-md-12">
+              <div class="progress" style="height: 25px;">
+                <div id="progressBar" class="progress-bar progress-bar-striped" role="progressbar" style="width: {{ initial_percentage }}%;" aria-valuenow="{{ initial_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                    <span id="progressText">{% if last_campaign %}{{ last_campaign.get_status_display }}{% else %}Ожидание...{% endif %}</span>
+                </div>
+            </div>
+          </div>
+      </div>
+
+      <!-- Список шаблонов и управление -->
+      <div class="row mt-4">
+        <div class="col-md-8">
+          <button id="startMailingBtn" class="btn btn-primary mb-3">Начать рассылку выбранных шаблонов</button>
+        </div>
+        <div class="col-md-4">
+          <div class="border rounded p-3">
+            <h6 class="mb-2">Выберите шаблоны для рассылки</h6>
+            <div id="templatesList">
+                {% for tpl in templates %}
+                <div class="mb-1 d-flex justify-content-between align-items-center">
+                    <div>
+                        <input type="checkbox" class="form-check-input me-1 template-checkbox" value="{{ tpl.id }}" id="tpl-{{ tpl.id }}">
+                        <label class="form-check-label mb-0" for="tpl-{{ tpl.id }}" title="{{ tpl.name }}">{{ tpl.name|truncatechars:25 }}</label>
+                    </div>
+                    <form action="{% url 'core:admin_mailing' %}" method="post" onsubmit="return confirm('Вы уверены?');">
+                        {% csrf_token %}<input type="hidden" name="action" value="delete_template"><input type="hidden" name="template_id" value="{{ tpl.id }}">
+                        <button type="submit" class="btn btn-link text-danger p-0">Удалить</button>
+                    </form>
+                </div>
+                {% empty %}
+                <p class="text-muted">Нет загруженных шаблонов.</p>
+                {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================= JAVASCRIPT КОД НАЧИНАЕТСЯ ЗДЕСЬ ======================= -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // --- Получаем ссылки на все нужные элементы на странице ---
+    const startBtn = document.getElementById('startMailingBtn');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const progressPercentage = document.getElementById('progressPercentage');
+    const emailCount = document.getElementById('emailCount');
+    const csrfToken = '{{ csrf_token }}'; // CSRF-токен для безопасных запросов
+    let progressInterval; // Переменная для хранения ID таймера
+
+    // --- 1. Логика для кнопки "Начать рассылку" ---
+    startBtn.addEventListener('click', function() {
+        // Находим все отмеченные чекбоксы шаблонов
+        const selectedCheckboxes = document.querySelectorAll('.template-checkbox:checked');
+
+        // Проверяем, выбрал ли пользователь хоть что-то
+        if (selectedCheckboxes.length === 0) {
+            alert('Пожалуйста, выберите хотя бы один шаблон для рассылки.');
+            return; // Прерываем выполнение функции
+        }
+
+        // Собираем ID выбранных шаблонов в массив
+        const templateIds = Array.from(selectedCheckboxes).map(cb => cb.value);
+
+        // Блокируем кнопку, чтобы избежать повторных нажатий
+        startBtn.disabled = true;
+        startBtn.textContent = 'Запускается...';
+
+        // Создаем объект FormData для отправки данных на сервер
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', csrfToken);
+        // Добавляем каждый ID в FormData. '[]' в конце имени важно для Django
+        templateIds.forEach(id => formData.append('template_ids[]', id));
+
+        // Отправляем асинхронный POST-запрос на наш API endpoint
+        fetch("{% url 'core:start_mailing_api' %}", {
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => response.json()) // Преобразуем ответ сервера в JSON
+        .then(data => {
+            if (data.status === 'success') {
+                alert(data.message); // Показываем успешное сообщение от сервера
+                startChecking(); // Запускаем периодическую проверку статуса
+            } else {
+                alert('Ошибка: ' + data.message); // Показываем ошибку от сервера
+                startBtn.disabled = false; // Разблокируем кнопку, если запуск не удался
+                startBtn.textContent = 'Начать рассылку выбранных шаблонов';
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            alert('Произошла сетевая ошибка. Проверьте консоль.');
+            startBtn.disabled = false; // Разблокируем кнопку при сетевой ошибке
+        });
+    });
+
+    // --- 2. Функция, которая запрашивает и обновляет статус ---
+    function updateStatus() {
+        fetch("{% url 'core:get_mailing_status_api' %}")
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'no_campaign') {
+                progressText.textContent = 'Нет данных';
+                return;
+            }
+
+            // Обновляем все элементы на странице данными с сервера
+            progressBar.style.width = data.percentage + '%';
+            progressBar.setAttribute('aria-valuenow', data.percentage);
+            progressText.textContent = `${data.status_display}`;
+            progressPercentage.textContent = data.percentage + '%';
+            emailCount.textContent = `${data.sent} / ${data.total}`;
+
+            // Управляем кнопкой и анимацией в зависимости от статуса
+            if (data.is_running) {
+                startBtn.disabled = true;
+                startBtn.textContent = 'Рассылка в процессе...';
+                progressBar.classList.add('progress-bar-animated');
+            } else {
+                startBtn.disabled = false;
+                startBtn.textContent = 'Начать рассылку выбранных шаблонов';
+                progressBar.classList.remove('progress-bar-animated');
+                // Если рассылка завершена, останавливаем таймер
+                if (progressInterval) {
+                    clearInterval(progressInterval);
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Status update error:', error)
+            // Если произошла ошибка, останавливаем таймер
+            if (progressInterval) clearInterval(progressInterval);
+        });
+    }
+
+    // --- 3. Функция, которая запускает периодическую проверку ---
+    function startChecking() {
+        // Сначала останавливаем старый таймер, если он был
+        if (progressInterval) clearInterval(progressInterval);
+        // Обновляем статус немедленно, чтобы пользователь сразу увидел изменения
+        updateStatus();
+        // Запускаем таймер, который будет вызывать updateStatus каждые 3 секунды
+        progressInterval = setInterval(updateStatus, 200);
+    }
+
+    // --- 4. Первоначальная проверка при загрузке страницы ---
+    // Если страница загрузилась, а последняя рассылка все еще "в процессе",
+    // то мы сразу запускаем проверку ее статуса.
+    if ("{{ last_campaign.status }}" === "in_progress") {
+        startChecking();
+    }
+});
+</script>
 {% endblock %}

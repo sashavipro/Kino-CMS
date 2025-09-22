@@ -78,3 +78,49 @@ class GalleryImage(models.Model):  # Connection ManyToMany between Gallery and I
     class Meta:
         verbose_name = 'gallery_image'
         verbose_name_plural = 'gallery_images'
+
+
+# Модель для хранения HTML-шаблонов рассылки
+class MailingTemplate(models.Model):
+    name = models.CharField(max_length=255, verbose_name="Название шаблона")
+    file = models.FileField(upload_to='mailing_templates/', verbose_name="HTML файл")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата загрузки")
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "Шаблон рассылки"
+        verbose_name_plural = "Шаблоны рассылки"
+        # Сортируем так, чтобы новые шаблоны были сверху
+        ordering = ['-created_at']
+
+
+# Новая модель для отслеживания статуса кампании рассылки
+class MailingCampaign(models.Model):
+    class Status(models.TextChoices):
+        PENDING = 'pending', 'В ожидании'
+        IN_PROGRESS = 'in_progress', 'В процессе'
+        COMPLETED = 'completed', 'Завершена'
+        FAILED = 'failed', 'Ошибка'
+
+    # Мы больше не храним ID шаблонов, а связываем с кампанией
+    templates = models.ManyToManyField(MailingTemplate, verbose_name="Шаблоны")
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING, verbose_name="Статус")
+    task_id = models.CharField(max_length=255, blank=True, null=True, verbose_name="ID задачи Celery")
+
+    total_recipients = models.PositiveIntegerField(default=0, verbose_name="Всего получателей")
+    sent_count = models.PositiveIntegerField(default=0, verbose_name="Отправлено писем")
+
+    started_at = models.DateTimeField(auto_now_add=True, verbose_name="Время старта")
+    completed_at = models.DateTimeField(null=True, blank=True, verbose_name="Время завершения")
+
+    def __str__(self):
+        # Получаем имена шаблонов для красивого отображения
+        template_names = ", ".join([t.name for t in self.templates.all()])
+        return f"Рассылка '{template_names}' от {self.started_at.strftime('%Y-%m-%d %H:%M')}"
+
+    class Meta:
+        verbose_name = "Кампания рассылки"
+        verbose_name_plural = "Кампании рассылки"
+        ordering = ['-started_at']
