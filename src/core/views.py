@@ -18,7 +18,7 @@ from src.core.models import SeoBlock, Gallery, Image, GalleryImage, MailingTempl
 from src.page.models import MainPage, OtherPage, OtherPageSlide, NewsPromotionPage, Contact
 from src.users.models import CustomUser
 from .tasks import send_mailing_task
-
+import json
 
 def admin_stats(request):
     return render(request, 'core/adminlte/admin_stats.html')
@@ -1008,74 +1008,10 @@ def admin_mailing(request):
     return render(request, 'core/adminlte/admin_mailing.html', context)
 
 
-
-@shared_task(bind=True)
-def send_mailing_task(self, campaign_id):
-    """
-    Задача Celery, которая получает ID кампании и выполняет рассылку,
-    обновляя ее статус в базе данных.
-    """
-    try:
-        campaign = MailingCampaign.objects.get(id=campaign_id)
-        # 1. Помечаем кампанию как "в процессе"
-        campaign.status = MailingCampaign.Status.IN_PROGRESS
-        campaign.save()
-
-        user_emails = list(CustomUser.objects.exclude(email__exact='').values_list('email', flat=True))
-
-        # Читаем и объединяем HTML-шаблоны
-        html_contents = [tpl.file.read().decode('utf-8') for tpl in campaign.templates.all()]
-        combined_html = "<br><hr><br>".join(html_contents)
-
-        total_emails = len(user_emails)
-        sent_count = 0
-
-        for email in user_emails:
-            try:
-                send_mail(
-                    subject="Новости нашего кинотеатра",
-                    message="",
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[email],
-                    html_message=combined_html,
-                    fail_silently=False,
-                )
-                sent_count += 1
-
-                # 2. Обновляем счетчик в БД (например, каждые 5 писем, чтобы не нагружать БД)
-                if sent_count % 5 == 0 or sent_count == total_emails:
-                    campaign.sent_count = sent_count
-                    campaign.save(update_fields=['sent_count'])
-
-            except Exception as e:
-                print(f"Не удалось отправить письмо на {email}: {e}")
-
-        # 3. Помечаем кампанию как "завершенную"
-        campaign.status = MailingCampaign.Status.COMPLETED
-        campaign.completed_at = timezone.now()
-        campaign.sent_count = sent_count  # Финальное обновление счетчика
-        campaign.save()
-        return f"Рассылка завершена. Отправлено {sent_count} из {total_emails} писем."
-
-    except MailingCampaign.DoesNotExist:
-        return f"Ошибка: Кампания с ID {campaign_id} не найдена."
-    except Exception as e:
-        # В случае критической ошибки помечаем кампанию как проваленную
-        if 'campaign' in locals():
-            campaign.status = MailingCampaign.Status.FAILED
-            campaign.save()
-        print(f"Критическая ошибка в задаче рассылки: {e}")
-        # Повторно вызываем исключение, чтобы Celery сам пометил задачу как FAILED
-        raise e
-
-
 # --- API-ФУНКЦИИ ДЛЯ РАБОТЫ С JAVASCRIPT (БЕЗ ПЕРЕЗАГРУЗКИ СТРАНИЦЫ) ---
 
 @require_POST
 def start_mailing_api(request):
-    """
-    Принимает AJAX-запрос для запуска рассылки. Не рендерит HTML.
-    """
     if MailingCampaign.objects.filter(status=MailingCampaign.Status.IN_PROGRESS).exists():
         return JsonResponse({'status': 'error', 'message': 'Предыдущая рассылка еще не завершена.'}, status=400)
 
@@ -1083,12 +1019,39 @@ def start_mailing_api(request):
     if not selected_template_ids:
         return JsonResponse({'status': 'error', 'message': 'Не выбраны шаблоны для рассылки.'}, status=400)
 
+    # ---  ОПРЕДЕЛЕНИЯ ПОЛУЧАТЕЛЕЙ ---
+    send_to = request.POST.get('send_to')  # Получаем значение радио-кнопки
+    send_to_all = True
+    recipients_ids = []
+    total_recipients = 0
+
+    if send_to == 'all':
+        send_to_all = True
+        total_recipients = CustomUser.objects.exclude(email__exact='').count()
+    elif send_to == 'selective':
+        send_to_all = False
+        # Получаем строку JSON с ID и преобразуем ее в список Python
+        recipients_ids_str = request.POST.get('recipients', '[]')
+        try:
+            recipients_ids = json.loads(recipients_ids_str)
+        except json.JSONDecodeError:
+            return JsonResponse({'status': 'error', 'message': 'Некорректный формат списка получателей.'}, status=400)
+
+        if not recipients_ids:
+            return JsonResponse(
+                {'status': 'error', 'message': 'Для выборочной рассылки не выбран ни один пользователь.'}, status=400)
+        total_recipients = len(recipients_ids)
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Не указан тип получателей.'}, status=400)
+
+    # Создаем объект кампании со всеми нужными данными
     campaign = MailingCampaign.objects.create(
-        total_recipients=CustomUser.objects.exclude(email__exact='').count()
+        total_recipients=total_recipients,
+        send_to_all=send_to_all,
+        recipients=recipients_ids
     )
     campaign.templates.set(selected_template_ids)
 
-    # Запускаем задачу Celery, передавая ей ID кампании
     task = send_mailing_task.delay(campaign_id=campaign.id)
 
     campaign.task_id = task.id
@@ -1099,15 +1062,33 @@ def start_mailing_api(request):
 
 def get_mailing_status_api(request):
     """
-    Принимает AJAX-запрос для получения статуса последней рассылки. Не рендерит HTML.
+    Принимает AJAX-запрос с task_id и возвращает статус конкретной кампании.
+    Если task_id не передан, возвращает статус последней.
     """
-    campaign = MailingCampaign.objects.order_by('-started_at').first()
+    task_id = request.GET.get('task_id')  # <--- Получаем ID из GET-параметра
+
+    campaign = None
+    if task_id:
+        # Если клиент точно знает, какую задачу искать
+        try:
+            campaign = MailingCampaign.objects.get(task_id=task_id)
+        except MailingCampaign.DoesNotExist:
+            # Если такой задачи нет, отдаем последнюю, чтобы избежать ошибки
+            campaign = MailingCampaign.objects.order_by('-started_at').first()
+    else:
+        # Поведение по умолчанию для первоначальной загрузки страницы
+        campaign = MailingCampaign.objects.order_by('-started_at').first()
+
     if not campaign:
-        return JsonResponse({'status': 'no_campaign', 'message': 'Еще не было ни одной рассылки.'})
+        return JsonResponse({'status_code': 'no_campaign', 'message': 'Еще не было ни одной рассылки.'})
 
     percentage = 0
     if campaign.total_recipients > 0:
         percentage = round((campaign.sent_count / campaign.total_recipients) * 100)
+
+    # Ограничиваем проценты сверху, на случай рассинхрона
+    if percentage > 100:
+        percentage = 100
 
     data = {
         'status_code': campaign.status,
@@ -1144,7 +1125,7 @@ def mailing_choice(request):
 
     # --- 2. ДОБАВЛЯЕМ ЛОГИКУ ПАГИНАЦИИ ---
     # Создаем объект Paginator. 1 - количество пользователей на странице.
-    paginator = Paginator(users_list, 1)
+    paginator = Paginator(users_list, 20)
 
     # Получаем номер страницы из GET-параметра 'page'. По умолчанию - страница 1.
     page_number = request.GET.get('page')

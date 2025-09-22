@@ -1,13 +1,15 @@
 {% extends 'core/adminlte/admin_layout.html' %}
 
 {% block content %}
+<div class="container-fluid py-3">
     <div class="card">
       <div class="card-header">
-        <h3 class="card-title">Пользователи</h3>
+        <h3 class="card-title">Выберите пользователей для рассылки</h3>
         <div class="card-tools">
-          <form method="GET" action="{% url 'core:admin_users' %}">
+          <!-- ИСПРАВЛЕНО: action формы поиска -->
+          <form method="GET" action="{% url 'core:mailing_choice' %}">
             <div class="input-group input-group-sm" style="width: 200px;">
-              <input type="text" name="q" class="form-control float-end" placeholder="Поиск" value="{{ search_query }}">
+              <input type="text" name="q" class="form-control float-end" placeholder="Поиск..." value="{{ search_query }}">
               <div class="input-group-append">
                 <button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button>
               </div>
@@ -19,82 +21,138 @@
         <table class="table table-hover text-nowrap">
           <thead>
             <tr>
-              <!-- Новая колонка с чекбоксом "Выбрать все" -->
-              <th>
-                <input type="checkbox" id="select_all" onclick="toggleCheckboxes(this)">
-              </th>
-              <!-- Ссылки для сортировки теперь сохраняют и поисковый запрос -->
+              <th><input type="checkbox" id="selectAllOnPage"></th>
               <th><a href="?sort=id&order={% if sort == 'id' and order == 'asc' %}desc{% else %}asc{% endif %}&q={{ search_query|urlencode }}">ID</a></th>
-              <th><a href="?sort=date_joined&order={% if sort == 'date_joined' and order == 'asc' %}desc{% else %}asc{% endif %}&q={{ search_query|urlencode }}">Дата регистрации</a></th>
-              <th><a href="?sort=birthday&order={% if sort == 'birthday' and order == 'asc' %}desc{% else %}asc{% endif %}&q={{ search_query|urlencode }}">День рождения</a></th>
               <th><a href="?sort=email&order={% if sort == 'email' and order == 'asc' %}desc{% else %}asc{% endif %}&q={{ search_query|urlencode }}">Email</a></th>
-              <th><a href="?sort=phone&order={% if sort == 'phone' and order == 'asc' %}desc{% else %}asc{% endif %}&q={{ search_query|urlencode }}">Телефон</a></th>
               <th><a href="?sort=last_name&order={% if sort == 'last_name' and order == 'asc' %}desc{% else %}asc{% endif %}&q={{ search_query|urlencode }}">ФИО</a></th>
-              <th><a href="?sort=username&order={% if sort == 'username' and order == 'asc' %}desc{% else %}asc{% endif %}&q={{ search_query|urlencode }}">Псевдоним</a></th>
               <th><a href="?sort=city&order={% if sort == 'city' and order == 'asc' %}desc{% else %}asc{% endif %}&q={{ search_query|urlencode }}">Город</a></th>
-
             </tr>
           </thead>
           <tbody>
             {% for user in page_obj %}
             <tr>
-              <td>
-                <input type="checkbox" name="selected_users" value="{{ user.id }}" class="user-checkbox">
-              </td>
+              <td><input type="checkbox" name="selected_users" value="{{ user.id }}" class="user-checkbox"></td>
               <td>{{ user.id }}</td>
-              <td>{{ user.date_joined|date:"d.m.Y" }}</td>
-              <td>{{ user.birthday|date:"d.m.Y"|default:"--" }}</td>
               <td>{{ user.email }}</td>
-              <td>{{ user.phone|default:"--" }}</td>
               <td>{{ user.first_name }} {{ user.last_name }}</td>
-              <td>{{ user.username }}</td>
               <td>{{ user.get_city_display|default:"--" }}</td>
-
             </tr>
             {% empty %}
-            <tr>
-              <td colspan="10" class="text-center">Пользователи не найдены.</td> <!-- Обрати внимание: colspan теперь 10 -->
-            </tr>
+            <tr><td colspan="5" class="text-center">Пользователи не найдены.</td></tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
 
       <div class="card-footer clearfix">
+        <!-- Пагинация (без изменений) -->
         {% if page_obj.has_other_pages %}
           <ul class="pagination pagination-sm m-0 float-end">
-            {% if page_obj.has_previous %}
-              <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&sort={{ sort }}&order={{ order }}&q={{ search_query|urlencode }}">&laquo;</a></li>
-            {% else %}
-              <li class="page-item disabled"><a class="page-link" href="#">&laquo;</a></li>
-            {% endif %}
-
-            {% for num in page_obj.paginator.page_range %}
-              {% if page_obj.number == num %}
-                <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
-              {% else %}
-                <li class="page-item"><a class="page-link" href="?page={{ num }}&sort={{ sort }}&order={{ order }}&q={{ search_query|urlencode }}">{{ num }}</a></li>
-              {% endif %}
-            {% endfor %}
-
-            {% if page_obj.has_next %}
-              <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&sort={{ sort }}&order={{ order }}&q={{ search_query|urlencode }}">&raquo;</a></li>
-            {% else %}
-              <li class="page-item disabled"><a class="page-link" href="#">&raquo;</a></li>
-            {% endif %}
+            {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&sort={{ sort }}&order={{ order }}&q={{ search_query|urlencode }}">&laquo;</a></li>{% else %}<li class="page-item disabled"><a class="page-link" href="#">&laquo;</a></li>{% endif %}
+            {% for num in page_obj.paginator.page_range %}{% if page_obj.number == num %}<li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>{% else %}<li class="page-item"><a class="page-link" href="?page={{ num }}&sort={{ sort }}&order={{ order }}&q={{ search_query|urlencode }}">{{ num }}</a></li>{% endif %}{% endfor %}
+            {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&sort={{ sort }}&order={{ order }}&q={{ search_query|urlencode }}">&raquo;</a></li>{% else %}<li class="page-item disabled"><a class="page-link" href="#">&raquo;</a></li>{% endif %}
           </ul>
         {% endif %}
       </div>
     </div>
-    <div class="p-3 text-center">
-    <button id="saveSelectionBtn" class="btn btn-primary">Сохранить выбор</button>
+    <div class="p-3 text-center d-flex justify-content-between align-items-center">
+        <span id="selectionCounter" class="text-muted">Выбрано: 0</span>
+        <button id="saveSelectionBtn" class="btn btn-primary">Сохранить выбор и закрыть</button>
+    </div>
 </div>
 
-    <!-- JavaScript для переключения всех чекбоксов -->
-    <script>
-      function toggleCheckboxes(source) {
-        const checkboxes = document.querySelectorAll('.user-checkbox');
-        checkboxes.forEach(checkbox => checkbox.checked = source.checked);
-      }
-    </script>
+<!-- ======================= JAVASCRIPT ДЛЯ СОХРАНЕНИЯ ВЫБОРА ======================= -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Используем sessionStorage, чтобы выбор сбрасывался при закрытии вкладки
+    // '|| []' гарантирует, что если в хранилище пусто, мы получим пустой массив, а не null
+    let selectedUserIds = JSON.parse(sessionStorage.getItem('selectedMailingUsers')) || [];
+
+    const checkboxesOnPage = document.querySelectorAll('.user-checkbox');
+    const selectAllCheckbox = document.getElementById('selectAllOnPage');
+    const saveButton = document.getElementById('saveSelectionBtn');
+    const counter = document.getElementById('selectionCounter');
+
+    // --- Функция для обновления состояния чекбоксов и счетчика ---
+    function syncUI() {
+        let allVisibleChecked = true;
+        // Проходим по всем чекбоксам на ТЕКУЩЕЙ странице
+        checkboxesOnPage.forEach(cb => {
+            // Проверяем, есть ли ID этого пользователя в нашем общем списке выбранных
+            if (selectedUserIds.includes(cb.value)) {
+                cb.checked = true;
+            } else {
+                cb.checked = false;
+                allVisibleChecked = false; // Если хоть один не выбран, главный чекбокс не активен
+            }
+        });
+
+        // Обновляем состояние главного чекбокса "Выбрать всех на странице"
+        selectAllCheckbox.checked = allVisibleChecked && checkboxesOnPage.length > 0;
+
+        // Обновляем счетчик
+        counter.textContent = `Выбрано: ${selectedUserIds.length}`;
+    }
+
+    // --- Обработчики событий ---
+
+    // 1. Клик на чекбокс конкретного пользователя
+    checkboxesOnPage.forEach(cb => {
+        cb.addEventListener('change', function() {
+            const userId = this.value;
+            if (this.checked) {
+                // Если отметили, добавляем ID в массив, если его там еще нет
+                if (!selectedUserIds.includes(userId)) {
+                    selectedUserIds.push(userId);
+                }
+            } else {
+                // Если сняли отметку, удаляем ID из массива
+                selectedUserIds = selectedUserIds.filter(id => id !== userId);
+            }
+            // Сохраняем обновленный массив в sessionStorage
+            sessionStorage.setItem('selectedMailingUsers', JSON.stringify(selectedUserIds));
+            // Обновляем UI
+            syncUI();
+        });
+    });
+
+    // 2. Клик на главный чекбокс "Выбрать всех на странице"
+    selectAllCheckbox.addEventListener('click', function() {
+        checkboxesOnPage.forEach(cb => {
+            const userId = cb.value;
+            // Устанавливаем состояние каждого чекбокса на странице в соответствии с главным
+            cb.checked = this.checked;
+
+            // Обновляем наш основной массив
+            if (this.checked) {
+                if (!selectedUserIds.includes(userId)) {
+                    selectedUserIds.push(userId);
+                }
+            } else {
+                selectedUserIds = selectedUserIds.filter(id => id !== userId);
+            }
+        });
+        sessionStorage.setItem('selectedMailingUsers', JSON.stringify(selectedUserIds));
+        syncUI();
+    });
+
+    // 3. Клик на кнопку "Сохранить и закрыть"
+    saveButton.addEventListener('click', function() {
+        // Проверяем, что родительское окно существует и не закрыто
+        if (window.opener && !window.opener.closed) {
+            // Вызываем функцию в родительском окне, передавая ей массив ID
+            window.opener.updateSelectedUsers(selectedUserIds);
+            // Очищаем хранилище после сохранения
+            sessionStorage.removeItem('selectedMailingUsers');
+            window.close(); // Закрываем это окно
+        } else {
+            alert('Не удалось найти родительское окно. Возможно, оно было закрыто.');
+        }
+    });
+
+    // --- Первоначальная загрузка ---
+    // Сразу после загрузки страницы синхронизируем состояние чекбоксов с сохраненными данными
+    syncUI();
+});
+</script>
 {% endblock %}

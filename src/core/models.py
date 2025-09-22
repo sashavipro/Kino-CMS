@@ -109,6 +109,10 @@ class MailingCampaign(models.Model):
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING, verbose_name="Статус")
     task_id = models.CharField(max_length=255, blank=True, null=True, verbose_name="ID задачи Celery")
 
+    send_to_all = models.BooleanField(default=True, verbose_name="Отправить всем")
+    # JSONField идеально подходит для хранения списка ID
+    recipients = models.JSONField(null=True, blank=True, verbose_name="Получатели (ID)")
+
     total_recipients = models.PositiveIntegerField(default=0, verbose_name="Всего получателей")
     sent_count = models.PositiveIntegerField(default=0, verbose_name="Отправлено писем")
 

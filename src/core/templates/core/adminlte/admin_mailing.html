@@ -28,17 +28,21 @@
 
     <!-- ОСНОВНОЙ БЛОК УПРАВЛЕНИЯ -->
     <div>
+        <!-- СКРЫТОЕ ПОЛЕ ДЛЯ ХРАНЕНИЯ ID ВЫБРАННЫХ ПОЛЬЗОВАТЕЛЕЙ -->
+      <input type="hidden" name="recipients" id="recipientsInput">
+
       <div class="row mb-3">
         <label class="col-form-label col-md-4">Выбрать получателей</label>
         <div class="col-md-8 d-flex align-items-center gap-3">
           <div class="form-check">
-            <input type="radio" class="form-check-input" id="allUsers" name="send_to" value="all" checked>
-            <label class="form-check-label" for="allUsers">Все пользователи ({{ all_users_count }})</label>
+            <input type="radio" class="form-check-input" id="allUsersRadio" name="send_to" value="all" checked>
+            <label class="form-check-label" for="allUsersRadio">Все пользователи ({{ all_users_count }})</label>
           </div>
           <div class="form-check">
-            <input type="radio" class="form-check-input" id="selective" name="send_to" value="selective" disabled>
-            <label class="form-check-label text-muted" for="selective">Выборочно (в разработке)</label>
+            <input type="radio" class="form-check-input" id="selectiveUsersRadio" name="send_to" value="selective">
+            <label class="form-check-label" for="selectiveUsersRadio">Выборочно (<span id="selectiveCount">0</span>)</label>
           </div>
+          <button type="button" class="btn btn-secondary btn-sm" id="selectUsersBtn" disabled>Выбрать пользователей</button>
         </div>
       </div>
 
@@ -102,63 +106,96 @@
 document.addEventListener('DOMContentLoaded', function() {
     // --- Получаем ссылки на все нужные элементы на странице ---
     const startBtn = document.getElementById('startMailingBtn');
+    const recipientsInput = document.getElementById('recipientsInput');
+    const selectUsersBtn = document.getElementById('selectUsersBtn');
+    const selectiveCountSpan = document.getElementById('selectiveCount');
+    const allUsersRadio = document.getElementById('allUsersRadio');
+    const selectiveUsersRadio = document.getElementById('selectiveUsersRadio');
     const progressBar = document.getElementById('progressBar');
     const progressText = document.getElementById('progressText');
     const progressPercentage = document.getElementById('progressPercentage');
     const emailCount = document.getElementById('emailCount');
     const csrfToken = '{{ csrf_token }}'; // CSRF-токен для безопасных запросов
     let progressInterval; // Переменная для хранения ID таймера
+    let currentTaskId = "{{ last_campaign.task_id|default:'' }}"; // Храним ID текущей отслеживаемой задачи
 
-    // --- 1. Логика для кнопки "Начать рассылку" ---
+    // --- 1. Логика управления выбором получателей ---
+    document.querySelectorAll('input[name="send_to"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            // Кнопка "Выбрать" активна только если выбрана опция "Выборочно"
+            selectUsersBtn.disabled = this.value !== 'selective';
+        });
+    });
+
+    selectUsersBtn.addEventListener('click', function() {
+        const url = "{% url 'core:mailing_choice' %}";
+        window.open(url, "mailingChoice", "width=800,height=600,scrollbars=yes,resizable=yes");
+    });
+
+    // Эта функция будет вызвана из дочернего окна mailing_choice.html
+    window.updateSelectedUsers = function(ids) {
+        // Сохраняем массив ID в виде строки JSON в скрытое поле
+        recipientsInput.value = JSON.stringify(ids);
+        // Обновляем счетчик
+        selectiveCountSpan.textContent = ids.length;
+        // Автоматически переключаем радио-кнопку на "Выборочно"
+        selectiveUsersRadio.checked = true;
+        selectUsersBtn.disabled = false;
+        alert(`Выбрано ${ids.length} пользователей.`);
+    }
+
+    // --- 2. Логика для кнопки "Начать рассылку" ---
     startBtn.addEventListener('click', function() {
-        // Находим все отмеченные чекбоксы шаблонов
         const selectedCheckboxes = document.querySelectorAll('.template-checkbox:checked');
-
-        // Проверяем, выбрал ли пользователь хоть что-то
         if (selectedCheckboxes.length === 0) {
             alert('Пожалуйста, выберите хотя бы один шаблон для рассылки.');
-            return; // Прерываем выполнение функции
+            return;
         }
-
-        // Собираем ID выбранных шаблонов в массив
         const templateIds = Array.from(selectedCheckboxes).map(cb => cb.value);
 
-        // Блокируем кнопку, чтобы избежать повторных нажатий
         startBtn.disabled = true;
         startBtn.textContent = 'Запускается...';
 
-        // Создаем объект FormData для отправки данных на сервер
         const formData = new FormData();
         formData.append('csrfmiddlewaretoken', csrfToken);
-        // Добавляем каждый ID в FormData. '[]' в конце имени важно для Django
         templateIds.forEach(id => formData.append('template_ids[]', id));
 
-        // Отправляем асинхронный POST-запрос на наш API endpoint
+        // Добавляем данные о получателях
+        const sendToValue = document.querySelector('input[name="send_to"]:checked').value;
+        formData.append('send_to', sendToValue);
+        if (sendToValue === 'selective') {
+            formData.append('recipients', recipientsInput.value);
+        }
+
         fetch("{% url 'core:start_mailing_api' %}", {
             method: 'POST',
             body: formData,
         })
-        .then(response => response.json()) // Преобразуем ответ сервера в JSON
+        .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
-                alert(data.message); // Показываем успешное сообщение от сервера
-                startChecking(); // Запускаем периодическую проверку статуса
+                alert(data.message);
+                currentTaskId = data.task_id;
+                startChecking();
             } else {
-                alert('Ошибка: ' + data.message); // Показываем ошибку от сервера
-                startBtn.disabled = false; // Разблокируем кнопку, если запуск не удался
-                startBtn.textContent = 'Начать рассылку выбранных шаблонов';
+                alert('Ошибка: ' + data.message);
+                startBtn.disabled = false;
+                startBtn.textContent = 'Начать рассылку';
             }
         })
         .catch(error => {
             console.error('Fetch error:', error);
-            alert('Произошла сетевая ошибка. Проверьте консоль.');
-            startBtn.disabled = false; // Разблокируем кнопку при сетевой ошибке
+            alert('Произошла сетевая ошибка.');
+            startBtn.disabled = false;
         });
     });
 
-    // --- 2. Функция, которая запрашивает и обновляет статус ---
+    // --- 3. Функция, которая запрашивает и обновляет статус ---
     function updateStatus() {
-        fetch("{% url 'core:get_mailing_status_api' %}")
+        if (!currentTaskId) {
+            return;
+        }
+        fetch("{% url 'core:get_mailing_status_api' %}?task_id=${currentTaskId}")
         .then(response => response.json())
         .then(data => {
             if (data.status === 'no_campaign') {
@@ -174,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
             emailCount.textContent = `${data.sent} / ${data.total}`;
 
             // Управляем кнопкой и анимацией в зависимости от статуса
-            if (data.is_running) {
+           if (data.is_running) {
                 startBtn.disabled = true;
                 startBtn.textContent = 'Рассылка в процессе...';
                 progressBar.classList.add('progress-bar-animated');
@@ -189,13 +226,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(error => {
-            console.error('Status update error:', error)
-            // Если произошла ошибка, останавливаем таймер
+            console.error('Status update error:', error);
             if (progressInterval) clearInterval(progressInterval);
         });
     }
 
-    // --- 3. Функция, которая запускает периодическую проверку ---
+    // --- 4. Функция, которая запускает периодическую проверку ---
     function startChecking() {
         // Сначала останавливаем старый таймер, если он был
         if (progressInterval) clearInterval(progressInterval);
@@ -205,11 +241,39 @@ document.addEventListener('DOMContentLoaded', function() {
         progressInterval = setInterval(updateStatus, 200);
     }
 
-    // --- 4. Первоначальная проверка при загрузке страницы ---
+    // --- 5. Первоначальная проверка при загрузке страницы ---
     // Если страница загрузилась, а последняя рассылка все еще "в процессе",
     // то мы сразу запускаем проверку ее статуса.
     if ("{{ last_campaign.status }}" === "in_progress") {
         startChecking();
+    }
+});
+</script>
+  <!-- Копипаста для логики выбора получателей (остается без изменений) -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const recipientsInput = document.getElementById('recipientsInput');
+    const selectUsersBtn = document.getElementById('selectUsersBtn');
+    const selectiveCountSpan = document.getElementById('selectiveCount');
+    const selectiveUsersRadio = document.getElementById('selectiveUsersRadio');
+
+    document.querySelectorAll('input[name="send_to"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            selectUsersBtn.disabled = this.value !== 'selective';
+        });
+    });
+
+    selectUsersBtn.addEventListener('click', function() {
+        const url = "{% url 'core:mailing_choice' %}";
+        window.open(url, "mailingChoice", "width=800,height=600,scrollbars=yes,resizable=yes");
+    });
+
+    window.updateSelectedUsers = function(ids) {
+        recipientsInput.value = JSON.stringify(ids);
+        selectiveCountSpan.textContent = ids.length;
+        selectiveUsersRadio.checked = true;
+        selectUsersBtn.disabled = false;
+        alert(`Выбрано ${ids.length} пользователей.`);
     }
 });
 </script>

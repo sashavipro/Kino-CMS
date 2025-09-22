@@ -12,4 +12,8 @@ app = Celery('Config')
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
 # Автоматически обнаруживаем и регистрируем задачи из всех файлов tasks.py в приложениях Django
-app.autodiscover_tasks()
+app.autodiscover_tasks(['src.core'])
+
+# Или, еще более явно (если задач мало):
+# from src.core import tasks
+# app.tasks.register(tasks.send_mailing_task)
