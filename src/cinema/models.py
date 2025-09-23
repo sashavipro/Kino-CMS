@@ -3,6 +3,7 @@ import os
 from django.db import models
 from django.urls import reverse
 
+from Config import settings
 from src.core.models import SeoBlock, Gallery
 
 
@@ -62,9 +63,6 @@ class Hall(models.Model):
         super().delete(*args, **kwargs)
 
 
-
-# models.py
-
 class Film(models.Model):
     # Добавляем выбор статуса
     class Status(models.TextChoices):
@@ -95,17 +93,45 @@ class Film(models.Model):
 
     def __str__(self):
         return self.title
-#
-#
-#
-# class MovieSession(models.Model):
-#     film = models.ForeignKey(Film, on_delete=models.CASCADE)
-#     hall = models.ForeignKey(Hall, on_delete=models.CASCADE)
-#     price = models.SmallIntegerField()
-#     time = models.TimeField()
-#     is_3d = models.BooleanField(default=False)
-#     is_dbox = models.BooleanField(default=False)
-#     is_vip = models.BooleanField(default=False)
-#
-#     def __str__(self):
-#         return f"{self.film} in {self.hall} at {self.time}"
+
+
+class MovieSession(models.Model):
+    film = models.ForeignKey(Film, on_delete=models.CASCADE, related_name='sessions')
+    hall = models.ForeignKey(Hall, on_delete=models.CASCADE, related_name='sessions')
+
+    date = models.DateField(verbose_name="Дата сеанса")
+    time = models.TimeField(verbose_name="Время начала")
+
+    price = models.PositiveSmallIntegerField(verbose_name="Цена билета")
+    is_3d = models.BooleanField(default=False)
+    is_dbox = models.BooleanField(default=False)
+    is_vip = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.film.title} в '{self.hall.number_hall}' - {self.date.strftime('%d.%m.%Y')} {self.time.strftime('%H:%M')}"
+
+    class Meta:
+        ordering = ['date', 'time']  # Сортируем сеансы по дате и времени
+
+
+# Модель для хранения билетов
+class Ticket(models.Model):
+    class Status(models.TextChoices):
+        BOOKED = 'booked', 'Забронирован'
+        PAID = 'paid', 'Оплачен'
+
+    session = models.ForeignKey(MovieSession, on_delete=models.CASCADE, related_name='tickets')
+    price = models.PositiveSmallIntegerField(verbose_name="Цена")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='cinema_tickets')
+    row = models.PositiveSmallIntegerField(verbose_name="Ряд")
+    seat = models.PositiveSmallIntegerField(verbose_name="Место")
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.BOOKED)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('session', 'row', 'seat')
+        verbose_name = "Билет"
+        verbose_name_plural = "Билеты"
+
+    def __str__(self):
+        return f"Билет на {self.session} для {self.user.email} (Ряд {self.row}, Место {self.seat})"

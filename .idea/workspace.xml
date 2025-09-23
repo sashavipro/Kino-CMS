@@ -4,18 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9b21c351-83b9-4d5d-8ff4-be87719ca970" name="Changes" comment="code changes #16 - mailing(all users)">
+    <list default="true" id="9b21c351-83b9-4d5d-8ff4-be87719ca970" name="Changes" comment="code changes #17 - mailing(all users and selectively)">
+      <change afterPath="$PROJECT_DIR$/src/core/management/commands/generate_schedule.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Config/celery_app.py" beforeDir="false" afterPath="$PROJECT_DIR$/Config/celery_app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Config/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/Config/settings.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/media/static/image/bg.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/tasks.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/tasks.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_layout.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_layout.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_mailing.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/admin_mailing.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/templates/core/adminlte/mailing_choice.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/adminlte/mailing_choice.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/cinema/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/cinema/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/schedule.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/schedule.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/templates/core/user/ticket_reservation.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/templates/core/user/ticket_reservation.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/core/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/users/migrations/0001_initial.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -226,7 +223,10 @@
       <workItem from="1758199864471" duration="3298000" />
       <workItem from="1758267579998" duration="10230000" />
       <workItem from="1758278538111" duration="12485000" />
-      <workItem from="1758529276456" duration="9101000" />
+      <workItem from="1758529276456" duration="18778000" />
+      <workItem from="1758555490442" duration="3533000" />
+      <workItem from="1758566938825" duration="4733000" />
+      <workItem from="1758614029843" duration="7308000" />
     </task>
     <task id="LOCAL-00001" summary="code changes #2">
       <option name="closed" value="true" />
@@ -348,7 +348,15 @@
       <option name="project" value="LOCAL" />
       <updated>1758530772218</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="code changes #17 - mailing(all users and selectively)">
+      <option name="closed" value="true" />
+      <created>1758540434323</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1758540434323</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="TerminalProjectNonSharedOptionsProvider">
@@ -395,6 +403,7 @@
     <MESSAGE value="code changes #14 - &#10;Movies,&#10;poster,&#10;coming soon,&#10;movie page,&#10;pagination on the poster, coming soon, and admin pages (separately for each block),&#10;Live Search and Fallback Search." />
     <MESSAGE value="code changes #15 - fixed the language button tab and removed unnecessary redirects" />
     <MESSAGE value="code changes #16 - mailing(all users)" />
-    <option name="LAST_COMMIT_MESSAGE" value="code changes #16 - mailing(all users)" />
+    <MESSAGE value="code changes #17 - mailing(all users and selectively)" />
+    <option name="LAST_COMMIT_MESSAGE" value="code changes #17 - mailing(all users and selectively)" />
   </component>
 </project>

@@ -1,150 +1,142 @@
 {% extends 'core/user/layout.html' %}
-{% load hall_filters %}
-
-
-{% block title %}Карточка акции{% endblock %}
+{% block title %}Бронирование билета{% endblock %}
 {% block cssstyle %}
 <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
-
-    .movie-poster {
-      max-width: 200px;
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .price {
-      background-color: #ffd700;
-      color: #333;
-      padding: 5px 10px;
-      border-radius: 4px;
-    }
-
-    .seats-map {
-      margin-top: 30px;
-    }
-
-    .seat-row {
-      display: flex;
-      align-items: center;
-      margin-bottom: 5px;
-    }
-
-    .seat-number {
-      width: 30px;
-      text-align: center;
-      margin-right: 5px;
-    }
-
-    .seat {
-      width: 30px;
-      height: 30px;
-      background-color: #ff9900;
-      border-radius: 5px;
-      margin-right: 5px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-
-    .seat:hover {
-      background-color: #ff6600;
-    }
-
-    .seat.booked {
-      background-color: #ccc;
-      cursor: not-allowed;
-    }
-
-    .note {
-      color: #666;
-      font-size: 0.9rem;
-      margin-top: 10px;
-    }
-
-    .actions {
-      margin-top: 20px;
-    }
+    .seat { width: 30px; height: 30px; margin: 3px; border-radius: 5px; cursor: pointer; background-color: #6c757d; color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; }
+    .seat.available:hover { background-color: #5a6268; }
+    .seat.selected { background-color: #28a745; border: 2px solid #1e7e34; }
+    .seat.booked { background-color: #dc3545; cursor: not-allowed; }
+    .screen { text-align: center; font-weight: bold; letter-spacing: 5px; padding: 10px; background-color: #343a40; color: white; margin-bottom: 20px; }
 </style>
 {% endblock %}
 
 {% block content %}
-    <div class="container">
-        <div class="row">
-            <!-- Левая колонка -->
-            <div class="col-md-4">
-                <div class="mb-3">
-                    <img src="https://picsum.photos/200/300?random=1" alt="Постер фильма" class="img-fluid movie-poster rounded">
-                </div>
-
-                <div class="mt-4">
-                    <img src="https://picsum.photos/200/200?random=2" alt="Контекстная реклама" class="img-fluid">
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <img src="{{ session.film.main_image.url }}" alt="{{ session.film.title }}" class="img-fluid rounded">
+        </div>
+        <div class="col-md-8 text-black">
+            <div class="mb-4">
+                <div class="text-white bg-danger p-2"><strong>{{ session.film.title|upper }}</strong></div>
+                <p><strong>{{ session.date|date:"d E" }}, {{ session.time|time:"H:i" }}, {{ session.hall.cinema.name }}, {{ session.hall.number_hall }}</strong></p>
+                <div class="bg-warning text-dark p-2 rounded">
+                    <strong>ВАШИ БИЛЕТЫ НА ЭТОТ СЕАНС:</strong>
+                    <span class="d-block">Всего билетов: {{ user_ticket_count }}</span>
+                    <span class="d-block">Уже оплачено/забронировано: {{ user_total_spent }} грн.</span>
+                    <hr class="my-1">
+                    <strong>ТЕКУЩИЙ ВЫБОР:</strong>
+                    <span class="d-block">Выбрано для покупки/брони: <span id="selectionCount">0</span></span>
+                    <span class="d-block fw-bold">Сумма к оплате/брони: <span id="selectionSum">0</span> грн.</span>
                 </div>
             </div>
 
-            <!-- Правая колонка -->
-            <div class="col-md-8 text-black">
-                <div class="mb-4">
-                    <div class="text-white bg-danger p-2">
-                        <strong>СТАРТРЕК: ЗА МЕЖАМИ ВСЕСВИТУ.</strong>
+            <div class="screen">ЭКРАН</div>
+
+            <div id="seats-map" class="text-center">
+                {% for row_num in hall_layout.rows %}
+                    <div class="seat-row d-flex justify-content-center align-items-center">
+                        <div style="width: 50px;">РЯД {{ row_num }}</div>
+                        {% for seat_num in hall_layout.seats %}
+                            <div class="seat" data-row="{{ row_num }}" data-seat="{{ seat_num }}">
+                                {{ seat_num }}
+                            </div>
+                        {% endfor %}
                     </div>
-                    <p><strong>25 июля, 10:10, зал №7</strong></p>
-                    <div class="d-flex gap-3">
-                        <p>Цена в грн.: <span class="price">55</span></p>
-                        <div class="bg-warning text-dark p-2 rounded">
-                            <strong>ЗАБРОНИРОВАНО: USER</strong>
-                        </div>
-                        <div class="bg-warning text-dark p-2 rounded d-flex">
-                            <strong>ВАШ ЗАКАЗ:</strong> <br>
-                            <span class="d-block">БИЛЕТОВ: 0</span>
-                            <span class="d-block">СУММА: 0 грн.</span>
-                        </div>
-                    </div>
-                </div>
+                {% endfor %}
+            </div>
 
-                <h3 class="text-center mb-4">ЭКРАН</h3>
-
-                <div class="seats-map">
-                    {% for row in hall_layout.rows %}
-                        <div class="seat-row">
-                            <div class="seat-number">РЯД {{ row.number }}</div>
-                            {% for seat_num in row.seats|get_range %}
-                                <div class="seat" data-seat="{{ row.number }}-{{ seat_num }}">
-                                    {{ seat_num }}
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% endfor %}
-                </div>
-
-                <hr class="my-4">
-                <p class="note">
-                    Стоимость услуги бронирования - 3 грн. за каждое место.<br>
-                    ЗАБРОНИРОВАННЫЕ БИЛЕТЫ НУЖНО ВЫКУПИТЬ В КАССЕ КИНОТЕАТРА НЕ ПОЗДНЕЕ ЧЕМ ЗА ПОЛЧАСА ДО НАЧАЛА СЕАНСА.
-                </p>
+            <hr class="my-4">
+            <form id="bookingForm" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="selected_seats" id="selectedSeatsInput">
+                <!-- Скрытое поле, чтобы передать, какая кнопка нажата -->
+                <input type="hidden" name="action" id="actionInput">
 
                 <div class="actions d-grid gap-2 d-md-flex">
-                    <button class="btn btn-outline-primary">Забронировать</button>
-                    <button class="btn btn-success">Купить</button>
+                    <button type="submit" id="bookBtn" class="btn btn-primary" data-action="book">
+                        Забронировать за {{ booking_fee }} грн
+                    </button>
+                    <button type="submit" id="buyBtn" class="btn btn-success" data-action="buy">
+                        Купить за {{ session.price }} грн
+                    </button>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
+</div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- Константы цен ---
+        const sessionPrice = {{ session.price }};
+        const bookingFee = {{ booking_fee }};
+        const bookedSeats = {{ booked_seats|safe }};
 
-    <!-- Дополнительный JS для взаимодействия с местами -->
-    <script>
-        document.querySelectorAll('.seat').forEach(seat => {
-            seat.addEventListener('click', function() {
-                if (!this.classList.contains('booked')) {
-                    this.classList.toggle('booked');
-                    // Можно отправить запрос на сервер или обновить счетчик
-                }
-            });
-        });
-    </script>
+        // --- Элементы DOM ---
+        const seatsMap = document.getElementById('seats-map');
+        const selectionCountEl = document.getElementById('selectionCount');
+        const selectionSumEl = document.getElementById('selectionSum');
+        const selectedSeatsInput = document.getElementById('selectedSeatsInput');
+        const actionInput = document.getElementById('actionInput');
+        const bookingForm = document.getElementById('bookingForm');
+
+        let selectedSeats = [];
+         // --- Инициализация зала (отмечаем занятые места) ---
+    document.querySelectorAll('.seat').forEach(seat => {
+        const seatId = `${seat.dataset.row}-${seat.dataset.seat}`;
+        if (bookedSeats.includes(seatId)) {
+            seat.classList.add('booked');
+        } else {
+            seat.classList.add('available');
+        }
+    });
+
+    // --- Обработчик клика на место ---
+    seatsMap.addEventListener('click', function(e) {
+        const seat = e.target;
+        if (seat.classList.contains('available')) {
+            const seatId = `${seat.dataset.row}-${seat.dataset.seat}`;
+
+            // Добавляем или убираем место из списка выбранных
+            if (selectedSeats.includes(seatId)) {
+                selectedSeats = selectedSeats.filter(s => s !== seatId);
+                seat.classList.remove('selected');
+            } else {
+                selectedSeats.push(seatId);
+                seat.classList.add('selected');
+            }
+            updateOrderSummary();
+        }
+    });
+
+    // --- Обработчик отправки формы ---
+    bookingForm.addEventListener('submit', function(e) {
+        // `document.activeElement` это кнопка, на которую нажали для отправки
+        const action = document.activeElement.dataset.action;
+        if (action) {
+            actionInput.value = action;
+        } else {
+            // Если форма отправлена не кнопкой (например, Enter), по умолчанию - бронь
+            actionInput.value = 'book';
+        }
+    });
+
+    // --- Функция обновления информации о ТЕКУЩЕМ ВЫБОРЕ ---
+    function updateOrderSummary() {
+        const count = selectedSeats.length;
+
+        // Показываем сумму для брони и покупки для наглядности
+        const bookingTotal = count * bookingFee;
+        const buyingTotal = count * sessionPrice;
+
+        selectionCountEl.textContent = count;
+        // Показываем обе суммы, чтобы пользователь видел варианты
+        selectionSumEl.textContent = `${bookingTotal} (бронь) / ${buyingTotal} (покупка)`;
+
+        // Записываем ID выбранных мест в скрытое поле
+        selectedSeatsInput.value = JSON.stringify(selectedSeats);
+    }
+});
+</script>
 {% endblock %}

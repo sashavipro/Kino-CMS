@@ -75,107 +75,97 @@
 {% block content %}
 <div class="container main-container">
 
-    <!-- Панель фильтров -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="collapse navbar-collapse">
-      <ul class="navbar-nav">
-        <li class="nav-item">
-          <span class="nav-link disabled" style="cursor: default;">Показывать только</span>
-        </li>
-        <li class="nav-item">
-          <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="checkbox3D">
-            <label class="nav-link text-light" for="checkbox3D">3D</label>
-          </div>
-        </li>
-        <li class="nav-item">
-          <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="checkboxDBOX">
-            <label class="nav-link text-light" for="checkboxDBOX">DBOX</label>
-          </div>
-        </li>
-        <li class="nav-item">
-          <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="checkboxVIP">
-            <label class="nav-link text-light" for="checkboxVIP">VIP</label>
-          </div>
-        </li>
-        <li class="nav-item">
-          <select class="form-select mx-2" aria-label="Data">
-            <option selected>Кинотеатр</option>
-            <option value="1">Кинотеатр 1</option>
-            <option value="2">Кинотеатр 2</option>
-          </select>
-        </li>
-        <li class="nav-item">
-          <select class="form-select mx-2" aria-label="Data">
-            <option selected>Дата</option>
-            <option value="1">2023-01-01</option>
-            <option value="2">2023-02-01</option>
-          </select>
-        </li>
-        <li class="nav-item">
-          <select class="form-select mx-2" aria-label="Фильм. все">
-            <option selected>Фильм. все</option>
-            <option value="1">Action</option>
-            <option value="2">Comedy</option>
-          </select>
-        </li>
-        <li class="nav-item">
-          <select class="form-select mx-2" aria-label="Зал. все">
-            <option selected>Зал. все</option>
-            <option value="1">Hall 1</option>
-            <option value="2">Hall 2</option>
-          </select>
-        </li>
-      </ul>
-    </div>
-  </nav>
+    <!-- Панель фильтров теперь является формой с методом GET -->
+<form method="GET" action="{% url 'core:schedule' %}" class="mb-4">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark p-2">
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav align-items-center">
+          <li class="nav-item"><span class="nav-link disabled" style="cursor: default;">Только:</span></li>
+
+          <!-- Чекбоксы -->
+          <li class="nav-item"><div class="form-check"><input class="form-check-input" type="checkbox" name="is_3d" id="checkbox3D" {% if request.GET.is_3d %}checked{% endif %}><label class="nav-link text-light" for="checkbox3D">3D</label></div></li>
+          <li class="nav-item"><div class="form-check"><input class="form-check-input" type="checkbox" name="is_dbox" id="checkboxDBOX" {% if request.GET.is_dbox %}checked{% endif %}><label class="nav-link text-light" for="checkboxDBOX">DBOX</label></div></li>
+          <li class="nav-item"><div class="form-check"><input class="form-check-input" type="checkbox" name="is_vip" id="checkboxVIP" {% if request.GET.is_vip %}checked{% endif %}><label class="nav-link text-light" for="checkboxVIP">VIP</label></div></li>
+
+          <!-- Выпадающие списки -->
+          <li class="nav-item">
+            <select class="form-select mx-2" name="cinema">
+              <option value="">Кинотеатр (все)</option>
+              {% for cinema in cinemas %}
+              <option value="{{ cinema.id }}" {% if request.GET.cinema == cinema.id|stringformat:"s" %}selected{% endif %}>{{ cinema.name }}</option>
+              {% endfor %}
+            </select>
+          </li>
+          <li class="nav-item">
+            <select class="form-select mx-2" name="date">
+              <option value="">Дата (все)</option>
+              {% for dt in dates %}
+              <option value="{{ dt|date:'Y-m-d' }}" {% if request.GET.date == dt|date:'Y-m-d' %}selected{% endif %}>{{ dt|date:"d E" }}</option>
+              {% endfor %}
+            </select>
+          </li>
+          <li class="nav-item">
+            <select class="form-select mx-2" name="film">
+              <option value="">Фильм (все)</option>
+              {% for film in films %}
+              <option value="{{ film.id }}" {% if request.GET.film == film.id|stringformat:"s" %}selected{% endif %}>{{ film.title }}</option>
+              {% endfor %}
+            </select>
+          </li>
+
+            <li class="nav-item">
+              <select class="form-select mx-2" name="hall">
+                <option value="">Зал (все)</option>
+                {% for hall in halls %}
+                  <option value="{{ hall.id }}" {% if request.GET.hall == hall.id|stringformat:"s" %}selected{% endif %}>{{ hall.number_hall }} ({{ hall.cinema.name }})</option>
+                {% endfor %}
+              </select>
+            </li>
+
+          <!-- Кнопка применения фильтров -->
+          <li class="nav-item ms-3">
+              <button type="submit" class="btn btn-danger">Показать</button>
+          </li>
+        </ul>
+      </div>
+    </nav>
+</form>
 
 
     <div class="row">
-        <!-- Основной контент (таблица расписания) -->
         <div class="col-lg-8">
-            <h5 class="schedule-date">24 ИЮЛЯ, ВОСКРЕСЕНЬЕ</h5>
-            <div class="table-responsive">
-                <table class="table schedule-table">
-                    <thead class="table-light">
-                        <tr>
-                            <th scope="col">ВРЕМЯ</th>
-                            <th scope="col">ФИЛЬМ</th>
-                            <th scope="col">ЗАЛ</th>
-                            <th scope="col">ЦЕНА В ГРН.</th>
-                            <th scope="col">БРОНИРОВАТЬ</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Здесь вы будете генерировать строки с помощью цикла Django -->
-                        <!-- Пример статических данных из макета -->
-                        <tr>
-                            <td>10:00</td>
-                            <td><a href="#" class="film-link">Світське життя</a></td>
-                            <td>6</td>
-                            <td>65</td>
-                            <td class="custom-checkbox"><input class="form-check-input" type="checkbox"></td>
-                        </tr>
-                        <tr>
-                            <td>10:00</td>
-                            <td><a href="#" class="film-link">Геній</a></td>
-                            <td>4</td>
-                            <td>55</td>
-                            <td class="custom-checkbox"><input class="form-check-input" type="checkbox"></td>
-                        </tr>
-                        <tr>
-                            <td>10:00</td>
-                            <td><a href="#" class="film-link">Льодовиковий період: Курс на зіткнення 3D</a></td>
-                            <td>1</td>
-                            <td>70</td>
-                            <td class="custom-checkbox"><input class="form-check-input" type="checkbox"></td>
-                        </tr>
-                        <!-- Добавьте остальные строки по аналогии -->
-                    </tbody>
-                </table>
-            </div>
+            <!-- Итерируемся по дням -->
+            {% for date, sessions in sessions_by_date.items %}
+                <h5 class="schedule-date">{{ date|date:"d E, l"|upper }}</h5>
+                <div class="table-responsive mb-4">
+                    <table class="table schedule-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ВРЕМЯ</th>
+                                <th>ФИЛЬМ</th>
+                                <th>ЗАЛ</th>
+                                <th>ЦЕНА В ГРН.</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Итерируемся по сеансам в этот день -->
+                            {% for session in sessions %}
+                            <tr>
+                                <td>{{ session.time|time:"H:i" }}</td>
+                                <td><a href="{{ session.film.get_absolute_url }}" class="film-link">{{ session.film.title }}</a></td>
+                                <td>{{ session.hall.number_hall }}</td>
+                                <td>{{ session.price }}</td>
+                                <!-- Ссылка на страницу бронирования с ID сеанса -->
+                                <td><a href="{% url 'core:ticket_reservation' session.id %}" class="btn btn-danger btn-sm">Билет</a></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% empty %}
+                <p>На ближайшую неделю сеансов нет.</p>
+            {% endfor %}
         </div>
 
         <!-- Сайдбар (реклама) -->

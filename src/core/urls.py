@@ -49,8 +49,8 @@ urlpatterns = [
 
 
 
-    path('schedule', views.schedule, name='schedule'),
-    path('ticket_reservation', views.ticket_reservation, name='ticket_reservation'),
+    path('schedule/', views.schedule, name='schedule'),
+    path('ticket_reservation/<int:session_id>/', views.ticket_reservation, name='ticket_reservation'),
 
 
     path('stocks', views.stocks, name='stocks'),

@@ -1,24 +1,26 @@
 import re
-
-from celery import shared_task
-from django.conf import settings
-from django.contrib.auth.decorators import user_passes_test
-from django.core.mail import send_mail
+from django.contrib.auth.decorators import user_passes_test, login_required
+from django.db import transaction
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
+from datetime import date, timedelta, datetime
 from django.views.decorators.http import require_http_methods, require_POST
 from django.core.paginator import Paginator
 from src.banner.models import HomeBanner, HomeNewsSharesBanner, BackgroundBanner
 from src.banner.forms import HomeBannerSlideForm, NewsSharesBannerForm, BackgroundForm
-from src.cinema.models import Cinema, Hall, Film
+from src.cinema.models import Cinema, Hall, Film, MovieSession, Ticket
 from src.core.models import SeoBlock, Gallery, Image, GalleryImage, MailingTemplate, MailingCampaign
 from src.page.models import MainPage, OtherPage, OtherPageSlide, NewsPromotionPage, Contact
 from src.users.models import CustomUser
 from .tasks import send_mailing_task
 import json
+import operator
+from functools import reduce
+from collections import defaultdict
+
 
 def admin_stats(request):
     return render(request, 'core/adminlte/admin_stats.html')
@@ -1143,29 +1145,7 @@ def mailing_choice(request):
     return render(request, 'core/adminlte/mailing_choice.html',context)
 
 
-# Расписание
-def schedule(request):
-    return render(request, 'core/user/schedule.html')
 
-
-# Бронь билетов
-def ticket_reservation(request):
-    # Пример структуры зала: количество рядов и кол-во мест в каждом
-    hall_layout = {
-        'rows': [
-            {'number': 1, 'seats': 12},
-            {'number': 2, 'seats': 13},
-            {'number': 3, 'seats': 15},
-            {'number': 4, 'seats': 13},
-            {'number': 5, 'seats': 13},
-            {'number': 6, 'seats': 13},
-            {'number': 7, 'seats': 13},
-            {'number': 8, 'seats': 13},
-            {'number': 9, 'seats': 13},
-            {'number': 10, 'seats': 20}
-        ]
-    }
-    return render(request, 'core/user/ticket_reservation.html', {'hall_layout': hall_layout})
 
 
 # Кинотеатры Карта кинотеатра Карта зала
@@ -1498,4 +1478,160 @@ def contacts(request):
     # Укажите правильный путь к вашему шаблону
     return render(request, 'core/user/contacts.html', context)
 
+
+# Расписание
+def schedule(request):
+    f_is_3d = request.GET.get('is_3d')
+    f_is_dbox = request.GET.get('is_dbox')
+    f_is_vip = request.GET.get('is_vip')
+    f_cinema_id = request.GET.get('cinema')
+    f_date_str = request.GET.get('date')
+    f_film_id = request.GET.get('film')
+    f_hall_id = request.GET.get('hall')
+
+    # 1. Получаем диапазон дат: от сегодня на 7 дней вперед
+    today = date.today()
+    end_date = today + timedelta(days=6)  # 7 дней, включая сегодняшний
+
+    # 2. Фильтруем все сеансы, которые попадают в наш недельный диапазон
+    sessions_qs = MovieSession.objects.filter(date__gte=date.today()).select_related('film', 'hall', 'hall__cinema')
+
+    # --- 3. Применяем фильтры, если они были переданы ---
+    if f_is_3d == 'on':
+        sessions_qs = sessions_qs.filter(is_3d=True)
+
+    if f_is_dbox == 'on':
+        sessions_qs = sessions_qs.filter(is_dbox=True)
+
+    if f_is_vip == 'on':
+        sessions_qs = sessions_qs.filter(is_vip=True)
+
+    if f_cinema_id:
+        sessions_qs = sessions_qs.filter(hall__cinema__id=f_cinema_id)
+
+    if f_film_id:
+        sessions_qs = sessions_qs.filter(film__id=f_film_id)
+
+    if f_hall_id:
+        sessions_qs = sessions_qs.filter(hall__id=f_hall_id)
+
+    # Фильтр по дате особенный: если дата выбрана, показываем только ее.
+    # Если нет - показываем 7 дней.
+    if f_date_str:
+        try:
+            selected_date = datetime.strptime(f_date_str, '%Y-%m-%d').date()
+            sessions_qs = sessions_qs.filter(date=selected_date)
+            end_date = selected_date
+        except ValueError:
+            # Если передана некорректная дата, просто игнорируем фильтр
+            end_date = date.today() + timedelta(days=6)
+    else:
+        # Если дата не выбрана, показываем расписание на неделю
+        end_date = date.today() + timedelta(days=6)
+        sessions_qs = sessions_qs.filter(date__lte=end_date)
+
+    # 4. Группируем сеансы по датам
+    sessions_by_date = defaultdict(list)
+    for session in sessions_qs:
+        sessions_by_date[session.date].append(session)
+
+    # Преобразуем в обычный dict для шаблона, отсортировав по дате
+    sorted_sessions_by_date = dict(sorted(sessions_by_date.items()))
+
+    # 5. Получаем данные для выпадающих списков в фильтрах
+    context = {
+        'sessions_by_date': sorted_sessions_by_date,
+        'cinemas': Cinema.objects.all(),
+        'films': Film.objects.filter(status=Film.Status.NOW_SHOWING),
+        'halls': Hall.objects.select_related('cinema').all(),
+        'dates': [today + timedelta(days=i) for i in range(7)],  # Генерируем список дат для фильтра
+        'request': request,
+    }
+    return render(request, 'core/user/schedule.html', context)
+
+
+# Бронь билетов
+@login_required
+def ticket_reservation(request, session_id):
+    session = get_object_or_404(MovieSession, id=session_id)
+    booked_tickets = Ticket.objects.filter(session=session)
+    booked_seats = [f"{ticket.row}-{ticket.seat}" for ticket in booked_tickets]
+    hall_layout = {'rows': range(1, 11), 'seats': range(1, 11)}
+
+    BOOKING_FEE = 3  # Сбор за бронирование
+
+    if request.method == 'POST':
+        selected_seats_str = request.POST.get('selected_seats')
+        action = request.POST.get('action')  # Получаем, какая кнопка была нажата
+
+        if not selected_seats_str:
+            messages.error(request, "Вы не выбрали ни одного места.")
+            return redirect('core:ticket_reservation', session_id=session.id)
+
+        selected_seats = json.loads(selected_seats_str)
+
+        # Определяем статус билета в зависимости от нажатой кнопки
+        if action == 'book':
+            ticket_status = Ticket.Status.BOOKED
+            final_price_per_ticket = BOOKING_FEE  # Цена за бронь - только сервисный сбор
+            success_message = f"Вы успешно забронировали {len(selected_seats)} билетов!"
+        elif action == 'buy':
+            ticket_status = Ticket.Status.PAID
+            final_price_per_ticket = session.price  # Цена за покупку - полная стоимость
+            success_message = f"Вы успешно купили {len(selected_seats)} билетов!"
+        else:
+            messages.error(request, "Неизвестное действие.")
+            return redirect('core:ticket_reservation', session_id=session.id)
+
+        try:
+            with transaction.atomic():
+                # Проверяем, не заняты ли места
+                # Создаем Q-объекты для проверки каждой пары (ряд, место)
+                seat_queries = [Q(row=s.split('-')[0], seat=s.split('-')[1]) for s in selected_seats]
+
+                combined_query = reduce(operator.or_, seat_queries)
+
+                already_taken_qs = Ticket.objects.filter(session=session).filter(combined_query)
+
+                if already_taken_qs.exists():
+                    messages.error(request, "Извините, одно или несколько из выбранных вами мест уже заняты.")
+                    return redirect('core:ticket_reservation', session_id=session.id)
+
+                # Создаем билеты с правильным статусом и ценой
+                tickets_to_create = []
+                for seat_str in selected_seats:
+                    row, seat = seat_str.split('-')
+                    tickets_to_create.append(
+                        Ticket(
+                            session=session,
+                            user=request.user,
+                            row=int(row),
+                            seat=int(seat),
+                            status=ticket_status,
+                            price=final_price_per_ticket   # Сохраняем итоговую цену за 1 билет
+                        )
+                    )
+                Ticket.objects.bulk_create(tickets_to_create)
+
+                messages.success(request, success_message)
+                return redirect('core:ticket_reservation', session_id=session.id)
+
+        except Exception as e:
+            messages.error(request, f"Произошла ошибка: {e}")
+            return redirect('core:ticket_reservation', session_id=session.id)
+
+    # Получаем билеты текущего пользователя для этого сеанса
+    user_tickets = booked_tickets.filter(user=request.user)
+    user_ticket_count = user_tickets.count()
+    user_total_spent = sum(ticket.price for ticket in user_tickets)
+
+    context = {
+        'session': session,
+        'hall_layout': hall_layout,
+        'booked_seats': json.dumps(booked_seats),
+        'booking_fee': BOOKING_FEE,
+        'user_ticket_count': user_ticket_count,
+        'user_total_spent': user_total_spent,
+    }
+    return render(request, 'core/user/ticket_reservation.html', context)
 
