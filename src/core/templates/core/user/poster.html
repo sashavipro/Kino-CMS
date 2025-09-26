@@ -30,7 +30,7 @@
                         </div>
                     </div>
                     <a href="{% url 'core:film_page' film.pk %}" class="d-block mt-2 text-info text-decoration-none">{{ film.title }}</a>
-                    <button class="btn btn-buy mt-2">КУПИТЬ</button>
+                    <a href="{% url 'core:schedule' %}?film={{ film.pk }}" class="btn btn-buy mt-2">КУПИТЬ</a>
                 </div>
                 {% empty %}
                 <p class="text-light">В данный момент фильмов в прокате нет.</p>

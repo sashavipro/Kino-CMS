@@ -34,8 +34,8 @@
 <div class="carousel-inner">
   {% for s in home_slides %}
     <div class="carousel-item {% if forloop.first %}active{% endif %}">
-      {% if s.gallery_banner and s.gallery_banner.image_set.first %}
-        <img src="{{ s.gallery_banner.image_set.first.image.url }}" alt="картинка" style="width:1000px; height:400px; object-fit:cover;">
+      {% if s.image and s.image.image %}
+        <img src="{{ s.image.image.url }}" alt="картинка" style="width:1000px; height:400px; object-fit:cover;">
       {% else %}
         <img src="{% static 'img/no-image.png' %}" alt="нет картинки">
       {% endif %}

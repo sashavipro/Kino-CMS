@@ -7,38 +7,34 @@
 
     {% for cinema in cinemas %}
     <div class="text-center">
-      <!-- Ссылка на редактирование -->
-      <a href="{% url 'core:edit_cinema' cinema.pk %}">
-        <div class="border p-3 position-relative" style="width:150px; height:100px;">
-          <!-- Кнопка удаления в своей маленькой форме -->
-          <form method="post" class="position-absolute top-0 end-0 m-1">
-            {% csrf_token %}
-            <button type="submit" name="delete_id" value="{{ cinema.pk }}" class="btn btn-sm btn-danger">
-              <i class="fas fa-times"></i>
-            </button>
-          </form>
-           {% if cinema.logo %}
-            <!-- Если у кинотеатра ЕСТЬ логотип, показываем его -->
-            <img src="{{ cinema.logo.url }}" alt="Логотип {{ cinema.name }}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+      <div class="border p-2 position-relative" style="width:150px; height:100px; display: flex; align-items: center; justify-content: center;">
+        <!-- Кнопка удаления в своей форме -->
+        <form method="post" class="position-absolute top-0 end-0 m-1" onsubmit="return confirm('Вы уверены?');">
+          {% csrf_token %}
+          <button type="submit" name="delete_id" value="{{ cinema.pk }}" class="btn btn-sm btn-danger">&times;</button>
+        </form>
+        <!-- Ссылка на редактирование оборачивает картинку/иконку -->
+        <a href="{% url 'core:edit_cinema' cinema.pk %}">
+          {% if cinema.logo %}
+            <img src="{{ cinema.logo.url }}" alt="Лого" style="max-width: 100%; max-height: 100%; object-fit: contain;">
           {% else %}
-            <!-- Если логотипа НЕТ, показываем иконку-заглушку -->
-            <i class="fas fa-image fa-2x text-muted"></i>
+            <i class="fas fa-image fa-3x text-muted"></i>
           {% endif %}
-        </div>
-      </a>
-      <small class="d-block mt-2">{{ cinema.name }}</small>
+        </a>
+      </div>
+      <small class="d-block mt-1"><a href="{% url 'core:edit_cinema' cinema.pk %}">{{ cinema.name }}</a></small>
     </div>
     {% endfor %}
 
-    <!-- Добавить кинотеатр (тоже в своей форме) -->
+    <!-- Карточка "Добавить кинотеатр" -->
     <div class="text-center">
       <form method="post">
         {% csrf_token %}
-        <button name="action" value="add_cinema" type="submit" class="btn btn-outline-success" style="width:150px; height:100px;">
-          <i class="fas fa-plus fa-2x"></i>
+        <button name="action" value="add_cinema" type="submit" class="btn btn-outline-success d-flex align-items-center justify-content-center" style="width:150px; height:100px;">
+          <i class="fas fa-plus fa-3x"></i>
         </button>
       </form>
-      <small class="d-block mt-2">Добавить</small>
+      <small class="d-block mt-1">Добавить</small>
     </div>
   </div>
 </div>

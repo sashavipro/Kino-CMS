@@ -47,6 +47,7 @@
             </div>
 
             <hr class="my-4">
+        {% if user.is_authenticated %}
             <form id="bookingForm" method="POST">
                 {% csrf_token %}
                 <input type="hidden" name="selected_seats" id="selectedSeatsInput">
@@ -54,89 +55,138 @@
                 <input type="hidden" name="action" id="actionInput">
 
                 <div class="actions d-grid gap-2 d-md-flex">
-                    <button type="submit" id="bookBtn" class="btn btn-primary" data-action="book">
-                        Забронировать за {{ booking_fee }} грн
-                    </button>
-                    <button type="submit" id="buyBtn" class="btn btn-success" data-action="buy">
-                        Купить за {{ session.price }} грн
-                    </button>
+                    <button type="button" id="bookBtn" class="btn btn-primary" data-action="book">Забронировать за {{ booking_fee }} грн</button>
+                    <button type="button" id="buyBtn" class="btn btn-success" data-action="buy">Купить за {{ session.price }} грн</button>
                 </div>
             </form>
+        {% else %}
+            <div class="alert alert-info">
+                <strong><a href="{% url 'users:login' %}?next={{ request.path }}">Войдите в аккаунт</a></strong>, чтобы забронировать или купить билеты.
+            </div>
+        {% endif %}
         </div>
     </div>
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // --- Константы цен ---
-        const sessionPrice = {{ session.price }};
-        const bookingFee = {{ booking_fee }};
-        const bookedSeats = {{ booked_seats|safe }};
+document.addEventListener('DOMContentLoaded', function() {
+    // --- Константы цен ---
+    const sessionPrice = {{ session.price }};
+    const bookingFee = {{ booking_fee }};
+    let bookedSeats = {{ initial_booked_seats|safe }}; // Начальное состояние
+    const sessionId = {{ session.id }};
+    const csrfToken = '{{ csrf_token }}';
 
-        // --- Элементы DOM ---
-        const seatsMap = document.getElementById('seats-map');
-        const selectionCountEl = document.getElementById('selectionCount');
-        const selectionSumEl = document.getElementById('selectionSum');
-        const selectedSeatsInput = document.getElementById('selectedSeatsInput');
-        const actionInput = document.getElementById('actionInput');
-        const bookingForm = document.getElementById('bookingForm');
+    // --- Элементы DOM ---
+    const seatsMap = document.getElementById('seats-map');
+    const selectionCountEl = document.getElementById('selectionCount');
+    const selectionSumEl = document.getElementById('selectionSum');
+    const bookBtn = document.getElementById('bookBtn');
+    const buyBtn = document.getElementById('buyBtn');
 
-        let selectedSeats = [];
-         // --- Инициализация зала (отмечаем занятые места) ---
-    document.querySelectorAll('.seat').forEach(seat => {
-        const seatId = `${seat.dataset.row}-${seat.dataset.seat}`;
-        if (bookedSeats.includes(seatId)) {
-            seat.classList.add('booked');
-        } else {
-            seat.classList.add('available');
-        }
-    });
+    let selectedSeats = [];
+    let seatUpdateInterval;
 
-    // --- Обработчик клика на место ---
-    seatsMap.addEventListener('click', function(e) {
-        const seat = e.target;
-        if (seat.classList.contains('available')) {
+     // 1. Обновление всего зала на основе массива `bookedSeats`
+    function renderHall() {
+        document.querySelectorAll('.seat').forEach(seat => {
             const seatId = `${seat.dataset.row}-${seat.dataset.seat}`;
+            seat.classList.remove('booked', 'available', 'selected'); // Сбрасываем все классы
 
-            // Добавляем или убираем место из списка выбранных
-            if (selectedSeats.includes(seatId)) {
-                selectedSeats = selectedSeats.filter(s => s !== seatId);
-                seat.classList.remove('selected');
-            } else {
-                selectedSeats.push(seatId);
+            if (bookedSeats.includes(seatId)) {
+                seat.classList.add('booked');
+            } else if (selectedSeats.includes(seatId)) {
                 seat.classList.add('selected');
+            } else {
+                seat.classList.add('available');
             }
-            updateOrderSummary();
-        }
-    });
+        });
+    }
 
-    // --- Обработчик отправки формы ---
-    bookingForm.addEventListener('submit', function(e) {
-        // `document.activeElement` это кнопка, на которую нажали для отправки
-        const action = document.activeElement.dataset.action;
-        if (action) {
-            actionInput.value = action;
-        } else {
-            // Если форма отправлена не кнопкой (например, Enter), по умолчанию - бронь
-            actionInput.value = 'book';
-        }
-    });
-
-    // --- Функция обновления информации о ТЕКУЩЕМ ВЫБОРЕ ---
+    // 2. Обновление информации о заказе
     function updateOrderSummary() {
         const count = selectedSeats.length;
-
-        // Показываем сумму для брони и покупки для наглядности
-        const bookingTotal = count * bookingFee;
-        const buyingTotal = count * sessionPrice;
-
         selectionCountEl.textContent = count;
-        // Показываем обе суммы, чтобы пользователь видел варианты
-        selectionSumEl.textContent = `${bookingTotal} (бронь) / ${buyingTotal} (покупка)`;
-
-        // Записываем ID выбранных мест в скрытое поле
-        selectedSeatsInput.value = JSON.stringify(selectedSeats);
+        selectionSumEl.textContent = `${count * bookingFee} (бронь) / ${count * sessionPrice} (покупка)`;
     }
+
+    // 3. Показ сообщений (замена Django Messages)
+    function showMessage(text, type = 'success') {
+        const container = document.getElementById('messages-container');
+        const alert = `<div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${text}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>`;
+        container.innerHTML += alert;
+    }
+
+    // 4. AJAX-запрос для бронирования/покупки
+    function processBooking(action) {
+        if (selectedSeats.length === 0) {
+            showMessage('Вы не выбрали ни одного места.', 'warning');
+            return;
+        }
+
+        fetch(`/api/process_booking/${sessionId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                selected_seats: selectedSeats,
+                action: action
+            })
+        })
+        .then(response => response.json().then(data => ({ status: response.status, body: data })))
+        .then(({ status, body }) => {
+            showMessage(body.message, body.status === 'success' ? 'success' : 'danger');
+            if (body.status === 'success') {
+                // Обновляем состояние зала и сбрасываем выбор
+                bookedSeats = bookedSeats.concat(selectedSeats);
+                selectedSeats = [];
+                renderHall();
+                updateOrderSummary();
+            }
+        })
+        .catch(error => console.error('Booking error:', error));
+    }
+
+    // 5. AJAX-запрос для обновления состояния зала
+    function fetchSeatUpdates() {
+        fetch(`/api/session_seats/${sessionId}/`)
+            .then(response => response.json())
+            .then(data => {
+                bookedSeats = data.booked_seats;
+                renderHall(); // Перерисовываем зал с новыми данными
+            });
+    }
+
+    // --- Инициализация и обработчики событий ---
+    renderHall(); // Первоначальная отрисовка зала
+
+    seatsMap.addEventListener('click', function(e) {
+        const seat = e.target;
+        if (!seat.classList.contains('available')) return;
+
+        const seatId = `${seat.dataset.row}-${seat.dataset.seat}`;
+        if (selectedSeats.includes(seatId)) {
+            selectedSeats = selectedSeats.filter(s => s !== seatId);
+        } else {
+            selectedSeats.push(seatId);
+        }
+        renderHall();
+        updateOrderSummary();
+    });
+
+    if (bookBtn && buyBtn) {
+        bookBtn.addEventListener('click', () => processBooking('book'));
+        buyBtn.addEventListener('click', () => processBooking('buy'));
+    }
+
+    // Запускаем периодический опрос состояния зала каждые 5 секунд
+    seatUpdateInterval = setInterval(fetchSeatUpdates, 5000);
 });
+
 </script>
 {% endblock %}

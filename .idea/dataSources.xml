@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="kinocms@localhost" uuid="14c9b327-f91a-46ec-8bf5-f5ef68de1515">
+    <data-source source="LOCAL" name="kinocms@192.168.198.8" uuid="14c9b327-f91a-46ec-8bf5-f5ef68de1515">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
-      <jdbc-url>jdbc:postgresql://localhost:5432/kinocms</jdbc-url>
+      <jdbc-url>jdbc:postgresql://192.168.198.8:5432/kinocms</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
   </component>

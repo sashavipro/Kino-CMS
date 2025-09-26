@@ -1,7 +1,6 @@
 from django.core.validators import MinLengthValidator
 from django.db import models
 from src.core.untils.my_validator import ImageValidatorMixin, UrlValidatorMixin, SeoValidator
-from django.urls import reverse
 from django.utils.text import slugify
 
 
@@ -39,24 +38,25 @@ class SeoBlock(models.Model):
         return self.slug
 
 
-class Gallery(models.Model):  # Model Gallery
-    name_gallery = models.CharField(validators=[MinLengthValidator(1)], max_length=300, help_text='Input name Gallery')
+class Gallery(models.Model):
+    name_gallery = models.CharField(max_length=300, help_text='Input name Gallery')
 
     def __str__(self):
-        return f'{self.name_gallery}'
+        return self.name_gallery
 
     class Meta:
         verbose_name = 'gallery'
-        verbose_name_plural = 'gallerys'
+        verbose_name_plural = 'galleries'
 
 
-class Image(models.Model, ImageValidatorMixin):  # Model Image
-    gallery = models.ManyToManyField(Gallery, through='GalleryImage', help_text='Select Gallery')
-    image = models.ImageField(blank=True, null=True, upload_to='static/images/',
-                              help_text='Upload an image. Supported formats: JPEG, PNG')
+class Image(models.Model, ImageValidatorMixin):
+    gallery = models.ForeignKey(Gallery, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='gallery_images/', help_text='Upload an image.', null=True,blank=True)
 
     def __str__(self):
-        return f'{self.image.name}'
+        if self.image:
+            return f'Image {self.id} for {self.gallery.name_gallery}'
+        return f'Empty slot {self.id} for {self.gallery.name_gallery}'
 
     def clean(self):
         super().clean()
@@ -66,18 +66,6 @@ class Image(models.Model, ImageValidatorMixin):  # Model Image
     class Meta:
         verbose_name = 'image'
         verbose_name_plural = 'images'
-
-
-class GalleryImage(models.Model):  # Connection ManyToMany between Gallery and Image
-    gallery = models.ForeignKey(Gallery, on_delete=models.CASCADE)
-    images = models.ForeignKey(Image, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f'{self.gallery} {self.images}'
-
-    class Meta:
-        verbose_name = 'gallery_image'
-        verbose_name_plural = 'gallery_images'
 
 
 # Модель для хранения HTML-шаблонов рассылки

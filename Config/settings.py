@@ -159,6 +159,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
+LOGIN_URL = 'users:login'
 
 AUTH_USER_MODEL = 'users.CustomUser'
 
@@ -176,5 +177,14 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC' # Или ваш часовой пояс
 
 
-# Вместо реальной отправки, письма будут выводиться в консоль
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+
+# --- НАСТРОЙКИ EMAIL (SMTP) ---
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = env('EMAIL_HOST')
+EMAIL_PORT = env.int('EMAIL_PORT')  # Используем env.int() для чисел
+EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS')  # Используем env.bool() для True/False
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER  # Письма будут приходить от имени вашего аккаунта
+

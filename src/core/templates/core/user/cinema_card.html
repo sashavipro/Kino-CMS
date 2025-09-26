@@ -46,9 +46,15 @@
             <div>
                 <h4 class="text-black">Смотрите сегодня</h4>
                 <ul class="list-unstyled">
-                    <li><a href="#">Сеанс 1</a></li>
-                    <li><a href="#">Сеанс 2</a></li>
-                    <li><a href="#">Сеанс 3</a></li>
+                    {% for session in today_sessions %}
+                        <li>
+                            <a href="{% url 'core:ticket_reservation' session.id %}">
+                                {{ session.time|time:"H:i" }} - {{ session.film.title }}
+                            </a>
+                        </li>
+                    {% empty %}
+                        <li>Сегодня в этом зале сеансов нет.</li>
+                    {% endfor %}
                 </ul>
             </div>
             <div class="mb-2">
@@ -97,27 +103,25 @@
                     <p>{{ cinema.conditions|linebreaks }}</p>
                 </div>
 
-                {% if cinema.gallery and cinema.gallery.image_set.all %}
-                    <h4 class="text-black">Фотогалерея</h4>
+                {% if cinema.gallery and cinema.gallery.images.all %}
+                    <h4 class="text-black text-center mt-4">Фотогалерея</h4>
                     <div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
                         <div class="carousel-indicators">
-                            {% for slide in cinema.gallery.image_set.all %}
+                            <!-- ИСПРАВЛЕНИЕ: Правильный цикл -->
+                            {% for slide in cinema.gallery.images.all %}
                                 <button type="button" data-bs-target="#carouselExample" data-bs-slide-to="{{ forloop.counter0 }}" class="{% if forloop.first %}active{% endif %}" aria-current="true"></button>
                             {% endfor %}
                         </div>
                         <div class="carousel-inner">
-                            {% for slide in cinema.gallery.image_set.all %}
-                                <div class="carousel-item {% if forloop.first %}active{% endif %}" >
-                                    <img src="{{ slide.image.url }}" class="d-block w-100" alt="Фото галереи" style="width:1000px; height:500px; object-fit:cover;">
+                            <!-- ИСПРАВЛЕНИЕ: Правильный цикл -->
+                            {% for slide in cinema.gallery.images.all %}
+                                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                    <img src="{{ slide.image.url }}" class="d-block w-100" alt="Фото галереи" style="height:500px; object-fit:cover;">
                                 </div>
                             {% endfor %}
                         </div>
-                        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
-                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                        </button>
-                        <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
-                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                        </button>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
                     </div>
                 {% endif %}
 

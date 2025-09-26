@@ -86,6 +86,7 @@ class Command(BaseCommand):
                             price=random.choice(possible_prices),
                             is_3d=film_to_show.is_3d and random.choice([True, False]),
                             # Если фильм поддерживает 3D, сеанс может быть 3D, а может и не быть
+                            is_dbox=random.choice([True, False, False]),
                             is_vip=random.choice([True, False, False]),  # Делаем VIP-сеансы более редкими
                         )
                         # Используем get_or_create, чтобы не создавать дубликаты
@@ -96,6 +97,7 @@ class Command(BaseCommand):
                                 'film': session.film,
                                 'price': session.price,
                                 'is_3d': session.is_3d,
+                                'is_dbox': session.is_dbox,
                                 'is_vip': session.is_vip,
                             }
                         )

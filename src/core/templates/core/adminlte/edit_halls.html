@@ -76,32 +76,31 @@
 
 
 
-    <!-- Галерея -->
-        <h4 class="mt-4">Gallery</h4>
-
-        <div class="d-flex flex-wrap gap-3">
-
-          {% for slide in slides %}
-            <div class="border rounded p-2 text-center position-relative" style="width: 180px;">
-                <button type="submit" name="delete_slide_id" value="{{ slide.id }}" class="btn-close position-absolute top-0 end-0 m-1" aria-label="Delete"></button>
-              <div class="border bg-light d-flex align-items-center justify-content-center" style="height: 100px;">
-                <img id="preview-{{ slide.id }}" {% if slide.image %}src="{{ slide.image.url }}"{% endif %} class="img-fluid {% if not slide.image %}d-none{% endif %}"
-                  style="max-height: 96px;" alt="slide preview">
-                <i class="fa-solid fa-image fa-2x text-muted {% if slide.image %}d-none{% endif %}"
-                   id="placeholder-{{ slide.id }}"></i>
-              </div>
-              <!-- Поле загрузки файла! -->
-              <input type="file" name="{{ slide.id }}-image" class="form-control form-control-sm mt-2 slide-input" data-id="{{ slide.id }}">
-            </div>
-          {% endfor %}
-
-          <!-- добавления НОВОГО слайда -->
-          <div class="d-flex align-items-center justify-content-center border rounded p-2" style="width: 180px;">
-              <button type="submit" name="action" value="add_slide" class="btn btn-outline-success btn-sm w-100">
-                  <i class="fa-solid fa-plus"></i> Add slide
-              </button>
-          </div>
-        </div>
+<!-- ГАЛЕРЕЯ -->
+<h4 class="mt-4">Галерея</h4>
+<div id="gallery-container" class="d-flex flex-wrap gap-3" data-gallery-id="{{ hall.gallery.id }}">
+  {% for slide in slides %}
+    <div class="border rounded p-2 text-center position-relative slide-item" style="width: 180px;" data-slide-id="{{ slide.pk }}">
+      <button type="button" class="btn-close position-absolute top-0 end-0 delete-slide-btn" aria-label="Удалить"></button>
+      <div class="border bg-light d-flex align-items-center justify-content-center" style="height: 100px;">
+        <!-- Сначала проверяем, есть ли вообще файл в поле image -->
+        {% if slide.image %}
+            <!-- Если есть, показываем картинку -->
+            <img id="preview-{{ slide.pk }}" src="{{ slide.image.url }}" class="img-fluid" style="max-height: 96px;" alt="slide preview">
+            <i class="fa-solid fa-image fa-2x text-muted placeholder-icon d-none" id="placeholder-{{ slide.pk }}"></i>
+        {% else %}
+            <!-- Если файла нет, показываем иконку-плейсхолдер -->
+            <img id="preview-{{ slide.pk }}" src="" class="img-fluid d-none" style="max-height: 96px;" alt="slide preview">
+            <i class="fa-solid fa-image fa-2x text-muted placeholder-icon" id="placeholder-{{ slide.pk }}"></i>
+        {% endif %}
+      </div>
+      <input type="file" name="{{ slide.pk }}-image" class="form-control form-control-sm mt-2 slide-input" data-preview-id="{{ slide.pk }}">
+    </div>
+  {% endfor %}
+  <div id="add-slide-container" class="d-flex align-items-center justify-content-center border rounded p-2" style="width: 180px;">
+    <button type="button" id="add-slide-btn" class="btn btn-outline-success btn-sm w-100"><i class="fa-solid fa-plus"></i> Добавить</button>
+  </div>
+</div>
 
     <!-- SEO блок -->
     <h5 class="mt-4">SEO block</h5>
@@ -154,25 +153,103 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Превью слайдов
-  document.querySelectorAll(".slide-input").forEach(input => {
-    input.addEventListener("change", e => {
-      const file = e.target.files[0];
-      const id = e.target.getAttribute("data-id");
-      const img = document.getElementById("preview-" + id);
-      const ph = document.getElementById("placeholder-" + id);
-      if (!file || !img) return;
-      const reader = new FileReader();
-      reader.onload = ev => {
-        img.src = ev.target.result;
-        img.classList.remove("d-none");
-        if (ph) ph.classList.add("d-none");
-      };
-      reader.readAsDataURL(file);
-    });
-  });
 });
 </script>
+<!-- ======================= JAVASCRIPT ДЛЯ ГАЛЕРЕИ ======================= -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const galleryContainer = document.getElementById('gallery-container');
+    const addSlideBtn = document.getElementById('add-slide-btn');
+    const addSlideContainer = document.getElementById('add-slide-container');
+    const csrfToken = '{{ csrf_token }}';
 
+    // --- Функция для создания HTML-кода нового слайда ---
+    function createSlideHtml(slide) {
+        return `
+            <div class="border rounded p-2 text-center position-relative slide-item" style="width: 180px;" data-slide-id="${slide.id}">
+              <button type="button" class="btn-close position-absolute top-0 end-0 delete-slide-btn" aria-label="Удалить"></button>
+              <div class="border bg-light d-flex align-items-center justify-content-center" style="height: 100px;">
+                <img id="preview-${slide.id}" src="${slide.image_url || ''}" class="img-fluid d-none" style="max-height: 96px;" alt="slide preview">
+                <i class="fa-solid fa-image fa-2x text-muted placeholder-icon" id="placeholder-${slide.id}"></i>
+              </div>
+              <input type="file" name="${slide.id}-image" class="form-control form-control-sm mt-2 slide-input" data-preview-id="${slide.id}">
+            </div>
+        `;
+    }
+
+    // --- 1. Добавление слайда ---
+    addSlideBtn.addEventListener('click', function() {
+        const galleryId = galleryContainer.dataset.galleryId;
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', csrfToken);
+        formData.append('gallery_id', galleryId);
+
+        fetch("{% url 'core:gallery_add_slide' %}", {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Создаем новый HTML-элемент и вставляем его перед кнопкой "Добавить"
+                const newSlideHtml = createSlideHtml(data.slide);
+                addSlideContainer.insertAdjacentHTML('beforebegin', newSlideHtml);
+            } else {
+                alert('Ошибка: ' + data.message);
+            }
+        });
+    });
+
+    // --- 2. Удаление слайда (с использованием делегирования событий) ---
+    galleryContainer.addEventListener('click', function(e) {
+        if (e.target && e.target.classList.contains('delete-slide-btn')) {
+            const slideItem = e.target.closest('.slide-item');
+            const slideId = slideItem.dataset.slideId;
+
+            if (confirm('Вы уверены, что хотите удалить этот слайд?')) {
+                const formData = new FormData();
+                formData.append('csrfmiddlewaretoken', csrfToken);
+                formData.append('slide_id', slideId);
+
+                fetch("{% url 'core:gallery_delete_slide' %}", {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Просто удаляем HTML-элемент со страницы
+                        slideItem.remove();
+                    } else {
+                        alert('Ошибка: ' + data.message);
+                    }
+                });
+            }
+        }
+    });
+
+    // --- 3. Превью для картинок (с использованием делегирования событий) ---
+    galleryContainer.addEventListener('change', function(e) {
+        if (e.target && e.target.classList.contains('slide-input')) {
+            const input = e.target;
+            const previewId = input.dataset.previewId;
+            const file = input.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+                const previewImg = document.getElementById('preview-' + previewId);
+                const placeholderIcon = document.getElementById('placeholder-' + previewId);
+
+                reader.onload = function(event) {
+                    previewImg.src = event.target.result;
+                    previewImg.classList.remove('d-none');
+                    placeholderIcon.classList.add('d-none');
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+    });
+});
+</script>
 
 {% endblock %}

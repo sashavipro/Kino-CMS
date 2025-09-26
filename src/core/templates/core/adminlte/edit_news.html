@@ -89,39 +89,31 @@
     </div>
 
 
-<!-- Галерея -->
-<h4 class="mt-4">Gallery</h4>
+<!-- ГАЛЕРЕЯ -->
+<h4 class="mt-4">Галерея</h4>
+<!-- data-gallery-id нужен для JS, чтобы знать, к какой галерее добавлять слайд -->
+<div id="gallery-container" class="d-flex flex-wrap gap-3" data-gallery-id="{{ item.gallery_banner.id }}">
 
-<div class="d-flex flex-wrap gap-3">
-  <!-- 'slides' теперь это список объектов Image -->
+  <!-- Цикл рендерит существующие слайды -->
   {% for image_obj in slides %}
-    <div class="border rounded p-2 text-center position-relative" style="width: 180px;">
-      <!-- Кнопка удаления использует PK объекта Image -->
-      <button type="submit" name="delete_id" value="{{ image_obj.pk }}"
-              class="btn-close position-absolute top-0 end-0" aria-label="Delete"></button>
+    <div class="border rounded p-2 text-center position-relative slide-item" style="width: 180px;" data-slide-id="{{ image_obj.pk }}">
+      <!-- ИЗМЕНЕНО: Кнопка теперь обычная, не submit -->
+      <button type="button" class="btn-close position-absolute top-0 end-0 delete-slide-btn" aria-label="Удалить"></button>
 
       <div class="border bg-light d-flex align-items-center justify-content-center" style="height: 100px;">
-        <img
-          id="preview-{{ image_obj.pk }}"
-          {% if image_obj.image %}src="{{ image_obj.image.url }}"{% endif %}
-          class="img-fluid {% if not image_obj.image %}d-none{% endif %}"
-          style="max-height: 96px;"
-          alt="slide preview">
-        <i class="fa-solid fa-image fa-2x text-muted {% if image_obj.image %}d-none{% endif %}"
-           id="placeholder-{{ image_obj.pk }}"></i>
+        <img id="preview-{{ image_obj.pk }}" src="{{ image_obj.image.url|default:'' }}" class="img-fluid {% if not image_obj.image %}d-none{% endif %}" style="max-height: 96px;" alt="slide preview">
+        <i class="fa-solid fa-image fa-2x text-muted placeholder-icon {% if image_obj.image %}d-none{% endif %}" id="placeholder-{{ image_obj.pk }}"></i>
       </div>
 
-      <!-- Поле загрузки использует PK объекта Image -->
-      <input type="file" name="{{ image_obj.pk }}-image"
-             class="form-control form-control-sm mt-2 slide-input" data-id="{{ image_obj.pk }}">
+      <input type="file" name="{{ image_obj.pk }}-image" class="form-control form-control-sm mt-2 slide-input" data-preview-id="{{ image_obj.pk }}">
     </div>
   {% endfor %}
 
-  <!-- Кнопка добавить слайд (остается без изменений) -->
-  <div class="d-flex align-items-center justify-content-center border rounded p-2" style="width: 180px;">
-    <button type="submit" name="action" value="add_slide"
-            class="btn btn-outline-success btn-sm w-100">
-      <i class="fa-solid fa-plus"></i> Add slide
+  <!-- Кнопка "Добавить" обернута в свой контейнер -->
+  <div id="add-slide-container" class="d-flex align-items-center justify-content-center border rounded p-2" style="width: 180px;">
+    <!-- ИЗМЕНЕНО: Кнопка теперь обычная, не submit -->
+    <button type="button" id="add-slide-btn" class="btn btn-outline-success btn-sm w-100">
+      <i class="fa-solid fa-plus"></i> Добавить изображение
     </button>
   </div>
 </div>
@@ -168,41 +160,100 @@
 <!-- Подключение Bootstrap JS (для работы модальных окон, если нужно) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 <!-- Превью (без перезагрузки) -->
+<!-- ======================= JAVASCRIPT ДЛЯ ГАЛЕРЕИ ======================= -->
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-  // Превью главной
-  const mainInput = document.getElementById("id_main_image");
-  const mainPreview = document.getElementById("main-preview");
-  if (mainInput && mainPreview) {
-    mainInput.addEventListener("change", function (e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = ev => {
-        mainPreview.src = ev.target.result;
-        mainPreview.classList.remove("d-none");
-      };
-      reader.readAsDataURL(file);
-    });
-  }
+document.addEventListener('DOMContentLoaded', function() {
+    const galleryContainer = document.getElementById('gallery-container');
+    const addSlideBtn = document.getElementById('add-slide-btn');
+    const addSlideContainer = document.getElementById('add-slide-container');
+    const csrfToken = '{{ csrf_token }}';
 
-  // Превью слайдов
-  document.querySelectorAll(".slide-input").forEach(input => {
-    input.addEventListener("change", e => {
-      const file = e.target.files[0];
-      const id = e.target.getAttribute("data-id");
-      const img = document.getElementById("preview-" + id);
-      const ph = document.getElementById("placeholder-" + id);
-      if (!file || !img) return;
-      const reader = new FileReader();
-      reader.onload = ev => {
-        img.src = ev.target.result;
-        img.classList.remove("d-none");
-        if (ph) ph.classList.add("d-none");
-      };
-      reader.readAsDataURL(file);
+    // --- Функция для создания HTML-кода нового слайда ---
+    function createSlideHtml(slide) {
+        return `
+            <div class="border rounded p-2 text-center position-relative slide-item" style="width: 180px;" data-slide-id="${slide.id}">
+              <button type="button" class="btn-close position-absolute top-0 end-0 delete-slide-btn" aria-label="Удалить"></button>
+              <div class="border bg-light d-flex align-items-center justify-content-center" style="height: 100px;">
+                <img id="preview-${slide.id}" src="${slide.image_url || ''}" class="img-fluid d-none" style="max-height: 96px;" alt="slide preview">
+                <i class="fa-solid fa-image fa-2x text-muted placeholder-icon" id="placeholder-${slide.id}"></i>
+              </div>
+              <input type="file" name="${slide.id}-image" class="form-control form-control-sm mt-2 slide-input" data-preview-id="${slide.id}">
+            </div>
+        `;
+    }
+
+    // --- 1. Добавление слайда ---
+    addSlideBtn.addEventListener('click', function() {
+        const galleryId = galleryContainer.dataset.galleryId;
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', csrfToken);
+        formData.append('gallery_id', galleryId);
+
+        fetch("{% url 'core:gallery_add_slide' %}", {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Создаем новый HTML-элемент и вставляем его перед кнопкой "Добавить"
+                const newSlideHtml = createSlideHtml(data.slide);
+                addSlideContainer.insertAdjacentHTML('beforebegin', newSlideHtml);
+            } else {
+                alert('Ошибка: ' + data.message);
+            }
+        });
     });
-  });
+
+    // --- 2. Удаление слайда (с использованием делегирования событий) ---
+    galleryContainer.addEventListener('click', function(e) {
+        if (e.target && e.target.classList.contains('delete-slide-btn')) {
+            const slideItem = e.target.closest('.slide-item');
+            const slideId = slideItem.dataset.slideId;
+
+            if (confirm('Вы уверены, что хотите удалить этот слайд?')) {
+                const formData = new FormData();
+                formData.append('csrfmiddlewaretoken', csrfToken);
+                formData.append('slide_id', slideId);
+
+                fetch("{% url 'core:gallery_delete_slide' %}", {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Просто удаляем HTML-элемент со страницы
+                        slideItem.remove();
+                    } else {
+                        alert('Ошибка: ' + data.message);
+                    }
+                });
+            }
+        }
+    });
+
+    // --- 3. Превью для картинок (с использованием делегирования событий) ---
+    galleryContainer.addEventListener('change', function(e) {
+        if (e.target && e.target.classList.contains('slide-input')) {
+            const input = e.target;
+            const previewId = input.dataset.previewId;
+            const file = input.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+                const previewImg = document.getElementById('preview-' + previewId);
+                const placeholderIcon = document.getElementById('placeholder-' + previewId);
+
+                reader.onload = function(event) {
+                    previewImg.src = event.target.result;
+                    previewImg.classList.remove('d-none');
+                    placeholderIcon.classList.add('d-none');
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+    });
 });
 </script>
 

@@ -1,7 +1,8 @@
 from django.db import models
 from django.core.validators import MinLengthValidator
 from src.core.untils.my_validator import UrlValidatorMixin, CounterValidatorMixin
-from src.core.models import Gallery
+from src.core.models import Image
+
 
 # BANNER ----------------------------------------------------------------------------------------
 class Banners(models.Model, UrlValidatorMixin, CounterValidatorMixin):  # Abstract Model Banners
@@ -13,16 +14,16 @@ class Banners(models.Model, UrlValidatorMixin, CounterValidatorMixin):  # Abstra
         verbose_name_plural = 'banners'
 
 
-class HomeBanner(Banners):  # Model HomeBanner
-    gallery_banner = models.OneToOneField(Gallery, on_delete=models.CASCADE, blank=True, null=True,
-                                          help_text='Select Gallery to Banner')
+class HomeBanner(Banners):
+    image = models.ForeignKey(Image, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Изображение")
+
     url_banner = models.URLField(max_length=300, null=True, blank=True, help_text='Input url Banner')
     text_banner = models.TextField(null=True, blank=True, help_text='Input text to Banner')
     speed_banner = models.IntegerField(default=5, null=True, blank=True, help_text='Input speed to Banner')
 
     class Meta:
-        verbose_name = 'home banner'
-        verbose_name_plural = 'home banners'
+        verbose_name = 'home banner slide'
+        verbose_name_plural = 'home banner slides'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -34,15 +35,15 @@ class HomeBanner(Banners):  # Model HomeBanner
         self.count_integer(self.speed_banner)
 
 
-class HomeNewsSharesBanner(Banners):  # Model HomeNewsSharesBanner
-    gallery_banner = models.OneToOneField(Gallery, on_delete=models.CASCADE, blank=True, null=True,
-                                          help_text='Select Gallery to Banner')
+class HomeNewsSharesBanner(Banners):
+    image = models.ForeignKey(Image, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Изображение")
+
     url_banner = models.URLField(max_length=300, null=True, blank=True, help_text='Input url Banner')
     speed_banner = models.IntegerField(default=5, null=True, blank=True, help_text='Input speed to Banner')
 
     class Meta:
-        verbose_name = 'home banner'
-        verbose_name_plural = 'home banners'
+        verbose_name = 'home news/shares slide'
+        verbose_name_plural = 'home news/shares slides'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -55,7 +56,7 @@ class HomeNewsSharesBanner(Banners):  # Model HomeNewsSharesBanner
 
 
 class BackgroundBanner(Banners):  # Model BackgroundBanner
-    image_banner = models.ImageField(upload_to='static/image/', null=True, blank=True,
+    image_banner = models.ImageField(upload_to='backgrounds/', null=True, blank=True,
                                    help_text='Upload an image. Supported formats: JPEG, PNG')
     color = models.CharField(max_length=20, blank=True, null=True,
                              help_text='Color name or HEX, e.g. red or #ff0000'

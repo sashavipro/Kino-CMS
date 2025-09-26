@@ -1,5 +1,5 @@
 {% extends 'core/user/layout.html' %}
-
+{% load static %}
 {% block title %}Скоро{% endblock %}
 
 {% block style-body %}class="bg-dark text-light"{% endblock %}
@@ -19,10 +19,17 @@
             <h2 class="text-light mb-4">Сейчас в кино</h2>
             <div class="movie-grid">
                 {% for film in films %}
-                <div>
-                    <div class="movie-poster">
-                        <a href="{% url 'core:film_page' film.pk %}">
-                            <img src="{{ film.main_image.url }}">
+                    <div>
+                        <div class="movie-poster">
+                            <a href="{% url 'core:film_page' film.pk %}">
+                                <!-- НАЧАЛО ИСПРАВЛЕНИЯ -->
+                                {% if film.main_image %}
+                                    <!-- Если у фильма есть картинка, показываем ее -->
+                                    <img src="{{ film.main_image.url }}" alt="{{ film.title }}">
+                                {% else %}
+                                    <!-- Если картинки нет, показываем заглушку -->
+                                    <img src="{% static 'img/no-image-placeholder.png' %}" alt="Изображение скоро появится">
+                                {% endif %}
                         </a>
                         <div class="card-body p-0 d-flex flex-column align-items-end gap-1">
                           {% if film.is_3d %}<span class="badge bg-primary text-white">3D</span>{% endif %}

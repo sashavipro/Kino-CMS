@@ -6,7 +6,7 @@ app_name = 'core'
 
 urlpatterns = [
 
-#---ADMIN PAGE---
+
     path('adminlte/', views.admin_stats, name='admin_stats'),
     path("adminlte/admin_banner_slider", views.admin_banner_slider, name="admin_banner_slider"),
 
@@ -32,7 +32,7 @@ urlpatterns = [
     path('adminlte/home_page', views.admin_home_page, name='admin_home_page'),
     path('adminlte/contacts', views.admin_contacts_page, name='admin_contacts_page'),
 
-
+    path('page/<str:page_name>/', views.other_page_detail, name='other_page_detail'),
 
     path('adminlte/users/', views.admin_users, name='admin_users'),
     path('adminlte/users/edit/<int:user_pk>/', views.edit_users, name='edit_user'),
@@ -51,26 +51,26 @@ urlpatterns = [
 
     path('schedule/', views.schedule, name='schedule'),
     path('ticket_reservation/<int:session_id>/', views.ticket_reservation, name='ticket_reservation'),
-
+    path('api/session_seats/<int:session_id>/', views.get_session_seats_api, name='get_session_seats_api'),
+    path('api/process_booking/<int:session_id>/', views.process_booking_api, name='process_booking_api'),
 
     path('stocks', views.stocks, name='stocks'),
     path('stock/<int:pk>/', views.stocks_card, name='stock_card'),
     path('news', views.news, name='news'),
 
 
-    path('page/<str:page_name>/', views.other_page_detail, name='other_page_detail'),
 
     path('contacts', views.contacts, name='contacts'),
 
-
-
-    # --- Админ-панель ---
     path('adminlte/admin_cinema', views.admin_cinema, name='admin_cinema'),
     path('adminlte/edit_cinema/<int:cinema_pk>/', views.edit_cinema, name='edit_cinema'),
     path('adminlte/edit_halls/<int:hall_pk>/', views.edit_halls, name='edit_hall'),
-    # --- Пользовательская часть (эти URL у вас уже правильные) ---
     path('cinemas/', views.cinemas, name='cinemas'),
     path('cinemas/<int:pk>/', views.cinema_card, name='cinema_card'),
     path('halls/<int:pk>/', views.card_hall, name='card_hall'),
 
+
+    # API для галерей
+    path('api/gallery/add_slide/', views.gallery_add_slide, name='gallery_add_slide'),
+    path('api/gallery/delete_slide/', views.gallery_delete_slide, name='gallery_delete_slide'),
 ]

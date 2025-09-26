@@ -1,4 +1,4 @@
-{% extends 'core/adminlte/admin_layout.html' %}
+{% extends 'core/adminlte/modal_layout.html' %}
 
 {% block content %}
 <div class="container-fluid py-3">
@@ -6,7 +6,7 @@
       <div class="card-header">
         <h3 class="card-title">Выберите пользователей для рассылки</h3>
         <div class="card-tools">
-          <!-- ИСПРАВЛЕНО: action формы поиска -->
+          <!-- action формы поиска -->
           <form method="GET" action="{% url 'core:mailing_choice' %}">
             <div class="input-group input-group-sm" style="width: 200px;">
               <input type="text" name="q" class="form-control float-end" placeholder="Поиск..." value="{{ search_query }}">
@@ -138,15 +138,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 3. Клик на кнопку "Сохранить и закрыть"
     saveButton.addEventListener('click', function() {
-        // Проверяем, что родительское окно существует и не закрыто
-        if (window.opener && !window.opener.closed) {
-            // Вызываем функцию в родительском окне, передавая ей массив ID
-            window.opener.updateSelectedUsers(selectedUserIds);
-            // Очищаем хранилище после сохранения
+        // Проверяем, что страница действительно открыта в родительском окне (в iframe)
+        if (window.parent && window.parent.updateSelectedUsers) {
+            // Вызываем функцию `updateSelectedUsers` в родительском окне (`admin_mailing.html`)
+            window.parent.updateSelectedUsers(selectedUserIds);
+            // Очищаем хранилище
             sessionStorage.removeItem('selectedMailingUsers');
-            window.close(); // Закрываем это окно
+            // Закрывать окно (`window.close()`) больше не нужно, это сделает родитель
         } else {
-            alert('Не удалось найти родительское окно. Возможно, оно было закрыто.');
+            alert('Не удалось найти родительское окно. Функция сохранения не сработает.');
         }
     });
 

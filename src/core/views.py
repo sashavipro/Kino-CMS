@@ -9,18 +9,20 @@ from django.utils import timezone
 from datetime import date, timedelta, datetime
 from django.views.decorators.http import require_http_methods, require_POST
 from django.core.paginator import Paginator
+
+from Config import settings
 from src.banner.models import HomeBanner, HomeNewsSharesBanner, BackgroundBanner
 from src.banner.forms import HomeBannerSlideForm, NewsSharesBannerForm, BackgroundForm
 from src.cinema.models import Cinema, Hall, Film, MovieSession, Ticket
-from src.core.models import SeoBlock, Gallery, Image, GalleryImage, MailingTemplate, MailingCampaign
-from src.page.models import MainPage, OtherPage, OtherPageSlide, NewsPromotionPage, Contact
+from src.core.models import SeoBlock, Gallery, Image, MailingTemplate, MailingCampaign
+from src.page.models import MainPage, OtherPage, NewsPromotionPage, Contact
 from src.users.models import CustomUser
 from .tasks import send_mailing_task
 import json
 import operator
 from functools import reduce
 from collections import defaultdict
-
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 
 def admin_stats(request):
     return render(request, 'core/adminlte/admin_stats.html')
@@ -87,90 +89,95 @@ def live_search_films(request):
 def admin_banner_slider(request):
     home_slides = HomeBanner.objects.all().order_by("id")
     news_slides = HomeNewsSharesBanner.objects.all().order_by("id")
-    background = BackgroundBanner.objects.first()
+    background, _ = BackgroundBanner.objects.get_or_create(defaults={'name_banner': 'background'})
 
     if request.method == "POST":
         action = request.POST.get("action")
-
-        # === УДАЛЕНИЕ ===
         delete_id = request.POST.get("delete_id")
+
+        # --- УДАЛЕНИЕ ---
         if delete_id:
-            if HomeBanner.objects.filter(pk=delete_id).exists():
-                HomeBanner.objects.filter(pk=delete_id).delete()
-            elif HomeNewsSharesBanner.objects.filter(pk=delete_id).exists():
-                HomeNewsSharesBanner.objects.filter(pk=delete_id).delete()
+            # Пытаемся удалить из обеих моделей
+            HomeBanner.objects.filter(id=delete_id).delete()
+            HomeNewsSharesBanner.objects.filter(id=delete_id).delete()
+            messages.success(request, "Слайд удален.")
+            return redirect("core:admin_banner_slider")
 
-
-        # === ДОБАВЛЕНИЕ ===
+        # --- ДОБАВЛЕНИЕ ---
         if action == "add_home_slide":
-            HomeBanner.objects.create(url_banner="", text_banner="")
-
+            HomeBanner.objects.create(name_banner='homebanner')  # Создаем пустой слайд
+            messages.success(request, "Слот для слайда добавлен.")
+            return redirect("core:admin_banner_slider")
 
         if action == "add_news_slide":
-            HomeNewsSharesBanner.objects.create(url_banner="")
+            HomeNewsSharesBanner.objects.create(name_banner='homenewssharesbanner')
+            messages.success(request, "Слот для слайда добавлен.")
+            return redirect("core:admin_banner_slider")
 
-
-        # === СОХРАНЕНИЕ HOME SLIDES ===
+        # --- СОХРАНЕНИЕ HOME SLIDES ---
         if action == "save_home_slides":
             speed = request.POST.get("speed", 5)
-            home_status_is_on = 'home_status' in request.POST
+            status_is_on = 'home_status' in request.POST
 
             for banner in home_slides:
-                prefix = str(banner.id)
+                # Для каждого баннера создаем свою форму с префиксом
                 form = HomeBannerSlideForm(
-                    request.POST, request.FILES,
+                    request.POST,
+                    request.FILES,
                     instance=banner,
-                    prefix=prefix
+                    prefix=str(banner.id)  # Префикс, чтобы поля не конфликтовали
                 )
                 if form.is_valid():
                     form.save()
-            HomeBanner.objects.update(status_banner=home_status_is_on, speed_banner=speed)
 
+            # Обновляем общие поля для всех
+            HomeBanner.objects.update(status_banner=status_is_on, speed_banner=speed)
+            messages.success(request, "Баннеры на главной сохранены.")
+            return redirect("core:admin_banner_slider")
 
-        # === СОХРАНЕНИЕ NEWS SLIDES ===
+        # --- СОХРАНЕНИЕ NEWS SLIDES ---
         if action == "save_news_slides":
-            news_status_is_on = 'news_status' in request.POST
+            status_is_on = 'news_status' in request.POST
+
             for banner in news_slides:
-                prefix = str(banner.id)
                 form = NewsSharesBannerForm(
-                    request.POST, request.FILES,
+                    request.POST,
+                    request.FILES,
                     instance=banner,
-                    prefix=prefix
+                    prefix=str(banner.id)
                 )
                 if form.is_valid():
                     form.save()
-            HomeNewsSharesBanner.objects.update(status_banner=news_status_is_on)
 
+            HomeNewsSharesBanner.objects.update(status_banner=status_is_on)
+            messages.success(request, "Баннеры новостей и акций сохранены.")
+            return redirect("core:admin_banner_slider")
 
-        # === ФОН ===
+        # --- ФОН ---
         if action == "save_background":
-            # 5. Считываем состояние переключателя для фона
-            background_status_is_on = 'background_status' in request.POST
-
-            # Используем BackgroundForm для обработки mode, color, image
             form = BackgroundForm(request.POST, request.FILES, instance=background)
             if form.is_valid():
-                saved_background = form.save(commit=False)
-                # 6. Устанавливаем статус вручную
-                saved_background.status_banner = background_status_is_on
-                saved_background.save()
+                bg = form.save(commit=False)
+                bg.status_banner = 'background_status' in request.POST
+                bg.save()
+                messages.success(request, "Фон сохранен.")
+            return redirect("core:admin_banner_slider")
 
-
-
-            # Удаление фона теперь не нужно, т.к. форма может установить пустые значения
         if action == "delete_background":
-            if background:
-                background.image_banner = None
-                background.color = ""
-                background.save()
+            if background.image_banner:
+                background.image_banner.delete()
+            background.color = ""
+            background.save()
+            messages.success(request, "Фон удален.")
+            return redirect("core:admin_banner_slider")
 
-
-    return render(request, "core/adminlte/admin_banner_slider.html", {
+    context = {
         "home_slides": home_slides,
         "news_slides": news_slides,
         "background": background,
         "speed_choices": [3, 5, 7, 10, 15],
-    })
+    }
+    return render(request, "core/adminlte/admin_banner_slider.html", context)
 
 
 def index(request):
@@ -336,62 +343,32 @@ def film_page(request, film_pk):
 
 def edit_film(request, film_pk):
     film = get_object_or_404(Film, pk=film_pk)
-    seo_block = film.seo_block
-    gallery_images = Image.objects.filter(galleryimage__gallery=film.gallery) if film.gallery else []
 
     if request.method == 'POST':
-        action = request.POST.get("action")
-
-        # Удалить главную картинку
-        if action == "delete_main_image":
-            if film.main_image:
-                film.main_image.delete(save=True)
-            messages.success(request, "Главная картинка удалена.")
-
-
-        # Добавить слот для картинки в галерею
-        if action == "add_slide":
-            if not film.gallery:
-                gallery = Gallery.objects.create(name_gallery=f"Film_{film.pk}_gallery")
-                film.gallery = gallery
-                film.save()
-
-            new_image = Image.objects.create()
-            GalleryImage.objects.create(gallery=film.gallery, images=new_image)
-            messages.success(request, "Слот для изображения добавлен.")
-
-
-        # Удалить картинку из галереи
-        if delete_id := request.POST.get("delete_id"):
-            image_to_delete = get_object_or_404(Image, pk=delete_id)
-            GalleryImage.objects.filter(gallery=film.gallery, images=image_to_delete).delete()
-            image_to_delete.delete()
-            messages.success(request, "Изображение из галереи удалено.")
-
-        # --- ОСНОВНОЕ СОХРАНЕНИЕ ---
         # Обновление переводимых полей для Film
         film.title_ru = request.POST.get('title_ru', '')
         film.title_en = request.POST.get('title_en', '')
         film.description_ru = request.POST.get('description_ru', '')
         film.description_en = request.POST.get('description_en', '')
-
         # Обновление НЕпереводимых полей
         film.trailer_url = request.POST.get('trailer_url', '')
         film.is_2d = 'is_2d' in request.POST
         film.is_3d = 'is_3d' in request.POST
         film.is_imax = 'is_imax' in request.POST
 
-        # Сохранение главной картинки ---
+
         if 'main_image' in request.FILES:
+            if film.main_image: film.main_image.delete()
             film.main_image = request.FILES['main_image']
 
-        # Обновление изображений в галерее ---
+        # Обновление файлов в галерее
         if film.gallery:
-            for image in film.gallery.image_set.all():
-                field_name = f"{image.pk}-image"
+            for image_obj in film.gallery.images.all():
+                field_name = f"{image_obj.pk}-image"
                 if field_name in request.FILES:
-                    image.image = request.FILES[field_name]
-                    image.save()
+                    if image_obj.image: image_obj.image.delete()
+                    image_obj.image = request.FILES[field_name]
+                    image_obj.save()
 
         # Сохранение SEO-блока ---
         slug = request.POST.get("slug", "").strip()
@@ -420,6 +397,14 @@ def edit_film(request, film_pk):
         film.save()
         messages.success(request, f"Фильм «{film.title}» успешно сохранен.")
         return redirect('core:admin_films')
+
+    # GET-запрос
+    if not film.gallery:
+        gallery = Gallery.objects.create(name_gallery=f"Film_{film.pk}_gallery")
+        film.gallery = gallery
+        film.save()
+
+    gallery_images = film.gallery.images.all()
 
     context = {
         'film': film,
@@ -480,70 +465,36 @@ def news(request):
 def edit_news(request, pk):
     # Используем имя 'item', т.к. это может быть и новость, и акция
     item = get_object_or_404(NewsPromotionPage, pk=pk)
+    gallery_images = item.gallery_banner.images.all() if item.gallery_banner else []
 
     # Обработка POST-запроса
     if request.method == "POST":
-        action = request.POST.get("action")
-
-        # Удалить главную картинку
-        if action == "delete_main_image":
-            if item.main_image:
-                item.main_image.delete(save=True)
-            messages.success(request, "Главная картинка удалена.")
-
-
-        # Добавить картинку в галерею
-        if action == "add_slide":
-            # Если у записи еще нет галереи, создаем ее
-            if not item.gallery_banner:
-                gallery_name = f"Gallery for Item {item.pk}"
-                gallery, _ = Gallery.objects.get_or_create(name_gallery=gallery_name)
-                item.gallery_banner = gallery
-                item.save()
-
-            # Создаем изображение и СВЯЗЫВАЕМ его с галереей
-            new_image = Image.objects.create()
-            item.gallery_banner.images.add(new_image)
-
-            messages.success(request, "Слот для изображения добавлен в галерею.")
-
-
-        # Удалить картинку из галереи
-        delete_id = request.POST.get("delete_id")
-        if delete_id:
-            image_to_delete = get_object_or_404(Image, pk=delete_id)
-            # Удаление самого объекта Image каскадно удалит и связь ManyToMany
-            image_to_delete.delete()
-            messages.success(request, "Изображение удалено из галереи.")
-
-        # Статус
         item.status = 'status' in request.POST
-
-        # Текстовые поля
         item.name_ru = request.POST.get('name_ru', '').strip()
         item.name_en = request.POST.get('name_en', '').strip()
         item.description_ru = request.POST.get('description_ru', '').strip()
         item.description_en = request.POST.get('description_en', '').strip()
-
         item.url_movie = request.POST.get('url_movie', '').strip()
-
-        # Дата
         publication_date = request.POST.get('publicationDate')
         if publication_date:
             item.time_created = publication_date
 
-        # Главная картинка (если загружена новая)
+
+        # Главная картинка
         if 'main_image' in request.FILES:
+            if item.main_image:
+                item.main_image.delete()
             item.main_image = request.FILES['main_image']
 
-        # Обновление файлов галереи
+        # Обновление файлов в галерее
         if item.gallery_banner:
-            # Обращаемся к 'images' через related_name
-            for image in item.gallery_banner.images.all():
-                field_name = f"{image.pk}-image" # Надежнее использовать pk
+            for image_obj in item.gallery_banner.images.all():
+                field_name = f"{image_obj.pk}-image"
                 if field_name in request.FILES:
-                    image.image = request.FILES[field_name]
-                    image.save()
+                    if image_obj.image:
+                        image_obj.image.delete()
+                    image_obj.image = request.FILES[field_name]
+                    image_obj.save()
 
         # SEO-блок с поддержкой переводов
         slug = request.POST.get("slug", "").strip()
@@ -581,17 +532,21 @@ def edit_news(request, pk):
         item.save()
         messages.success(request, f"Запись «{item.name}» успешно сохранена.")
 
-        # <<< ИСПРАВЛЕНО: "Умный" редирект в зависимости от типа записи
+        # "Умный" редирект в зависимости от типа записи
         if item.is_promotion:
             return redirect('core:admin_promotion')
         else:
             return redirect('core:admin_news')
 
-    # --- Обработка GET-запроса (просто отображение формы) ---
-    gallery_images = []
-    if item.gallery_banner:
-        # <<< УЛУЧШЕНО: Обращаемся к 'images' через related_name
-        gallery_images = item.gallery_banner.images.all()
+    # --- GET-запрос: просто готовим данные для отображения ---
+
+    # Создаем галерею, если ее нет, чтобы получить ID для JS
+    if not item.gallery_banner:
+        gallery = Gallery.objects.create(name_gallery=f"Gallery for Item {item.pk}")
+        item.gallery_banner = gallery
+        item.save()
+
+    gallery_images = item.gallery_banner.images.all()
 
     context = {
         'item': item, # Оставляем 'news', т.к. шаблон использует это имя
@@ -696,7 +651,11 @@ def admin_other_page(request):
         if "delete_page" in request.POST:
             page_id = request.POST.get("delete_page")
             page = get_object_or_404(OtherPage, id=page_id)
+            page_name = page.name
             page.delete()
+            messages.success(request, f"Страница '{page_name}' успешно удалена.")
+            # ИСПРАВЛЕНО: Добавляем редирект
+            return redirect("core:admin_other_page")
 
 
     # Создаем универсальный список для передачи в шаблон
@@ -745,92 +704,101 @@ def admin_other_page(request):
 
 def edit_other_page(request, page_name):
     page = get_object_or_404(OtherPage, name=page_name)
-    seo_block = page.seo_block
-    slides = OtherPageSlide.objects.filter(page=page)
 
     if request.method == 'POST':
-        # --- вся логика сохранения данных из формы ---
+        action = request.POST.get('action')
+
+        # Обработка атомарных действий
+        if action == 'delete_main_image':
+            if page.main_image:
+                page.main_image.delete(save=True)
+            messages.success(request, "Главное изображение удалено.")
+            return redirect('core:edit_other_page', page_name=page.name)
 
         # Обновление основных полей
         page.status = 'status' in request.POST
-
         page.title_ru = request.POST.get('title_ru', '')
         page.title_en = request.POST.get('title_en', '')
         page.description_ru = request.POST.get('description_ru', '')
         page.description_en = request.POST.get('description_en', '')
 
-        # Обновление главной картинки
-        if request.FILES.get('main_image'):
+        if 'main_image' in request.FILES:
+            if page.main_image: page.main_image.delete()
             page.main_image = request.FILES['main_image']
 
-        # Логика удаления главной картинки
-        if request.POST.get('action') == 'delete_main_image':
-            if page.main_image:
-                page.main_image.delete(save=False)  # save=False, так как мы сохраним объект ниже
+        if page.gallery:
+            for image_obj in page.gallery.images.all():
+                field_name = f"{image_obj.pk}-image"
+                if field_name in request.FILES:
+                    if image_obj.image: image_obj.image.delete()
+                    image_obj.image = request.FILES[field_name]
+                    image_obj.save()
 
-        page.save()
 
         # Обновление SEO-блока с поддержкой переводов
         slug = request.POST.get('slug', '').strip()
         if slug:
-            seo_data = {
-                'title_seo_ru': request.POST.get("title_seo_ru", "").strip(),
-                'title_seo_en': request.POST.get("title_seo_en", "").strip(),
-                'keywords_seo_ru': request.POST.get("keywords_seo_ru", "").strip(),
-                'keywords_seo_en': request.POST.get("keywords_seo_en", "").strip(),
-                'description_seo_ru': request.POST.get("description_seo_ru", "").strip(),
-                'description_seo_en': request.POST.get("description_seo_en", "").strip()
-            }
-            if page.seo_block:
-                SeoBlock.objects.filter(pk=page.seo_block.pk).update(slug=slug, **seo_data)
+            conflicting_seo = SeoBlock.objects.filter(slug=slug).exclude(id=page.seo_block_id).first()
+            if conflicting_seo:
+                messages.error(request, f"URL (slug) '{slug}' уже используется другой записью.")
+                # Не сохраняем, а возвращаем пользователя на страницу для исправления
+                # Мы не делаем редирект, чтобы не потерять уже введенные данные
+                context = {
+                    'page': page,
+                    'slides': page.gallery.images.all() if page.gallery else [],
+                    'seo_block': page.seo_block,
+                }
+                return render(request, 'core/adminlte/edit_other_page.html', context)
             else:
-                new_seo = SeoBlock.objects.create(slug=slug, **seo_data)
-                page.seo_block = new_seo
-                page.save()  # Сохраняем связь
+                seo_data = {
+                    'title_seo_ru': request.POST.get("title_seo_ru", "").strip(),
+                    'title_seo_en': request.POST.get("title_seo_en", "").strip(),
+                    'keywords_seo_ru': request.POST.get("keywords_seo_ru", "").strip(),
+                    'keywords_seo_en': request.POST.get("keywords_seo_en", "").strip(),
+                    'description_seo_ru': request.POST.get("description_seo_ru", "").strip(),
+                    'description_seo_en': request.POST.get("description_seo_en", "").strip()
+                }
+                if page.seo_block:
+                    SeoBlock.objects.filter(pk=page.seo_block.pk).update(slug=slug, **seo_data)
+                else:
+                    new_seo = SeoBlock.objects.create(slug=slug, **seo_data)
+                    page.seo_block = new_seo
         elif page.seo_block:
             page.seo_block.delete()
             page.seo_block = None
-            page.save()
+
+        page.save()
+        messages.success(request, f"Страница «{page.title}» успешно сохранена.")
+        return redirect('core:edit_other_page', page_name=page.name)
 
         # --- Логика для галереи ---
 
-        # Добавление нового слайда
-        if request.POST.get('action') == 'add_slide':
-            OtherPageSlide.objects.create(page=page)  # Создаем пустой слайд
+    # GET-запрос
+    if not hasattr(page, 'gallery') or not page.gallery:
+        gallery = Gallery.objects.create(name_gallery=f"OtherPage_{page.pk}_gallery")
+        page.gallery = gallery
+        page.save()
 
-        # Удаление слайда
-        if 'delete_id' in request.POST:
-            slide_to_delete = get_object_or_404(OtherPageSlide, id=request.POST.get('delete_id'))
-            slide_to_delete.delete()
-
-        # Обновление изображений в существующих слайдах
-        for slide in slides:
-            image_file = request.FILES.get(f'{slide.id}-image')
-            if image_file:
-                slide.image = image_file
-                slide.save()
-
-
+    slides = page.gallery.images.all()
 
     context = {
         'page': page,
         'slides': slides,
-        'seo_block': seo_block,
+        'seo_block': page.seo_block,
     }
 
-    # КЛЮЧЕВОЕ ИЗМЕНЕНИЕ: рендерим шаблон-обертку вместо "голой" формы
     return render(request, 'core/adminlte/admin_edit_page_wrapper.html', context)
 
 
 def other_page_detail(request, page_name):
-    """
-    Универсальное представление для отображения любой "другой страницы"
-    для пользователей.
-    """
     # Ищем страницу по имени и обязательно проверяем, что она активна (status=True)
     page = get_object_or_404(OtherPage, name=page_name, status=True)
     seo_block = page.seo_block
-    slides = page.slides.all() # Убедитесь, что у вас есть related_name='slides' в модели слайдов
+    slides = []
+    if page.gallery:
+        # `images` - это related_name, который мы указали в модели Image:
+        # gallery = models.ForeignKey(..., related_name='images')
+        slides = page.gallery.images.all()
 
     context = {
         'page': page,
@@ -1063,10 +1031,6 @@ def start_mailing_api(request):
 
 
 def get_mailing_status_api(request):
-    """
-    Принимает AJAX-запрос с task_id и возвращает статус конкретной кампании.
-    Если task_id не передан, возвращает статус последней.
-    """
     task_id = request.GET.get('task_id')  # <--- Получаем ID из GET-параметра
 
     campaign = None
@@ -1103,7 +1067,7 @@ def get_mailing_status_api(request):
     }
     return JsonResponse(data)
 
-
+@xframe_options_sameorigin
 def mailing_choice(request):
     # --- Логика GET-запроса (сортировка и поиск) остается без изменений ---
     users_list = CustomUser.objects.all()  # Переименовываем, чтобы не путать с итоговым списком
@@ -1127,7 +1091,7 @@ def mailing_choice(request):
 
     # --- 2. ДОБАВЛЯЕМ ЛОГИКУ ПАГИНАЦИИ ---
     # Создаем объект Paginator. 1 - количество пользователей на странице.
-    paginator = Paginator(users_list, 20)
+    paginator = Paginator(users_list, 10)
 
     # Получаем номер страницы из GET-параметра 'page'. По умолчанию - страница 1.
     page_number = request.GET.get('page')
@@ -1143,9 +1107,6 @@ def mailing_choice(request):
         'order': order
     }
     return render(request, 'core/adminlte/mailing_choice.html',context)
-
-
-
 
 
 # Кинотеатры Карта кинотеатра Карта зала
@@ -1178,53 +1139,36 @@ def cinemas(request):
 
 def edit_cinema(request, cinema_pk):
     cinema = get_object_or_404(Cinema, pk=cinema_pk)
-    gallery = cinema.gallery
-    slides = gallery.image_set.all() if gallery else []
-    seo_block = cinema.seo_block
 
     if request.method == 'POST':
         action = request.POST.get('action')
         delete_hall_id = request.POST.get('delete_hall_id')
-        delete_slide_id = request.POST.get('delete_slide_id')
 
-        # --- Обработка КОНКРЕТНЫХ действий (удаление, добавление) ---
-        if action == 'delete_logo':
-            if cinema.logo:
-                cinema.logo.delete(save=True)
-
-
-        if action == 'delete_main_image':
-            if cinema.main_image:
-                cinema.main_image.delete(save=True)
-
-
+        # --- Обработка атомарных действий ---
         if action == 'add_hall':
             Hall.objects.create(cinema=cinema, number_hall="Новый зал")
-
+            messages.success(request, "Новый зал успешно добавлен.")
+            return redirect('core:edit_cinema', cinema_pk=cinema.pk)
 
         if delete_hall_id:
             hall_to_delete = get_object_or_404(Hall, pk=delete_hall_id, cinema=cinema)
             hall_to_delete.delete()
+            messages.success(request, "Зал удален.")
+            return redirect('core:edit_cinema', cinema_pk=cinema.pk)
 
+        if action == 'delete_logo':
+            if cinema.logo: cinema.logo.delete(save=True)
+            messages.success(request, "Логотип удален.")
+            return redirect('core:edit_cinema', cinema_pk=cinema.pk)
 
-        if action == 'add_slide':
-            if not gallery:
-                gallery = Gallery.objects.create(name_gallery=f"Cinema {cinema.pk} Gallery")
-                cinema.gallery = gallery
-                cinema.save()
-            new_image = Image.objects.create()
-            GalleryImage.objects.create(gallery=gallery, images=new_image)
+        if action == 'delete_main_image':
+            if cinema.main_image: cinema.main_image.delete(save=True)
+            messages.success(request, "Главный баннер удален.")
+            return redirect('core:edit_cinema', cinema_pk=cinema.pk)
 
+        # --- Если ни одно из вышеперечисленных действий не было выполнено,
+        #     значит, это основное сохранение формы. ---
 
-        if delete_slide_id:
-            if gallery:
-                image_to_delete = get_object_or_404(Image, pk=delete_slide_id)
-                GalleryImage.objects.filter(gallery=gallery, images=image_to_delete).delete()
-                image_to_delete.delete()
-
-
-        # --- Если это не было конкретное действие, значит, это ОСНОВНОЕ СОХРАНЕНИЕ ---
-        # ИСПРАВЛЕНО: Правильное присваивание для ru и en
         cinema.name_ru = request.POST.get('name_ru', '').strip()
         cinema.name_en = request.POST.get('name_en', '').strip()
         cinema.description_ru = request.POST.get('description_ru', '').strip()
@@ -1233,60 +1177,89 @@ def edit_cinema(request, cinema_pk):
         cinema.conditions_en = request.POST.get('conditions_en', '').strip()
 
         if 'logo' in request.FILES:
+            if cinema.logo: cinema.logo.delete()
             cinema.logo = request.FILES['logo']
         if 'main_image' in request.FILES:
+            if cinema.main_image: cinema.main_image.delete()
             cinema.main_image = request.FILES['main_image']
+
+        if cinema.gallery:
+            for image_obj in cinema.gallery.images.all():
+                field_name = f"{image_obj.pk}-image"
+                if field_name in request.FILES:
+                    if image_obj.image: image_obj.image.delete()
+                    image_obj.image = request.FILES[field_name]
+                    image_obj.save()
 
         slug = request.POST.get('slug', '').strip()
         if slug:
-            seo_data = {
-                'title_seo_ru': request.POST.get("title_seo_ru", "").strip(),
-                'title_seo_en': request.POST.get("title_seo_en", "").strip(),
-                'keywords_seo_ru': request.POST.get("keywords_seo_ru", "").strip(),
-                'keywords_seo_en': request.POST.get("keywords_seo_en", "").strip(),
-                'description_seo_ru': request.POST.get("description_seo_ru", "").strip(),
-                'description_seo_en': request.POST.get("description_seo_en", "").strip()
-            }
-            if cinema.seo_block:
-                SeoBlock.objects.filter(pk=cinema.seo_block.pk).update(slug=slug, **seo_data)
+            # Ищем ДРУГОЙ SeoBlock с таким же slug
+            conflicting_seo = SeoBlock.objects.filter(slug=slug).exclude(id=cinema.seo_block_id).first()
+            if conflicting_seo:
+                messages.error(request, f"URL (slug) '{slug}' уже используется другой записью.")
             else:
-                cinema.seo_block = SeoBlock.objects.create(slug=slug, **seo_data)
-        elif cinema.seo_block:
-            cinema.seo_block.delete()
+                seo_data = {
+                    'title_seo_ru': request.POST.get("title_seo_ru", "").strip(),
+                    'title_seo_en': request.POST.get("title_seo_en", "").strip(),
+                    'keywords_seo_ru': request.POST.get("keywords_seo_ru", "").strip(),
+                    'keywords_seo_en': request.POST.get("keywords_seo_en", "").strip(),
+                    'description_seo_ru': request.POST.get("description_seo_ru", "").strip(),
+                    'description_seo_en': request.POST.get("description_seo_en", "").strip()
+                }
+                if cinema.seo_block:
+                    # Если блок уже есть, обновляем его
+                    SeoBlock.objects.filter(pk=cinema.seo_block.pk).update(slug=slug, **seo_data)
+                else:
+                    # Если блока нет, создаем новый и привязываем
+                    new_seo = SeoBlock.objects.create(slug=slug, **seo_data)
+                    cinema.seo_block = new_seo
 
+        elif cinema.seo_block:
+            # Если slug стерли, удаляем блок
+            cinema.seo_block.delete()
+            cinema.seo_block = None
+
+        # 4. Финальное сохранение объекта cinema
         cinema.save()
 
-        if gallery:
-            for image in slides:
-                field_name = f"{image.pk}-image"
-                if field_name in request.FILES:
-                    image.image = request.FILES[field_name]
-                    image.save()
-
         messages.success(request, f"Кинотеатр «{cinema.name}» успешно сохранен.")
+        return redirect('core:edit_cinema', cinema_pk=cinema.pk)
 
+    # GET-запрос
+    if not cinema.gallery:
+        gallery = Gallery.objects.create(name_gallery=f"Cinema_{cinema.pk}_gallery")
+        cinema.gallery = gallery
+        cinema.save()
 
+    slides = cinema.gallery.images.all()
     halls = cinema.halls.all().order_by('number_hall')
+
     context = {
         'cinema': cinema,
         'halls': halls,
         'slides': slides,
-        'seo_block': seo_block,
+        'seo_block': cinema.seo_block,
     }
     return render(request, 'core/adminlte/edit_cinema.html', context)
 
 
 def cinema_card(request, pk):
     cinema = get_object_or_404(Cinema, pk=pk)
-
     halls = cinema.halls.all()
-
     seo_block = cinema.seo_block
+
+    # Находим все сеансы, которые проходят СЕГОДНЯ
+    # в залах, принадлежащих ЭТОМУ кинотеатру.
+    today_sessions = MovieSession.objects.filter(
+        hall__cinema=cinema,
+        date=date.today()
+    ).select_related('film').order_by('time')  # Сортируем по времени
 
     context = {
         'cinema': cinema,
         'halls': halls,
         'seo_block': seo_block,
+        'today_sessions': today_sessions,
     }
 
     return render(request, 'core/user/cinema_card.html', context)
@@ -1294,15 +1267,10 @@ def cinema_card(request, pk):
 
 def edit_halls(request, hall_pk):
     hall = get_object_or_404(Hall, pk=hall_pk)
-    gallery = hall.gallery
-    slides = gallery.image_set.all() if gallery else []
-    seo_block = hall.seo_block
 
     if request.method == 'POST':
         action = request.POST.get('action')
-        delete_slide_id = request.POST.get('delete_slide_id')
 
-        # --- Обработка КОНКРЕТНЫХ действий ---
         if action == 'delete_scheme_image':
             if hall.scheme_image: hall.scheme_image.delete(save=True)
 
@@ -1310,23 +1278,7 @@ def edit_halls(request, hall_pk):
             if hall.banner_image: hall.banner_image.delete(save=True)
 
 
-        if action == 'add_slide':
-            if not gallery:
-                gallery = Gallery.objects.create(name_gallery=f"Hall {hall.pk} Gallery")
-                hall.gallery = gallery
-                hall.save()
-            new_image = Image.objects.create()
-            gallery.image_set.add(new_image)
-
-
-        if delete_slide_id:
-            if gallery:
-                slide_to_delete = get_object_or_404(Image, pk=delete_slide_id)
-                gallery.image_set.remove(slide_to_delete)
-                slide_to_delete.delete()
-
-
-        # --- Если это не было конкретное действие, значит, это ОСНОВНОЕ СОХРАНЕНИЕ ---
+        # ---  ОСНОВНОЕ СОХРАНЕНИЕ ---
         hall.number_hall_ru = request.POST.get('number_hall_ru', '').strip()
         hall.number_hall_en = request.POST.get('number_hall_en', '').strip()
         hall.description_ru = request.POST.get('description_ru', '').strip()
@@ -1337,38 +1289,67 @@ def edit_halls(request, hall_pk):
         if 'banner_image' in request.FILES:
             hall.banner_image = request.FILES['banner_image']
 
+        # --- Обновление файлов в галерее ---
+        if hall.gallery:
+            for image_obj in hall.gallery.images.all():
+                field_name = f"{image_obj.pk}-image"
+                if field_name in request.FILES:
+                    # Если у слайда уже была картинка, удаляем старую
+                    if image_obj.image:
+                        image_obj.image.delete(save=False)  # save=False, так как сохраним ниже
+
+                    # Присваиваем новый файл
+                    image_obj.image = request.FILES[field_name]
+                    image_obj.save()  # Сохраняем сам объект Image
+
         slug = request.POST.get('slug', '').strip()
         if slug:
-            seo_data = {
-                'title_seo_ru': request.POST.get("title_seo_ru", "").strip(),
-                'title_seo_en': request.POST.get("title_seo_en", "").strip(),
-                'keywords_seo_ru': request.POST.get("keywords_seo_ru", "").strip(),
-                'keywords_seo_en': request.POST.get("keywords_seo_en", "").strip(),
-                'description_seo_ru': request.POST.get("description_seo_ru", "").strip(),
-                'description_seo_en': request.POST.get("description_seo_en", "").strip()
-            }
-            if hall.seo_block:
-                SeoBlock.objects.filter(pk=hall.seo_block.pk).update(slug=slug, **seo_data)
-            else:
-                hall.seo_block = SeoBlock.objects.create(slug=slug, **seo_data)
-        elif hall.seo_block:
-            hall.seo_block.delete()
+            # Ищем другой SeoBlock с таким же slug, который НЕ принадлежит текущему залу
+            conflicting_seo = SeoBlock.objects.filter(slug=slug).exclude(id=hall.seo_block_id).first()
 
+            if conflicting_seo:
+                # Если такой блок найден - выдаем ошибку и не сохраняем
+                messages.error(request,
+                               f"URL (slug) '{slug}' уже используется другой записью. Пожалуйста, выберите уникальный URL.")
+            else:
+                seo_data = {
+                    'title_seo_ru': request.POST.get("title_seo_ru", "").strip(),
+                    'title_seo_en': request.POST.get("title_seo_en", "").strip(),
+                    'keywords_seo_ru': request.POST.get("keywords_seo_ru", "").strip(),
+                    'keywords_seo_en': request.POST.get("keywords_seo_en", "").strip(),
+                    'description_seo_ru': request.POST.get("description_seo_ru", "").strip(),
+                    'description_seo_en': request.POST.get("description_seo_en", "").strip()
+                }
+                if hall.seo_block:
+                    # Если у зала уже был SEO блок, обновляем его
+                    SeoBlock.objects.filter(pk=hall.seo_block.pk).update(slug=slug, **seo_data)
+                else:
+                    # Если блока не было, создаем новый
+                    new_seo = SeoBlock.objects.create(slug=slug, **seo_data)
+                    hall.seo_block = new_seo  # Привязываем к залу
+
+
+        elif hall.seo_block:
+            # Если slug стерли, удаляем связанный блок
+            hall.seo_block.delete()
+            hall.seo_block = None
+
+        # Сохраняем hall в самом конце
+        hall.save()
+        messages.success(request, f"Зал «{hall.number_hall}» успешно сохранен.")
+        return redirect('core:edit_hall', hall_pk=hall.pk)
+
+    # GET-запрос
+    if not hall.gallery:
+        gallery = Gallery.objects.create(name_gallery=f"Hall_{hall.pk}_gallery")
+        hall.gallery = gallery
         hall.save()
 
-        if gallery:
-            for image in slides:
-                field_name = f"{image.pk}-image"
-                if field_name in request.FILES:
-                    image.image = request.FILES[field_name]
-                    image.save()
-
-        messages.success(request, f"Зал «{hall.number_hall}» успешно сохранен.")
-
+    slides = hall.gallery.images.all()
     context = {
         'hall': hall,
         'slides': slides,
-        'seo_block': seo_block,
+        'seo_block': hall.seo_block,
     }
     return render(request, 'core/adminlte/edit_halls.html', context)
 
@@ -1380,11 +1361,19 @@ def card_hall(request, pk):
     hall = get_object_or_404(Hall, pk=pk)
     sibling_halls = hall.cinema.halls.all().order_by('number_hall')
 
+    # Находим все сеансы, которые проходят СЕГОДНЯ
+    # именно в ЭТОМ зале.
+    today_sessions = MovieSession.objects.filter(
+        hall=hall,
+        date=date.today()
+    ).select_related('film').order_by('time')  # Сортируем по времени
+
     context = {
         'hall': hall,
         'cinema': hall.cinema,
         'halls': sibling_halls,
         'seo_block': hall.seo_block,
+        'today_sessions': today_sessions,
     }
     return render(request, 'core/user/card_hall.html', context)
 
@@ -1551,87 +1540,138 @@ def schedule(request):
 
 
 # Бронь билетов
-@login_required
 def ticket_reservation(request, session_id):
+    """
+    Эта view теперь только отображает начальное состояние страницы.
+    Вся динамика обрабатывается через API.
+    """
     session = get_object_or_404(MovieSession, id=session_id)
+
+    # Получаем начальный список занятых мест
     booked_tickets = Ticket.objects.filter(session=session)
     booked_seats = [f"{ticket.row}-{ticket.seat}" for ticket in booked_tickets]
+
     hall_layout = {'rows': range(1, 11), 'seats': range(1, 11)}
+    BOOKING_FEE = 3
 
-    BOOKING_FEE = 3  # Сбор за бронирование
-
-    if request.method == 'POST':
-        selected_seats_str = request.POST.get('selected_seats')
-        action = request.POST.get('action')  # Получаем, какая кнопка была нажата
-
-        if not selected_seats_str:
-            messages.error(request, "Вы не выбрали ни одного места.")
-            return redirect('core:ticket_reservation', session_id=session.id)
-
-        selected_seats = json.loads(selected_seats_str)
-
-        # Определяем статус билета в зависимости от нажатой кнопки
-        if action == 'book':
-            ticket_status = Ticket.Status.BOOKED
-            final_price_per_ticket = BOOKING_FEE  # Цена за бронь - только сервисный сбор
-            success_message = f"Вы успешно забронировали {len(selected_seats)} билетов!"
-        elif action == 'buy':
-            ticket_status = Ticket.Status.PAID
-            final_price_per_ticket = session.price  # Цена за покупку - полная стоимость
-            success_message = f"Вы успешно купили {len(selected_seats)} билетов!"
-        else:
-            messages.error(request, "Неизвестное действие.")
-            return redirect('core:ticket_reservation', session_id=session.id)
-
-        try:
-            with transaction.atomic():
-                # Проверяем, не заняты ли места
-                # Создаем Q-объекты для проверки каждой пары (ряд, место)
-                seat_queries = [Q(row=s.split('-')[0], seat=s.split('-')[1]) for s in selected_seats]
-
-                combined_query = reduce(operator.or_, seat_queries)
-
-                already_taken_qs = Ticket.objects.filter(session=session).filter(combined_query)
-
-                if already_taken_qs.exists():
-                    messages.error(request, "Извините, одно или несколько из выбранных вами мест уже заняты.")
-                    return redirect('core:ticket_reservation', session_id=session.id)
-
-                # Создаем билеты с правильным статусом и ценой
-                tickets_to_create = []
-                for seat_str in selected_seats:
-                    row, seat = seat_str.split('-')
-                    tickets_to_create.append(
-                        Ticket(
-                            session=session,
-                            user=request.user,
-                            row=int(row),
-                            seat=int(seat),
-                            status=ticket_status,
-                            price=final_price_per_ticket   # Сохраняем итоговую цену за 1 билет
-                        )
-                    )
-                Ticket.objects.bulk_create(tickets_to_create)
-
-                messages.success(request, success_message)
-                return redirect('core:ticket_reservation', session_id=session.id)
-
-        except Exception as e:
-            messages.error(request, f"Произошла ошибка: {e}")
-            return redirect('core:ticket_reservation', session_id=session.id)
-
-    # Получаем билеты текущего пользователя для этого сеанса
-    user_tickets = booked_tickets.filter(user=request.user)
-    user_ticket_count = user_tickets.count()
-    user_total_spent = sum(ticket.price for ticket in user_tickets)
+    user_ticket_count = 0
+    user_total_spent = 0
+    if request.user.is_authenticated:
+        user_tickets = booked_tickets.filter(user=request.user)
+        user_ticket_count = user_tickets.count()
+        user_total_spent = sum(ticket.price for ticket in user_tickets)
 
     context = {
         'session': session,
         'hall_layout': hall_layout,
-        'booked_seats': json.dumps(booked_seats),
+        'initial_booked_seats': json.dumps(booked_seats),  # Передаем только начальное состояние
         'booking_fee': BOOKING_FEE,
         'user_ticket_count': user_ticket_count,
         'user_total_spent': user_total_spent,
     }
     return render(request, 'core/user/ticket_reservation.html', context)
+
+
+def get_session_seats_api(request, session_id):
+    """
+    Возвращает список всех занятых мест для данного сеанса в формате JSON.
+    """
+    session = get_object_or_404(MovieSession, id=session_id)
+    booked_tickets = Ticket.objects.filter(session=session)
+    booked_seats = [f"{ticket.row}-{ticket.seat}" for ticket in booked_tickets]
+    return JsonResponse({'booked_seats': booked_seats})
+
+
+@login_required
+@require_POST
+def process_booking_api(request, session_id):
+    """
+    Обрабатывает AJAX-запрос на бронирование или покупку билетов.
+    """
+    session = get_object_or_404(MovieSession, id=session_id)
+    BOOKING_FEE = 3
+
+    try:
+        data = json.loads(request.body)
+        selected_seats = data.get('selected_seats', [])
+        action = data.get('action')
+
+        if not selected_seats or not action:
+            return JsonResponse({'status': 'error', 'message': 'Некорректные данные запроса.'}, status=400)
+
+        if action == 'book':
+            ticket_status = Ticket.Status.BOOKED
+            price_per_ticket = BOOKING_FEE
+        elif action == 'buy':
+            ticket_status = Ticket.Status.PAID
+            price_per_ticket = session.price
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Неизвестное действие.'}, status=400)
+
+        with transaction.atomic():
+            # Проверяем, не заняты ли места
+            seat_queries = [Q(row=s.split('-')[0], seat=s.split('-')[1]) for s in selected_seats]
+            combined_query = reduce(operator.or_, seat_queries)
+            if Ticket.objects.filter(session=session).filter(combined_query).exists():
+                return JsonResponse({'status': 'error', 'message': 'Извините, одно или несколько мест уже заняты. Обновите страницу.'}, status=409) # 409 Conflict
+
+            # Создаем билеты
+            tickets_to_create = [
+                Ticket(session=session, user=request.user, row=int(s.split('-')[0]), seat=int(s.split('-')[1]), status=ticket_status, price=price_per_ticket)
+                for s in selected_seats
+            ]
+            Ticket.objects.bulk_create(tickets_to_create)
+
+        return JsonResponse({'status': 'success', 'message': f'Успешно! Билетов: {len(selected_seats)}.'})
+
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Ошибка формата данных.'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': f'Произошла внутренняя ошибка сервера: {e}'}, status=500)
+
+
+# --- API VIEWS ДЛЯ УПРАВЛЕНИЯ ГАЛЕРЕЯМИ (AJAX) ---
+
+@require_POST
+@user_passes_test(is_superuser)
+def gallery_add_slide(request):
+    """
+    Создает новый пустой слайд (объект Image) для указанной галереи.
+    """
+    gallery_id = request.POST.get('gallery_id')
+    if not gallery_id:
+        return JsonResponse({'status': 'error', 'message': 'Gallery ID не указан.'}, status=400)
+
+    try:
+        gallery = Gallery.objects.get(id=gallery_id)
+        # Создаем новый объект Image, связанный с этой галереей
+        new_image = Image.objects.create(gallery=gallery)
+        # Возвращаем данные нового слайда, чтобы JS мог его отрисовать
+        return JsonResponse({
+            'status': 'success',
+            'slide': {
+                'id': new_image.id,
+                'image_url': '',  # URL пока пустой
+            }
+        })
+    except Gallery.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Галерея не найдена.'}, status=404)
+
+
+@require_POST
+@user_passes_test(is_superuser)
+def gallery_delete_slide(request):
+    """
+    Удаляет слайд (объект Image) по его ID.
+    """
+    slide_id = request.POST.get('slide_id')
+    if not slide_id:
+        return JsonResponse({'status': 'error', 'message': 'Slide ID не указан.'}, status=400)
+
+    try:
+        image_to_delete = Image.objects.get(id=slide_id)
+        image_to_delete.delete()  # Django позаботится об удалении файла
+        return JsonResponse({'status': 'success', 'message': 'Слайд удален.'})
+    except Image.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Слайд не найден.'}, status=404)
 

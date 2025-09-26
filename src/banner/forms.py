@@ -1,29 +1,59 @@
 from django import forms
 from .models import HomeBanner, BackgroundBanner, HomeNewsSharesBanner
-from src.core.models import Gallery, Image
+from src.core.models import Image, Gallery
+
 
 class HomeBannerSlideForm(forms.ModelForm):
+    upload_image = forms.ImageField(required=False, label="Загрузить новое изображение")
+
     class Meta:
         model = HomeBanner
-        fields = ["url_banner", "text_banner", "gallery_banner"]
-
-    image = forms.ImageField(required=False)
+        fields = ["url_banner", "text_banner"]
 
     def save(self, commit=True):
         banner = super().save(commit=False)
+        new_image_file = self.cleaned_data.get("upload_image")
+
+        if new_image_file:
+            # Получаем или создаем "якорную" галерею для всех слайдов HomeBanner
+            home_gallery, _ = Gallery.objects.get_or_create(name_gallery='Home Banner Images')
+
+            # Создаем новый объект Image, СРАЗУ указывая, к какой галерее он принадлежит
+            new_image_obj = Image.objects.create(
+                image=new_image_file,
+                gallery=home_gallery  # <--- ИСПРАВЛЕНО
+            )
+            banner.image = new_image_obj
 
         if commit:
             banner.save()
+        return banner
 
-        # если загружена новая картинка
-        if self.cleaned_data.get("image"):
-            img = Image.objects.create(image=self.cleaned_data["image"])
-            if not banner.gallery_banner:
-                gallery = Gallery.objects.create(name_gallery=f"banner_{banner.pk}_gallery")
-                banner.gallery_banner = gallery
-                banner.save(update_fields=["gallery_banner"])
-            banner.gallery_banner.image_set.add(img)
 
+class NewsSharesBannerForm(forms.ModelForm):
+    upload_image = forms.ImageField(required=False, label="Загрузить новое изображение")
+
+    class Meta:
+        model = HomeNewsSharesBanner
+        fields = ["url_banner"]
+
+    def save(self, commit=True):
+        banner = super().save(commit=False)
+        new_image_file = self.cleaned_data.get("upload_image")
+
+        if new_image_file:
+            # Получаем или создаем "якорную" галерею для всех слайдов News
+            news_gallery, _ = Gallery.objects.get_or_create(name_gallery='News Banner Images')
+
+            # Создаем новый объект Image, СРАЗУ указывая, к какой галерее он принадлежит
+            new_image_obj = Image.objects.create(
+                image=new_image_file,
+                gallery=news_gallery  # <--- ИСПРАВЛЕНО
+            )
+            banner.image = new_image_obj
+
+        if commit:
+            banner.save()
         return banner
 
 class BackgroundForm(forms.ModelForm):
@@ -58,29 +88,4 @@ class BackgroundForm(forms.ModelForm):
 
         if commit:
             banner.save()
-        return banner
-
-
-class NewsSharesBannerForm(forms.ModelForm):
-    class Meta:
-        model = HomeNewsSharesBanner
-        fields = ["url_banner", "gallery_banner"]
-
-    image = forms.ImageField(required=False)
-
-    def save(self, commit=True):
-        banner = super().save(commit=False)
-
-        if commit:
-            banner.save()
-
-        # если загружена новая картинка
-        if self.cleaned_data.get("image"):
-            img = Image.objects.create(image=self.cleaned_data["image"])
-            if not banner.gallery_banner:
-                gallery = Gallery.objects.create(name_gallery=f"banner_{banner.pk}")
-                banner.gallery_banner = gallery
-                banner.save(update_fields=["gallery_banner"])
-            banner.gallery_banner.image_set.add(img)
-
         return banner
