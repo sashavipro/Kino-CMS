@@ -1,0 +1,91 @@
+# docker-compose.yml
+
+version: '3.9'
+
+services:
+  # 1. Сервис Базы Данных (PostgreSQL)
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    restart: always
+
+  # 2. Сервис Redis
+  redis:
+    image: redis:7-alpine
+    restart: always
+
+  # 3. Сервис Django (назовем его 'web')
+  web:
+    build: .
+    command: sh /app/entrypoint.sh # Будем запускать через скрипт
+    volumes:
+      - .:/app
+      - static_volume:/app/static_volume
+      - media_volume:/app/media_volume
+    ports:
+      - "8000:8000"
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=db # <-- Указываем имя сервиса БД
+      - DB_PORT=${DB_PORT}
+      - CELERY_BROKER_URL=redis://redis:6379/0 # <-- Указываем имя сервиса Redis
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_USE_TLS=${EMAIL_USE_TLS}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+    depends_on:
+      - db
+      - redis
+    restart: on-failure
+
+  # 4. Сервис Celery Worker
+  celery:
+    build: .
+    command: celery -A Config worker -l info
+    volumes:
+      - .:/app
+      - media_volume:/app/media_volume
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=db
+      - DB_PORT=${DB_PORT}
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - EMAIL_HOST=${EMAIL_HOST}
+      # ... (остальные переменные окружения, как у 'web')
+    depends_on:
+      - web
+      - redis
+    restart: on-failure
+
+  # 5. Сервис Nginx
+  nginx:
+    image: nginx:1.25-alpine
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - static_volume:/app/static_volume
+      - media_volume:/app/media_volume
+    ports:
+      - "80:80" # <-- Теперь сайт будет доступен на порту 80
+    depends_on:
+      - web
+    restart: always
+
+# Определяем "тома" (volumes) для персистентного хранения данных
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:

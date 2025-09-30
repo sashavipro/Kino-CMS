@@ -95,8 +95,8 @@ DATABASES = {
         'NAME': env("DB_NAME"),
         'USER': env("DB_USER"),
         'PASSWORD': env("DB_PASSWORD"),
-        'HOST': env("DB_HOST", default="localhost"),
-        'PORT': env("DB_PORT", default="5432"),
+        'HOST': env("DB_HOST"),
+        'PORT': env("DB_PORT"),
     }
 }
 
@@ -145,12 +145,16 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / "static_volume" # <-- Папка для collectstatic внутри контейнера
 
 STATICFILES_DIRS = [
-    # BASE_DIR / "src/core/static",
-    # BASE_DIR / "src/users/static",
       BASE_DIR / "static",
 ]
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / "media_volume"
+
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -163,13 +167,9 @@ LOGIN_URL = 'users:login'
 
 AUTH_USER_MODEL = 'users.CustomUser'
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-
 
 # --- CELERY SETTINGS ---
-# Убедитесь, что у вас запущен сервер Redis (по умолчанию на порту 6379)
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_BROKER_URL = env('CELERY_BROKER_URL')
 CELERY_RESULT_BACKEND = 'django-db' # Будем хранить результаты в БД Django
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
