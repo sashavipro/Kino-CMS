@@ -8,10 +8,8 @@ services:
     image: postgres:15-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data/
-    environment:
-      - POSTGRES_DB=${DB_NAME}
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    env_file:
+      - .env
     restart: always
 
   # 2. Сервис Redis
@@ -29,20 +27,8 @@ services:
       - media_volume:/app/media_volume
     ports:
       - "8000:8000"
-    environment:
-      - SECRET_KEY=${SECRET_KEY}
-      - DEBUG=${DEBUG}
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_HOST=db # <-- Указываем имя сервиса БД
-      - DB_PORT=${DB_PORT}
-      - CELERY_BROKER_URL=redis://redis:6379/0 # <-- Указываем имя сервиса Redis
-      - EMAIL_HOST=${EMAIL_HOST}
-      - EMAIL_PORT=${EMAIL_PORT}
-      - EMAIL_USE_TLS=${EMAIL_USE_TLS}
-      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
-      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+    env_file:
+      - .env
     depends_on:
       - db
       - redis
@@ -55,17 +41,8 @@ services:
     volumes:
       - .:/app
       - media_volume:/app/media_volume
-    environment:
-      - SECRET_KEY=${SECRET_KEY}
-      - DEBUG=${DEBUG}
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_HOST=db
-      - DB_PORT=${DB_PORT}
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - EMAIL_HOST=${EMAIL_HOST}
-      # ... (остальные переменные окружения, как у 'web')
+    env_file:
+      - .env
     depends_on:
       - web
       - redis
