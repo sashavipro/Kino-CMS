@@ -4,20 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9b21c351-83b9-4d5d-8ff4-be87719ca970" name="Changes" comment="code changes #24 - migrate">
-      <change afterPath="$PROJECT_DIR$/src/users/templates/users/auth/layout_users.html" afterDir="false" />
+    <list default="true" id="9b21c351-83b9-4d5d-8ff4-be87719ca970" name="Changes" comment="code changes #25 - front">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Config/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/Config/settings.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/entrypoint.sh" beforeDir="false" afterPath="$PROJECT_DIR$/entrypoint.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/banner/migrations/0001_initial.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/cinema/migrations/0001_initial.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/cinema/migrations/0002_initial.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/core/migrations/0001_initial.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/page/migrations/0001_initial.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/users/migrations/0001_initial.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/users/templates/users/auth/login.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/users/templates/users/auth/login.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/users/templates/users/auth/registration.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/users/templates/users/auth/registration.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -265,6 +254,7 @@
       <workItem from="1759145497187" duration="8185000" />
       <workItem from="1759219849784" duration="641000" />
       <workItem from="1759220692194" duration="7928000" />
+      <workItem from="1759390162323" duration="3562000" />
     </task>
     <task id="LOCAL-00001" summary="code changes #2">
       <option name="closed" value="true" />
@@ -410,7 +400,15 @@
       <option name="project" value="LOCAL" />
       <updated>1758891014512</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="code changes #25 - front">
+      <option name="closed" value="true" />
+      <created>1759390679602</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1759390679602</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="TerminalProjectNonSharedOptionsProvider">
@@ -460,6 +458,7 @@
     <MESSAGE value="code changes #17 - mailing(all users and selectively)" />
     <MESSAGE value="code changes #18 - schedule, ticket, ticket_reservation and generate_schedule.py + create_test_users.py" />
     <MESSAGE value="code changes #19 - make file;&#10;&#10;poster, buy button redirects to schedule with movie filter;&#10;&#10;the hall and cinema page shows a list of today's screenings;&#10;&#10;sent a request via Ajax to view the hall;&#10;&#10;modal window;" />
-    <option name="LAST_COMMIT_MESSAGE" value="code changes #19 - make file;&#10;&#10;poster, buy button redirects to schedule with movie filter;&#10;&#10;the hall and cinema page shows a list of today's screenings;&#10;&#10;sent a request via Ajax to view the hall;&#10;&#10;modal window;" />
+    <MESSAGE value="code changes #25 - front" />
+    <option name="LAST_COMMIT_MESSAGE" value="code changes #25 - front" />
   </component>
 </project>

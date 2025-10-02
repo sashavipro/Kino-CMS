@@ -41,6 +41,7 @@ services:
   celery:
     build: .
     command: celery -A Config worker -l info
+    stop_signal: SIGKILL
     volumes:
       - .:/app
       - media_volume:/app/media_volume
