@@ -1,47 +1,56 @@
+{% extends 'users/auth/layout_users.html' %}
 {% load static %}
 {% block title %}Registration{% endblock %}
+
+{% block cssstyle %}
+
+{% endblock %}
 {% block content %}
 
-<div class="container my-5" style="max-width: 500px;">
-    <div class="card shadow-sm mb-4">
-        <!-- Форма Регистрации -->
-        <div class="card shadow-sm">
-            <div class="card-header bg-success text-white">Registration</div>
-            <div class="card-body">
-                <form method="POST">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="username" class="form-label">Login</label>
-                        <input type="text" name="username" id="username" class="input-register form-control" placeholder="Your username" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" name="email" id="email" class="input-register form-control" placeholder="Your email" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" name="password1" id="password" class="input-register form-control" placeholder="Your password" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="confirm_password" class="form-label">Confirm password</label>
-                        <input type="password" name="password2" id="confirm_password" class="input-register form-control" placeholder="Confirm your password" required>
-                    </div>
-
-                    <button type="submit" class="btn btn-success w-100">Registration</button>
-
-                    {% if errors %}
-                        <div class="alert alert-danger mt-3">
-                            {% for error in errors %}
-                                <p class="mb-0">{{ error }}</p>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </form>
-            </div>
-        </div>
+<div class="d-flex align-items-center justify-content-center min-vh-100 bg-light">
+  <div class="card shadow-sm p-4" style="width: 100%; max-width: 400px;">
+    <!-- Логотип -->
+    <div class="text-center mb-4">
+      <img src="chrome://branding/content/about-logo.png" class="rounded-circle" alt="Логотип" height="80" width="80">
     </div>
+
+    <!-- Заголовок -->
+    <h3 class="text-center mb-3">Бесплатная регистрация</h3>
+    <p class="text-muted text-center mb-4">Присоединяйтесь к нашему киноклубу!</p>
+
+    <!-- Форма -->
+    <form method="POST">
+      {% csrf_token %}
+      <div class="mb-3">
+        <input type="text" name="username" class="form-control" placeholder="Ваш логин" required>
+      </div>
+      <div class="mb-3">
+        <input type="email" name="email" class="form-control" placeholder="Ваш email" required>
+      </div>
+      <div class="row g-2">
+        <div class="col-md-6">
+          <input type="password" name="password1" class="form-control" placeholder="Пароль" required>
+        </div>
+        <div class="col-md-6">
+          <input type="password" name="password2" class="form-control" placeholder="Подтвердите пароль" required>
+        </div>
+      </div>
+      <div class="d-grid mt-3">
+        <button type="submit" class="btn btn-danger">Создать аккаунт</button>
+      </div>
+    </form>
+
+    {% if errors %}
+      <div class="alert alert-danger mt-3 py-2 small">
+        {% for error in errors %}
+          <div>{{ error }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="text-center mt-3">
+      Уже есть аккаунт? <a href="{% url 'users:login' %}" class="text-danger fw-bold">Войти</a>
+    </div>
+  </div>
 </div>
 {% endblock %}

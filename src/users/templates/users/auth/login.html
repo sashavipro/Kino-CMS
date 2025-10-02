@@ -1,30 +1,45 @@
+{% extends 'users/auth/layout_users.html' %}
 {% load static %}
 {% block title %}Login{% endblock %}
+
+{% block cssstyle %}
+{% endblock %}
+
 {% block content %}
-<div class="container my-5" style="max-width: 500px;">
-    <!-- Форма Логина -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-primary text-white">Log In</div>
-        <div class="card-body">
-            <form method="POST">
-                {% csrf_token %}
-                <div class="mb-3">
-                    <label for="username" class="form-label">Login</label>
-                    <input type="text" name="username" id="username" class="input-register form-control" placeholder="Your username" autofocus required>
-                </div>
-
-                <div class="mb-3">
-                    <label for="password" class="form-label">Password</label>
-                    <input type="password" name="password" id="password" class="input-register form-control" placeholder="Your password" required>
-                </div>
-
-                <button type="submit" class="btn btn-primary w-100">Log In</button>
-
-                {% if error %}
-                    <div class="alert alert-danger mt-3">{{ error }}</div>
-                {% endif %}
-            </form>
-        </div>
+<div class="d-flex align-items-center justify-content-center min-vh-100 bg-light">
+  <div class="card shadow-sm p-4" style="width: 100%; max-width: 400px;">
+    <!-- Логотип -->
+    <div class="text-center mb-4">
+      <img src="chrome://branding/content/about-logo.png" class="rounded-circle" alt="Логотип" height="80" width="80">
     </div>
+
+    <!-- Заголовок -->
+    <h3 class="text-center mb-3">Вход в аккаунт</h3>
+    <p class="text-muted text-center mb-4">Добро пожаловать обратно!</p>
+
+    <!-- Форма -->
+    <form method="POST">
+      {% csrf_token %}
+      <div class="mb-3">
+        <input type="text" name="username" class="form-control" placeholder="Ваш логин" required autofocus>
+      </div>
+      <div class="mb-3">
+        <input type="password" name="password" class="form-control" placeholder="Пароль" required>
+      </div>
+      <div class="d-grid">
+        <button type="submit" class="btn btn-danger">Войти</button>
+      </div>
+    </form>
+
+    {% if error %}
+      <div class="alert alert-danger mt-3 py-2 small">
+        {{ error }}
+      </div>
+    {% endif %}
+
+    <div class="text-center mt-3">
+      Нет аккаунта? <a href="{% url 'users:registration' %}" class="text-danger fw-bold">Зарегистрироваться</a>
+    </div>
+  </div>
 </div>
 {% endblock%}

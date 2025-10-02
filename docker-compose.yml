@@ -8,6 +8,7 @@ services:
     image: postgres:15-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+      - ./backup.sql:/docker-entrypoint-initdb.d/backup.sql
     env_file:
       - .env
     restart: always
@@ -29,6 +30,8 @@ services:
       - "8000:8000"
     env_file:
       - .env
+    environment:
+      - PYTHONPATH=/app/src
     depends_on:
       - db
       - redis
@@ -43,6 +46,8 @@ services:
       - media_volume:/app/media_volume
     env_file:
       - .env
+    environment:
+      - PYTHONPATH=/app/src
     depends_on:
       - web
       - redis

@@ -13,12 +13,15 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import environ
 import os
+import sys
 
 env = environ.Env(
     DEBUG=(bool, False)
 )
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+SRC_DIR = BASE_DIR / 'src'
+sys.path.insert(0, str(SRC_DIR))
 
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
@@ -29,7 +32,7 @@ environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = env.bool('DEBUG', default=False)
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 
@@ -43,11 +46,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'src.core.apps.CoreConfig',  # CORE
-    'src.users.apps.UsersConfig',  # USERS
-    'src.page.apps.PageConfig',  # PAGE
-    'src.cinema.apps.CinemaConfig',  # CINEMA
-    'src.banner.apps.BannerConfig',  # banner
+    'core.apps.CoreConfig',
+    'users.apps.UsersConfig',
+    'page.apps.PageConfig',
+    'cinema.apps.CinemaConfig',
+    'banner.apps.BannerConfig',
     'django_celery_results',
 
 ]
@@ -57,8 +60,6 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -70,7 +71,7 @@ ROOT_URLCONF = 'Config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -145,10 +146,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / "static_volume" # <-- Папка для collectstatic внутри контейнера
+STATIC_ROOT = BASE_DIR / "static_volume"
 
 STATICFILES_DIRS = [
-      BASE_DIR / "static",
+      # BASE_DIR / "static",
 ]
 
 MEDIA_URL = '/media/'

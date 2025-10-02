@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Ожидаем, пока PostgreSQL будет готов принимать соединения
+# Ожидаем, пока PostgreSQL будет готов
 echo "Waiting for postgres..."
 while ! nc -z db 5432; do
   sleep 0.1
@@ -9,7 +9,7 @@ echo "PostgreSQL started"
 
 # Применяем миграции
 echo "Applying database migrations..."
-python manage.py migrate
+python manage.py migrate --fake
 
 # Собираем статику
 echo "Collecting static files..."
