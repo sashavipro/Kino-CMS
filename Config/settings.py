@@ -187,5 +187,5 @@ EMAIL_PORT = env.int('EMAIL_PORT')  # Используем env.int() для чи
 EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS')  # Используем env.bool() для True/False
 EMAIL_HOST_USER = env('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER  # Письма будут приходить от имени вашего аккаунта
+DEFAULT_FROM_EMAIL = env('EMAIL_HOST_USER_VISIBLE')  # Письма будут приходить от имени вашего аккаунта
 
