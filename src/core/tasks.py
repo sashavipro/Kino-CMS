@@ -7,7 +7,7 @@ from django.utils import timezone
 from src.users.models import CustomUser
 from .models import MailingCampaign
 
-@shared_task(bind=True)
+@shared_task(bind=True, autoretry_for=(Exception,), retry_kwargs={'max_retries': 3, 'countdown': 5})
 def send_mailing_task(self, campaign_id):
     """
     Задача Celery, которая получает ID кампании и выполняет рассылку,
@@ -84,5 +84,5 @@ def send_mailing_task(self, campaign_id):
         if 'campaign' in locals():
             campaign.status = MailingCampaign.Status.FAILED
             campaign.save()
-        print(f"Критическая ошибка в задаче рассылки: {e}")
+        print(f"Критическая ошибка в задаче рассылки (попытки исчерпаны):  {e}")
         raise e
